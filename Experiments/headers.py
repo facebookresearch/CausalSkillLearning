@@ -12,8 +12,12 @@ import matplotlib.pyplot as plt
 import tensorboardX
 from scipy import stats
 from absl import flags
+from memory_profiler import profile
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 from IPython import embed
 import pdb
+import sklearn.manifold as skl_manifold
+from matplotlib.offsetbox import (TextArea, DrawingArea, OffsetImage,
+                                  AnnotationBbox)

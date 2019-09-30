@@ -397,6 +397,7 @@ class PolicyManager():
 		latent_z_indices, latent_b, variational_b_logprobabilities, variational_z_logprobabilities,\
 		variational_b_probabilities, variational_z_probabilities = self.variational_policy.forward(torch.tensor(old_concatenated_traj).cuda().float(), self.epsilon)
 
+		embed()
 		# # USE "EXPERT" SAMPLING: 
 		# if self.args.expert:		
 		# 	expert_sample = torch.randint(0,2,(len(latent_z_indices),))

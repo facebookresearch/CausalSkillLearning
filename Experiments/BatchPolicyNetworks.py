@@ -15,7 +15,7 @@ class PolicyNetwork_BaseClass(torch.nn.Module):
 
 	def select_greedy_action(self, action_probabilities):
 		# Select action with max probability for test time. 
-		return action_probabilities.argmax()
+		return action_probabilities.argmax(dim=-1)
 
 	def select_epsilon_greedy_action(self, action_probabilities):
 		epsilon = 0.1
@@ -32,7 +32,7 @@ class PolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
 
-	def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4):
+	def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4, batch_size=1):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		super(PolicyNetwork, self).__init__()
@@ -41,6 +41,7 @@ class PolicyNetwork(PolicyNetwork_BaseClass):
 		self.hidden_size = hidden_size
 		self.output_size = output_size
 		self.num_layers = number_layers
+		self.batch_size = batch_size
 		
 		# Create LSTM Network. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers)
@@ -55,9 +56,9 @@ class PolicyNetwork(PolicyNetwork_BaseClass):
 		# The argument hidden_input here is the initial hidden state we want to feed to the LSTM. 				
 		# Assume inputs is the trajectory sequence.
 
-		# Input Format must be: Sequence_Length x 1 x Input_Size. 
+		# Input Format must be: Sequence_Length x Batch_Size x Input_Size. 
 
-		format_input = torch.tensor(input).view(input.shape[0],1,self.input_size).float().cuda()
+		format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
 		outputs, hidden = self.lstm(format_input)
 
 		# Takes softmax of last output. 
@@ -81,7 +82,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
 
-	def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4):
+	def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4, batch_size=1):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		# super().__init__()
@@ -93,7 +94,8 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		# This is output_size*2. 
 		self.output_size = output_size
 		self.num_layers = number_layers
-		
+		self.batch_size = batch_size
+
 		# Create LSTM Network. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers)		
 
@@ -107,10 +109,11 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 	def forward(self, input, action_sequence):
 		# Input is the trajectory sequence of shape: Sequence_Length x 1 x Input_Size. 
 		# Here, we also need the continuous actions as input to evaluate their logprobability / probability. 		
-		format_input = torch.tensor(input).view(input.shape[0],1,self.input_size).float().cuda()
-
+		# format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
+		format_input = torch.tensor(input).view(self.batch_size, input.shape[1], self.input_size).float().cuda()
 		hidden = None
-		format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
+		# format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
+		format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(self.batch_size, action_sequence.shape[1] ,self.output_size)
 		lstm_outputs, hidden = self.lstm(format_input)
 
 
@@ -139,7 +142,7 @@ class LatentPolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module.
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
 
-	def __init__(self, input_size, hidden_size, number_subpolicies, number_layers=4, b_exploration_bias=0.):
+	def __init__(self, input_size, hidden_size, number_subpolicies, number_layers=4, b_exploration_bias=0., batch_size=1):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		# super().__init__()
@@ -153,6 +156,7 @@ class LatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.output_size = number_subpolicies
 		self.num_layers = number_layers
 		self.b_exploration_bias = b_exploration_bias
+		self.batch_size = batch_size
 
 		# Define LSTM. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
@@ -174,7 +178,8 @@ class LatentPolicyNetwork(PolicyNetwork_BaseClass):
 	
 	def forward(self, input):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
-		format_input = torch.tensor(input).view(input.shape[0],1,self.input_size).float().cuda()
+		# format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
+		format_input = torch.tensor(input).view(self.batch_size, input.shape[1], self.input_size).float().cuda()
 		hidden = None
 		outputs, hidden = self.lstm(format_input)
 
@@ -194,7 +199,7 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
 
-	def __init__(self, input_size, hidden_size, number_subpolicies, number_layers=4, z_exploration_bias=0., b_exploration_bias=0.):
+	def __init__(self, input_size, hidden_size, number_subpolicies, number_layers=4, z_exploration_bias=0., b_exploration_bias=0.,  batch_size=1):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		# super().__init__()
@@ -207,6 +212,7 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		self.num_layers = number_layers	
 		self.z_exploration_bias = z_exploration_bias
 		self.b_exploration_bias = b_exploration_bias
+		self.batch_size = batch_size
 
 		# Define a bidirectional LSTM now.
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers, bidirectional=True)
@@ -233,7 +239,7 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 
 	def forward(self, input, epsilon):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
-		format_input = torch.tensor(input).view(input.shape[0],1,self.input_size).float().cuda()
+		format_input = torch.tensor(input).view(self.batch_size, input.shape[1], self.input_size).float().cuda()
 		hidden = None
 		outputs, hidden = self.lstm(format_input)
 
@@ -276,7 +282,8 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# Sample an array of binary variables of size = batch size. 
 		# For each, use greedy or ... 
 
-		whether_greedy = torch.rand(action_probabilities.shape[0]).cuda()
+		# Instead of using action_probabilities.shape[0], we need whether_greedy to be same shape as action_probabilities.shape[:2].
+		whether_greedy = torch.rand(action_probabilities.shape[:2]).cuda()
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
@@ -290,7 +297,7 @@ class EncoderNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
 
-	def __init__(self, input_size, hidden_size, output_size, number_subpolicies=4):
+	def __init__(self, input_size, hidden_size, output_size, number_subpolicies=4, batch_size=1):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		super(EncoderNetwork, self).__init__()
@@ -300,6 +307,7 @@ class EncoderNetwork(PolicyNetwork_BaseClass):
 		self.output_size = output_size
 		self.number_subpolicies = number_subpolicies
 		self.num_layers = 5
+		self.batch_size = batch_size
 
 		# Define a bidirectional LSTM now.
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers, bidirectional=True)
@@ -320,7 +328,7 @@ class EncoderNetwork(PolicyNetwork_BaseClass):
 	def forward(self, input):
 		# Input format must be: Sequence_Length x 1 x Input_Size. 
 		# Assuming input is a numpy array. 		
-		format_input = torch.tensor(input).view(input.shape[0],1,self.input_size).float().cuda()
+		format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
 		
 		# Instead of iterating over time and passing each timestep's input to the LSTM, we can now just pass the entire input sequence.
 		outputs, hidden = self.lstm(format_input)
