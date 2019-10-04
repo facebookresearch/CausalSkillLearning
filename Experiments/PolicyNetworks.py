@@ -173,7 +173,35 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 			# to evaluate this distribution (instance)'s log probability with the same sequence length. 
 			dist = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
 
-			return dist.sample()		
+			return dist.sample()
+
+	def get_regularization_kl(self, input_z1, input_z2):
+		# Input is the trajectory sequence of shape: Sequence_Length x 1 x Input_Size. 
+		# Here, we also need the continuous actions as input to evaluate their logprobability / probability. 		
+		format_input_z1 = torch.tensor(input_z1).view(input_z1.shape[0], self.batch_size, self.input_size).float().cuda()
+		format_input_z2 = torch.tensor(input_z2).view(input_z2.shape[0], self.batch_size, self.input_size).float().cuda()
+
+		hidden = None
+		# format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
+		lstm_outputs_z1, _ = self.lstm(format_input_z1)
+		lstm_outputs_z2, _ = self.lstm(format_input_z2)
+
+		# Predict Gaussian means and variances. 
+		if self.args.mean_nonlinearity:
+			mean_outputs_z1 = self.activation_layer(self.mean_output_layer(lstm_outputs_z1))
+			mean_outputs_z2 = self.activation_layer(self.mean_output_layer(lstm_outputs_z2))
+		else:
+			mean_outputs_z1 = self.mean_output_layer(lstm_outputs_z1)
+			mean_outputs_z2 = self.mean_output_layer(lstm_outputs_z2)
+		variance_outputs_z1 = self.softplus_activation_layer(self.variances_output_layer(lstm_outputs_z1))
+		variance_outputs_z2 = self.softplus_activation_layer(self.variances_output_layer(lstm_outputs_z2))
+
+		dist_z1 = torch.distributions.MultivariateNormal(mean_outputs_z1, torch.diag_embed(variance_outputs_z1))
+		dist_z2 = torch.distributions.MultivariateNormal(mean_outputs_z2, torch.diag_embed(variance_outputs_z2))
+
+		kl_divergence = torch.distributions.kl_divergence(dist_z1, dist_z2)
+
+		return kl_divergence
 
 class LatentPolicyNetwork(PolicyNetwork_BaseClass):
 
@@ -408,7 +436,7 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		sample_b = self.select_epsilon_greedy_action(termination_output_layer, epsilon)
 		return sample_z, sample_b
 
-	def forward(self, input, epsilon, new_z_selection=False):
+	def forward(self, input, epsilon, new_z_selection=True):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
 		format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
 		hidden = None
@@ -577,7 +605,6 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# Also compute logprobabilities of the latent_z's sampled from this net. 
 		variational_z_logprobabilities = self.dists.log_prob(sampled_z_index.unsqueeze(1))
 		variational_z_probabilities = None
-
 
 		# Set standard distribution for KL. 
 		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
