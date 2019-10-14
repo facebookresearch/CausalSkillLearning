@@ -94,8 +94,12 @@ class PolicyManager():
 		# These are loss functions. You still instantiate the loss function every time you evaluate it on some particular data. 
 		# When you instantiate it, you call backward on that instantiation. That's why you know what loss to optimize when computing gradients. 		
 
-		self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
-		self.encoder_optimizer = torch.optim.Adam(self.encoder_network.parameters(), lr=self.learning_rate)
+		if self.args.reparam:
+			parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
+			self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
+		else:
+			self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
+			self.encoder_optimizer = torch.optim.Adam(self.encoder_network.parameters(), lr=self.learning_rate)
 
 	def setup(self):
 		self.create_networks()
@@ -129,7 +133,7 @@ class PolicyManager():
 				os.mkdir(logdir)
 			self.writer = tensorboardX.SummaryWriter(logdir)
 		else:
-			self.writer = tensorboardX.SummaryWriter()
+			self.writer = tensorboardX.SummaryWriter()		
 
 	def set_epoch(self, counter):
 		if counter<self.decay_counter:
@@ -157,16 +161,16 @@ class PolicyManager():
 
 	# def update_plots(self, counter, sample_map, loglikelihood):
 	def update_plots(self, counter, loglikelihood, sample_traj):		
-	
-		self.writer.add_scalar('Baseline', self.baseline.sum(), counter)
-
+		
 		self.writer.add_scalar('Subpolicy Likelihood', loglikelihood.sum(), counter)
-		self.writer.add_scalar('Encoder Loss', self.encoder_loss.sum(), counter)
+		self.writer.add_scalar('Total Loss', self.total_loss.sum(), counter)
 		self.writer.add_scalar('Encoder KL', self.encoder_KL.sum(), counter)
 
-		self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
-		self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
-		self.writer.add_scalar('Total Loss', self.total_loss.sum(), counter)
+		if not(self.args.reparam):
+			self.writer.add_scalar('Baseline', self.baseline.sum(), counter)
+			self.writer.add_scalar('Encoder Loss', self.encoder_loss.sum(), counter)
+			self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
+			self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
 		if self.args.regularize_pretraining:
 			self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
@@ -286,10 +290,16 @@ class PolicyManager():
 	def construct_dummy_latents(self, latent_z):
 
 		if self.args.discrete_z:
-
 			latent_z_indices = latent_z.float()*torch.ones((self.traj_length)).cuda().float()
 		else:
-			latent_z_indices = latent_z.squeeze(0)*torch.ones((self.traj_length, self.latent_z_dimensionality)).cuda()
+
+			# if self.args.reparam:			
+			# 	latent_z_indices = torch.cat([latent_z.squeeze(0).clone() for i in range(self.traj_length)],dim=0)
+			# else:				
+			# 	latent_z_indices = latent_z.squeeze(0)*torch.ones((self.traj_length, self.latent_z_dimensionality)).cuda()
+			
+			# This construction should work irrespective of reparam or not.
+			latent_z_indices = torch.cat([latent_z.squeeze(0) for i in range(self.traj_length)],dim=0)
 
 		# Setting latent_b's to 00001. 
 		# This is just a dummy value.
@@ -332,16 +342,15 @@ class PolicyManager():
 		self.reinforce_encoder_loss = self.encoder_loss*(baseline_target-self.baseline)
 		self.total_encoder_loss = (self.reinforce_encoder_loss + self.args.kl_weight*self.encoder_KL).sum()
 
-		embed()
-
 		if self.args.regularize_pretraining:
-			self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/z_distance))).sum()
+			z_epsilon = 0.1
+			self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
 		else:
 			self.regularization_loss = 0.
 
 		self.total_loss = (self.total_encoder_loss + self.subpolicy_loss + self.regularization_loss).sum()
 
-		if self.args.debug:
+		if self.args.debug:			
 			print("Embedding in Update subpolicies.")
 			embed()
 			
@@ -349,6 +358,21 @@ class PolicyManager():
 
 		self.subpolicy_optimizer.step()
 		self.encoder_optimizer.step()
+
+	def update_policies_reparam(self, loglikelihood, latent_z, encoder_KL):
+		self.optimizer.zero_grad()
+
+		self.likelihood_loss = -loglikelihood.sum()
+		self.encoder_KL = encoder_KL.sum()
+
+		self.total_loss = (self.likelihood_loss + self.args.kl_weight*self.encoder_KL).sum()
+		
+		if self.args.debug:
+			print("Embedding in Update subpolicies.")
+			embed()
+
+		self.total_loss.backward()
+		self.optimizer.step()
 
 	def rollout_visuals(self, i, latent_z=None, return_traj=False):
 
@@ -420,6 +444,7 @@ class PolicyManager():
 		subpolicy_inputs[0,:self.state_dim] = start_state
 		subpolicy_inputs[range(1,self.rollout_timesteps),:self.state_dim] = start_state+torch.cumsum(subpolicy_inputs[range(self.rollout_timesteps-1),self.state_dim:self.input_size],dim=0)
 	
+		# Don't feed in epsilon, since it's a rollout, just use the default 0.001.
 		logprobabilities, _ = self.policy_network.forward(subpolicy_inputs, subpolicy_inputs[:,self.state_dim:self.input_size].detach().cpu().numpy())
 
 		# embed()
@@ -445,8 +470,9 @@ class PolicyManager():
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
 
 		############# (1) #############
+		torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
 		# Encode trajectory segment into latent z. 		
-		latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = self.encoder_network.forward(trajectory_segment)
+		latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = self.encoder_network.forward(torch_traj_seg, self.epsilon)
 
 		########## (2) & (3) ##########
 		# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
@@ -454,6 +480,7 @@ class PolicyManager():
 
 		_, subpolicy_inputs, sample_action_seq = self.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
 
+		# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
 		loglikelihoods, _ = self.policy_network.forward(subpolicy_inputs, sample_action_seq)
 		loglikelihood = loglikelihoods[:-1].sum()
 		 
@@ -470,7 +497,9 @@ class PolicyManager():
 			# 	(2) Construct inputs and such.
 			# 	(3) Compute distances, and feed to update_policies.
 			if self.args.regularize_pretraining:
-				alternate_latent_z, _, _, _ = self.encoder_network.forward(trajectory_segment)
+
+
+				alternate_latent_z, _, _, _ = self.encoder_network.forward(torch_traj_seg, self.epsilon)
 
 				alt_latent_z_seq, _ = self.construct_dummy_latents(alternate_latent_z)
 				_, alt_subpolicy_inputs, _ = self.assemble_inputs(trajectory_segment, alt_latent_z_seq, latent_b, sample_action_seq)
@@ -481,7 +510,11 @@ class PolicyManager():
 				regularization_kl = None
 				z_distance = None
 
-			self.update_policies(loglikelihood, latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence, regularization_kl, z_distance)
+			if self.args.reparam:				
+				self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
+			else:
+				self.update_policies(loglikelihood, latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence, regularization_kl, z_distance)
+
 			# Update Plots. 
 			self.update_plots(counter, loglikelihood, trajectory_segment)
 		else:
@@ -623,7 +656,6 @@ class PolicyManager():
 		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
 		likelihoods = np.zeros((self.N, 4))
 
-
 		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
 		for i in range(self.N):
 
@@ -662,6 +694,6 @@ class PolicyManager():
 			plt.scatter(embedded_zs[:,0],embedded_zs[:,1],c=likelihoods[:,j],cmap='jet',vmin=-100,vmax=10)
 			plt.colorbar()
 			# Format with name.
-			plt.savefig("Images/Likelihood_Embedding{1}_{0}.png".format(self.args.name,j))
+			plt.savefig("Images/Likelihood_{0}_Embedding{1}.png".format(self.args.name,j))
 			plt.close()
 		# For all 4 actions, make fake rollout, feed into trajectory, evaluate likelihood. 
