@@ -42,7 +42,7 @@ class PolicyManager():
 			self.output_size = self.state_size
 			self.latent_z_dimensionality = self.args.z_dimensions
 			self.number_layers = 5
-			self.traj_length = 10
+			self.traj_length = self.args.traj_length
 			self.number_epochs = 200
 
 		# Training parameters. 		

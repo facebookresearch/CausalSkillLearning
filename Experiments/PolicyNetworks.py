@@ -552,8 +552,8 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		self.termination_output_layer = torch.nn.Linear(2*self.hidden_size,2)
 
 		# Softmax activation functions for Bernoulli termination probability and latent z selection .
-		self.batch_softmax_layer = torch.nn.Softmax(dim=2)
-		self.batch_logsoftmax_layer = torch.nn.LogSoftmax(dim=2)
+		self.batch_softmax_layer = torch.nn.Softmax(dim=-1)
+		self.batch_logsoftmax_layer = torch.nn.LogSoftmax(dim=-1)
 
 		# Define output layers for the LSTM, and activations for this output layer. 
 		self.mean_output_layer = torch.nn.Linear(2*self.hidden_size,self.output_size)
@@ -569,17 +569,6 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 			
 		self.variance_factor = 0.01
 
-	def sample_latent_variables(self, subpolicy_outputs, termination_output_layer):
-		# Run sampling layers. 
-		sample_z = self.sample_action(subpolicy_outputs)		
-		sample_b = self.sample_action(termination_output_layer)
-		return sample_z, sample_b 
-
-	def sample_latent_variables_epsilon_greedy(self, subpolicy_outputs, termination_output_layer, epsilon):
-		sample_z = self.select_epsilon_greedy_action(subpolicy_outputs, epsilon)
-		sample_b = self.select_epsilon_greedy_action(termination_output_layer, epsilon)
-		return sample_z, sample_b
-
 	def forward(self, input, epsilon, new_z_selection=True):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
@@ -588,25 +577,24 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 
 		# Damping factor for probabilities to prevent washing out of bias. 
 		variational_b_preprobabilities = self.termination_output_layer(outputs)*self.b_probability_factor
+
 		# Add b continuation bias to the continuing option at every timestep. 
 		variational_b_preprobabilities[:,0,0] += self.b_exploration_bias
 		variational_b_probabilities = self.batch_softmax_layer(variational_b_preprobabilities).squeeze(1)		
 		variational_b_logprobabilities = self.batch_logsoftmax_layer(variational_b_preprobabilities).squeeze(1)
 
 		# Predict Gaussian means and variances. 
-		# if self.args.mean_nonlinearity:
-		# 	mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
-		# else:
 		mean_outputs = self.mean_output_layer(outputs)
 		# Still need a softplus activation for variance because needs to be positive. 
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
-		# print("Means:",mean_outputs.detach().cpu().numpy())
-		# print("Variances:",variance_outputs.detach().cpu().numpy())
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
 
-		sampled_b = self.select_epsilon_greedy_action(variational_b_probabilities, epsilon)
+		if self.args.fake_b:
+			sampled_b = torch.ones((input.shape[0])).cuda().int()
+		else:
+			sampled_b = self.select_epsilon_greedy_action(variational_b_probabilities, epsilon)
 
 		if epsilon==0.:
 			sampled_z_index = mean_outputs.squeeze(1)
@@ -689,6 +677,142 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
+
+class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwork):
+	
+	def __init__(self, input_size, hidden_size, z_dimensions, args, number_layers=4):
+
+		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
+		super(ContinuousVariationalPolicyNetwork_BPrior, self).__init__(input_size, hidden_size, z_dimensions, args, number_layers)
+
+	def get_prior_value(self, elapsed_t, skill_time_limit=4, max_limit=5):
+
+		prior_value = torch.zeros((1,2)).cuda().float()
+		# If at or over hard limit.
+		if elapsed_t>=max_limit:
+			prior_value[0,1]=1.
+
+			if self.args.debug:
+				print("At max limit.")
+		# If at or more than typical, less than hard limit:
+		elif elapsed_t>=skill_time_limit:
+			# Random
+			prior_value[0,1]=0. 
+
+			if self.args.debug:
+				print("At typical limit.")
+		# If less than typical. 
+		else:
+			# Continue.
+			prior_value[0,0]=1.
+			if self.args.debug:
+				print("Below limit, continuing")
+
+		if self.args.debug:
+			print("Elapsed:",elapsed_t," Prior:",prior_value)
+
+		return prior_value
+
+	def forward(self, input, epsilon, new_z_selection=True):
+
+		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+		hidden = None
+		outputs, hidden = self.lstm(format_input)
+
+		# Damping factor for probabilities to prevent washing out of bias. 
+		variational_b_preprobabilities = self.termination_output_layer(outputs)*self.b_probability_factor
+
+		# Predict Gaussian means and variances. 
+		mean_outputs = self.mean_output_layer(outputs)
+		# Still need a softplus activation for variance because needs to be positive. 
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
+		# This should be a SET of distributions. 
+		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
+
+		prev_time = 0
+		# Create variables for prior and probs.
+		prior_values = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		sampled_b = torch.zeros(input.shape[0]).cuda().int()
+		sampled_b[0] = 1
+		for t in range(1,input.shape[0]):
+
+			# Compute prior value. 
+			delta_t = t-prev_time
+
+			if self.args.debug:
+				print("##########################")
+				print("Time: ",t, " Prev Time:",prev_time, " Delta T:",delta_t)
+
+			prior_values[t] = self.get_prior_value(delta_t)
+
+			# Construct probabilities.
+			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+			
+			sampled_b[t] = self.select_epsilon_greedy_action(variational_b_probabilities[t:t+1], epsilon)
+
+			if sampled_b[t]==1:
+				prev_time = t				
+
+			if self.args.debug:
+				print("Sampled b:",sampled_b[t])
+
+		if epsilon==0.:
+			sampled_z_index = mean_outputs.squeeze(1)
+		else:
+
+			# Whether to use reparametrization trick to retrieve the latent_z's.
+			if self.args.reparam:
+
+				if self.args.train:
+					noise = torch.randn_like(variance_outputs)
+
+					# Instead of *sampling* the latent z from a distribution, construct using mu + sig * eps (random noise).
+					sampled_z_index = mean_outputs + variance_outputs*noise
+					# Ought to be able to pass gradients through this latent_z now.
+
+					sampled_z_index = sampled_z_index.squeeze(1)
+
+				# If evaluating, greedily get action.
+				else:
+					sampled_z_index = mean_outputs.squeeze(1)
+			else:
+				sampled_z_index = self.dists.sample().squeeze(1)
+		
+		if new_z_selection:
+			# Set initial b to 1. 
+			sampled_b[0] = 1
+
+			# Initial z is already trivially set. 
+			for t in range(1,input.shape[0]):
+				# If b_t==0, just use previous z. 
+				# If b_t==1, sample new z. Here, we've cloned this from sampled_z's, so there's no need to do anything. 
+				if sampled_b[t]==0:
+					sampled_z_index[t] = sampled_z_index[t-1]		
+
+		# Also compute logprobabilities of the latent_z's sampled from this net. 
+		variational_z_logprobabilities = self.dists.log_prob(sampled_z_index.unsqueeze(1))
+		variational_z_probabilities = None
+
+		# Set standard distribution for KL. 
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		# Compute KL.
+		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
+
+		# Prior loglikelihood
+		prior_loglikelihood = standard_distribution.log_prob(sampled_z_index)
+
+		if self.args.debug:
+			print("#################################")
+			print("Embedding in Variational Network.")
+			embed()
+
+		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
+		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
+
 	
 class EncoderNetwork(PolicyNetwork_BaseClass):
 

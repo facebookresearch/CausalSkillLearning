@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from headers import *
-from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork
+from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork
+from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 
 class PolicyManager():
 
@@ -29,6 +30,7 @@ class PolicyManager():
 		self.state_dim = 2
 		self.state_size = 20
 
+		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 200
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
@@ -83,7 +85,10 @@ class PolicyManager():
 			# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).cuda()
 			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.args, self.number_layers).cuda()
 
-			self.variational_policy = ContinuousVariationalPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+			if self.args.b_prior:
+				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+			else:
+				self.variational_policy = ContinuousVariationalPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
 
 	def create_training_ops(self):
 		self.negative_log_likelihood_loss_function = torch.nn.NLLLoss(reduction='none')
@@ -148,8 +153,18 @@ class PolicyManager():
 				self.epsilon = self.initial_epsilon-self.decay_rate*counter
 			else:
 				self.epsilon = self.final_epsilon		
+
+			if counter<self.training_phase_size:
+				self.training_phase=1
+			elif self.training_phase_size<=counter and counter<2*self.training_phase_size:
+				self.training_phase=2
+			else:
+				self.training_phase=3
+
 		else:
 			self.epsilon = 0.
+			self.training_phase=1
+
 			
 	def visualize_trajectory(self, traj):
 
@@ -246,10 +261,16 @@ class PolicyManager():
 			return assembled_inputs, subpolicy_inputs, padded_action_seq
 
 		else:
+
+			if self.training_phase>1:
+				latent_z_copy = torch.tensor(latent_z_indices).cuda()
+			else:
+				latent_z_copy = latent_z_indices
+
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 
 			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1)).cuda()
 			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
-			assembled_inputs[range(1,len(input_trajectory)),self.input_size:-1] = latent_z_indices[:-1]
+			assembled_inputs[range(1,len(input_trajectory)),self.input_size:-1] = latent_z_copy[:-1]
 			assembled_inputs[range(1,len(input_trajectory)),-1] = latent_b[:-1].float()
 
 			# Now assemble inputs for subpolicy.
@@ -348,9 +369,19 @@ class PolicyManager():
 		# Compute Latent policy loglikelihood values. 
 		###########################		
 
+		# Whether to clone assembled_inputs based on the phase of training. 
+		# In phase one it doesn't matter if we use the clone or not, because we never use latent policy loss. 
+		# So just clone anyway. 
+		# For now, ignore phase 3. This prevents gradients from going into the variational policy from the latent policy.		
+		assembled_inputs_copy = assembled_inputs.clone().detach()
+		latent_z_copy = latent_z_indices.clone().detach()
+		# Consideration for later:
+		# if self.training_phase==3:
+		# Don't clone.
+
 		if self.args.discrete_z:
 			# Return discrete probabilities from latent policy network. 
-			latent_z_logprobabilities, latent_b_logprobabilities, latent_b_probabilities, latent_z_probabilities = self.latent_policy.forward(assembled_inputs)
+			latent_z_logprobabilities, latent_b_logprobabilities, latent_b_probabilities, latent_z_probabilities = self.latent_policy.forward(assembled_inputs_copy)
 			# # Selects first option for variable = 1, second option for variable = 0. 
 			
 			# Use this to check if latent_z elements are equal: 
@@ -364,9 +395,9 @@ class PolicyManager():
 
 		else:
 			# If not, we need to evaluate the latent probabilties of latent_z_indices under latent_policy. 
-			latent_b_logprobabilities, latent_b_probabilities, latent_distributions = self.latent_policy.forward(assembled_inputs, self.epsilon)
+			latent_b_logprobabilities, latent_b_probabilities, latent_distributions = self.latent_policy.forward(assembled_inputs_copy, self.epsilon)
 			# Evalute loglikelihood of latent z vectors under the latent policy's distributions. 
-			latent_z_logprobabilities = latent_distributions.log_prob(latent_z_indices.unsqueeze(1))
+			latent_z_logprobabilities = latent_distributions.log_prob(latent_z_copy.unsqueeze(1))
 			# clipped_latent_z_logprobabilities = torch.clamp(latent_z_logprobabilities,min=self.args.latent_clip_value)
 
 			# Multiply logprobabilities by the latent policy ratio.
@@ -395,8 +426,11 @@ class PolicyManager():
 
 		latent_temporal_loglikelihoods = clamped_latent_b_temporal_logprobabilities + clamped_latent_z_temporal_logprobabilities.squeeze(1)
 
-		# temporal_loglikelihoods = learnt_subpolicy_loglikelihoods[:-1].squeeze(1) + self.args.temporal_latentpolicy_ratio*latent_temporal_loglikelihoods
-		temporal_loglikelihoods = learnt_subpolicy_loglikelihoods[:-1].squeeze(1)
+		if self.training_phase==1: 
+			temporal_loglikelihoods = learnt_subpolicy_loglikelihoods[:-1].squeeze(1)
+		elif self.training_phase==2 or self.training_phase==3:
+			# temporal_loglikelihoods = learnt_subpolicy_loglikelihoods[:-1].squeeze(1) + self.args.temporal_latentpolicy_ratio*latent_temporal_loglikelihoods
+			temporal_loglikelihoods = learnt_subpolicy_loglikelihoods[:-1].squeeze(1)
 
 		if self.args.debug:
 			if self.iter%self.args.debug==0:
@@ -458,6 +492,7 @@ class PolicyManager():
 		# MUST ALWAYS COMPUTE:
 		# Compute cross entropies. 
 		# self.variational_b_cross_entropy = self.binary_cross_entropy_loss_function(variational_b_preprobabilities, latent_b)
+
 		self.variational_b_cross_entropy = self.negative_log_likelihood_loss_function(variational_b_logprobabilities[:-1], latent_b[:-1].long())
 		self.variational_b_loss = self.variational_b_cross_entropy
 
@@ -476,7 +511,7 @@ class PolicyManager():
 			# In case of reparameterization, the variational loss that goes to REINFORCE should just be variational_b_loss.
 			self.variational_loss = self.args.var_loss_weight*self.variational_b_loss
 
-		# NOW REINFORCE: MUST ALWAYS COMPUTE, JUST DEPENDS ON WHAT VARIIATIONAL LOSS IS.
+		# NOW REINFORCE: MUST ALWAYS COMPUTE, JUST DEPENDS ON WHAT VARIATIONAL LOSS IS.
  		# Now change variational entropy to flag that decides whether to use KL divergence implementation or entropic implementation of loss. 
 		# The original implementation, i.e. the entropic implementation, uses:
 		# 1) \mathbb{E}_{x, z \sim q(z|x)} \Big[ \nabla_{\omega} \log q(z|x,\omega) \{ \log p(x||z) + \log p(z||x) - \log q(z|x) - 1 \} \Big] 
@@ -536,15 +571,28 @@ class PolicyManager():
 			# Reweight latent loss.
 			self.total_weighted_latent_loss = (self.args.latent_loss_weight*self.total_latent_loss).sum()
 
+			# Should have already done this above.
+			# self.optimizer.zero_grad() 
+
+			################################################
+			# Setting total loss based on phase of training.
+			################################################
+
+			# IF PHASE ONE: 
+			if self.training_phase==1:
+				self.total_loss = self.subpolicy_loss.sum() + self.total_variational_loss.sum() + self.prior_loss.sum()
+			# IF DONE WITH PHASE ONE:
+			elif self.training_phase==2 or self.training_phase==3:
+				self.total_loss = self.subpolicy_loss.sum() + self.total_weighted_latent_loss.sum() + self.total_variational_loss.sum() + self.prior_loss.sum()
+
+			################################################
 			if self.args.debug:
 				if i%self.args.debug==0:
 					print("Embedding in Update Policies")
 					embed()
+			################################################
 
-			# Should have already done this above.
-			# self.optimizer.zero_grad() 
-			self.total_loss = self.subpolicy_loss.sum() + self.total_variational_loss.sum() + self.prior_loss.sum()
-			# self.total_loss = self.subpolicy_loss.sum() + self.total_weighted_latent_loss.sum() + self.total_variational_loss.sum() + self.prior_loss.sum()
+
 			self.total_loss.sum().backward()
 			self.optimizer.step()
 		else:
@@ -715,7 +763,7 @@ class PolicyManager():
 		# 		# Evalute likelihood of latent policy, and subpolicy.
 		# 		# Update policies using likelihoods.		
 
-		self.set_epoch(counter)
+		self.set_epoch(counter)	
 		self.iter = i
 
 		############# (0) #############
@@ -823,6 +871,8 @@ class PolicyManager():
 		self.write_and_close()
 
 	def evaluate(self, model):
+
+		self.set_epoch(0)
 
 		if model:
 			self.load_all_models(model)
