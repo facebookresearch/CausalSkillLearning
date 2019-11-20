@@ -21,3 +21,6 @@ import pdb
 import sklearn.manifold as skl_manifold
 from matplotlib.offsetbox import (TextArea, DrawingArea, OffsetImage,
                                   AnnotationBbox)
+import tensorflow as tf
+import tempfile
+import moviepy.editor as mpy

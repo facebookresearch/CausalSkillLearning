@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, EncoderNetwork, ContinuousEncoderNetwork
+import BaxterVisualizer
 
 class PolicyManager():
 
@@ -24,7 +25,7 @@ class PolicyManager():
 		# Inputs is now states and actions.
 
 		# Model size parameters
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected':
 			self.state_size = 2
 			self.input_size = 2*self.state_size
 			self.hidden_size = 20
@@ -172,8 +173,8 @@ class PolicyManager():
 			self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
 			self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
-		if self.args.regularize_pretraining:
-			self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
+		# if self.args.regularize_pretraining:
+		# 	self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
 
 		if self.args.entropy:
 			self.writer.add_scalar('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
@@ -240,7 +241,7 @@ class PolicyManager():
 
 	def get_trajectory_segment(self, i):
 
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected':
 			# Sample trajectory segment from dataset. 
 			sample_traj, sample_action_seq = self.dataset[i]
 
@@ -259,22 +260,27 @@ class PolicyManager():
 		elif self.args.data=='MIME':
 
 			data_element = self.dataset[i]
+
+			if data_element['is_valid']:
 				
-			# Sample a trajectory length that's valid. 			
-			trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+				# Sample a trajectory length that's valid. 			
+				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
 
-			# Sample random start point.
-			start_timepoint = np.random.randint(0,trajectory.shape[0]-self.traj_length)
-			end_timepoint = start_timepoint + self.traj_length
+				# Sample random start point.
+				start_timepoint = np.random.randint(0,trajectory.shape[0]-self.traj_length)
+				end_timepoint = start_timepoint + self.traj_length
 
-			# Get trajectory segment and actions. 
-			trajectory = trajectory[start_timepoint:end_timepoint]
-			action_sequence = np.diff(trajectory,axis=0)
+				# Get trajectory segment and actions. 
+				trajectory = trajectory[start_timepoint:end_timepoint]
+				action_sequence = np.diff(trajectory,axis=0)
 
-			# Concatenate
-			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
+				# Concatenate
+				concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 
-			return concatenated_traj, action_sequence, trajectory
+				return concatenated_traj, action_sequence, trajectory
+
+			else:
+				return None, None, None
 
 	def get_test_trajectory_segment(self, i):
 		sample_traj = np.zeros((5,2))
@@ -342,11 +348,11 @@ class PolicyManager():
 		self.reinforce_encoder_loss = self.encoder_loss*(baseline_target-self.baseline)
 		self.total_encoder_loss = (self.reinforce_encoder_loss + self.args.kl_weight*self.encoder_KL).sum()
 
-		if self.args.regularize_pretraining:
-			z_epsilon = 0.1
-			self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
-		else:
-			self.regularization_loss = 0.
+		# if self.args.regularize_pretraining:
+		# 	z_epsilon = 0.1
+		# 	self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
+		# else:
+		self.regularization_loss = 0.
 
 		self.total_loss = (self.total_encoder_loss + self.subpolicy_loss + self.regularization_loss).sum()
 
@@ -469,68 +475,60 @@ class PolicyManager():
 		else:
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
 
-		############# (1) #############
-		torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
-		# Encode trajectory segment into latent z. 		
-		latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = self.encoder_network.forward(torch_traj_seg, self.epsilon)
+		if trajectory_segment is not None:
+			############# (1) #############
+			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
+			# Encode trajectory segment into latent z. 		
+			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = self.encoder_network.forward(torch_traj_seg, self.epsilon)
 
-		########## (2) & (3) ##########
-		# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
-		latent_z_seq, latent_b = self.construct_dummy_latents(latent_z)
+			########## (2) & (3) ##########
+			# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
+			latent_z_seq, latent_b = self.construct_dummy_latents(latent_z)
 
-		_, subpolicy_inputs, sample_action_seq = self.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
+			_, subpolicy_inputs, sample_action_seq = self.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
 
-		# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
-		loglikelihoods, _ = self.policy_network.forward(subpolicy_inputs, sample_action_seq)
-		loglikelihood = loglikelihoods[:-1].sum()
-		 
-		if self.args.debug:
-			print("Embedding in Train.")
-			embed()
+			# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
+			loglikelihoods, _ = self.policy_network.forward(subpolicy_inputs, sample_action_seq)
+			loglikelihood = loglikelihoods[:-1].sum()
+			 
+			if self.args.debug:
+				print("Embedding in Train.")
+				embed()
 
-		############# (3) #############
-		# Update parameters. 
-		if self.args.train:
+			############# (3) #############
+			# Update parameters. 
+			if self.args.train:
 
-			# If we are regularizing: 
-			# 	(1) Sample another z. 
-			# 	(2) Construct inputs and such.
-			# 	(3) Compute distances, and feed to update_policies.
-			if self.args.regularize_pretraining:
-
-
-				alternate_latent_z, _, _, _ = self.encoder_network.forward(torch_traj_seg, self.epsilon)
-
-				alt_latent_z_seq, _ = self.construct_dummy_latents(alternate_latent_z)
-				_, alt_subpolicy_inputs, _ = self.assemble_inputs(trajectory_segment, alt_latent_z_seq, latent_b, sample_action_seq)
-
-				regularization_kl = self.policy_network.get_regularization_kl(subpolicy_inputs, alt_subpolicy_inputs)
-				z_distance = torch.norm(latent_z-alternate_latent_z,p=2)
-			else:
+				# If we are regularizing: 
+				# 	(1) Sample another z. 
+				# 	(2) Construct inputs and such.
+				# 	(3) Compute distances, and feed to update_policies.
 				regularization_kl = None
 				z_distance = None
 
-			if self.args.reparam:				
-				self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
+				if self.args.reparam:				
+					self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
+				else:
+					self.update_policies(loglikelihood, latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence, regularization_kl, z_distance)
+
+				# Update Plots. 
+				self.update_plots(counter, loglikelihood, trajectory_segment)
 			else:
-				self.update_policies(loglikelihood, latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence, regularization_kl, z_distance)
-
-			# Update Plots. 
-			self.update_plots(counter, loglikelihood, trajectory_segment)
-		else:
 
 
-			if return_z: 
-				return latent_z
-			else:
-				np.set_printoptions(suppress=True,precision=2)
-				print("###################", i)
-				# print("Trajectory: \n",trajectory_segment)
-				# print("Encoder Likelihood: \n", encoder_loglikelihood.detach().cpu().numpy())
-				# print("Policy Mean: \n", self.policy_network.get_actions(subpolicy_inputs, greedy=True).detach().cpu().numpy())
-				print("Policy loglikelihood:", loglikelihood)
-		
-		print("#########################################")	
+				if return_z: 
+					return latent_z, sample_traj, sample_action_seq
+				else:
+					np.set_printoptions(suppress=True,precision=2)
+					print("###################", i)
+					# print("Trajectory: \n",trajectory_segment)
+					# print("Encoder Likelihood: \n", encoder_loglikelihood.detach().cpu().numpy())
+					# print("Policy Mean: \n", self.policy_network.get_actions(subpolicy_inputs, greedy=True).detach().cpu().numpy())
+					print("Policy loglikelihood:", loglikelihood)
+			
+			print("#########################################")	
+		else: 
+			return None, None, None
 
 	def train(self, model=None):
 
@@ -570,24 +568,28 @@ class PolicyManager():
 		if model:
 			self.load_all_models(model)
 
-
 		np.set_printoptions(suppress=True,precision=2)
 
-		print("Running Eval on Dummy Trajectories!")
-		for i in range(4):			
-			self.run_iteration(0, i)
-		
-		print("#########################################")	
-		print("#########################################")	
-	
-		if self.args.discrete_z:
-			print("Running Rollouts with each latent variable.")
-			for i in range(4):	
-				print(i)	
-				self.rollout_visuals(i)
+		if self.args.data=="MIME":
+			print("Running Visualization on MIME Data.")	
+			self.visualize_MIME_data()			
+
 		else:
-			# self.visualize_embedding_space()
-			self.visualize_embedded_likelihoods()
+			print("Running Eval on Dummy Trajectories!")
+			for i in range(4):			
+				self.run_iteration(0, i)
+			
+			print("#########################################")	
+			print("#########################################")	
+		
+			if self.args.discrete_z:
+				print("Running Rollouts with each latent variable.")
+				for i in range(4):	
+					print(i)	
+					self.rollout_visuals(i)
+			else:
+				# self.visualize_embedding_space()
+				self.visualize_embedded_likelihoods()
 
 	def visualize_embedding_space(self):
 
@@ -610,7 +612,7 @@ class PolicyManager():
 		for i in range(self.N):
 
 			# (1) Encoder trajectory. 
-			latent_z = self.run_iteration(0, i, return_z=True)
+			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
 
 			# Copy z. 
 			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
@@ -660,7 +662,7 @@ class PolicyManager():
 		for i in range(self.N):
 
 			# (1) Encoder trajectory. 
-			latent_z = self.run_iteration(0, i, return_z=True)
+			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
 
 			# Copy z. 
 			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
@@ -697,3 +699,111 @@ class PolicyManager():
 			plt.savefig("Images/Likelihood_{0}_Embedding{1}.png".format(self.args.name,j))
 			plt.close()
 		# For all 4 actions, make fake rollout, feed into trajectory, evaluate likelihood. 
+
+	def visualize_MIME_data(self):
+
+		self.N = 10
+		self.rollout_timesteps = self.args.traj_length
+		self.state_dim = 16
+
+		self.visualizer = BaxterVisualizer.MujocoVisualizer()
+
+		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
+		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+
+		# Create save directory:
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		for i in range(self.N):
+
+			print("#########################################")	
+			print("Getting visuals for trajectory: ",i)
+			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, i, return_z=True)
+
+			if latent_z is not None:
+			
+				latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
+				trajectory_set[i] = copy.deepcopy(sample_traj)
+
+				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
+				trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)			
+
+		# Save webpage. 
+		self.write_results_HTML()
+
+		# Do embedding thingamajiggy.
+		# EMBED MIME		
+
+
+	def rollout_MIME(self, trajectory_start, latent_z):
+
+		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
+		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
+
+		for t in range(self.rollout_timesteps-1):
+
+			actions = self.policy_network.get_actions(subpolicy_inputs, greedy=True)
+
+			# Select last action to execute. 
+			action_to_execute = actions[-1].squeeze(1)
+
+			# Compute next state. 
+			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
+
+			# New input row. 
+			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+			input_row[0,:self.state_dim] = new_state
+			input_row[0,self.state_dim:2*self.state_dim] = action_to_execute
+			input_row[0,2*self.state_dim:] = latent_z
+
+			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
+
+		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
+		return trajectory
+
+	def get_MIME_visuals(self, i, latent_z, trajectory, sample_action_seq):		
+
+		# 1) First, run ground truth trajectory in visualizer. 
+		ground_truth_gif = self.visualizer.visualize_joint_trajectory(trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
+		
+		# 2) Feed Z into policy, rollout trajectory. 
+		trajectory_rollout = self.rollout_MIME(trajectory[0], latent_z)
+
+		# 3) Run rollout trajectory in visualizer. 
+		rollout_gif = self.visualizer.visualize_joint_trajectory(trajectory_rollout, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i))
+
+		return trajectory_rollout
+
+	def write_results_HTML(self):
+	    # Retrieve, append, and print images from datapoints across different models. 
+
+	    print("Writing HTML File.")
+	    # Open Results HTML file. 	    
+	    with open(os.path.join(self.dir_name,'Results_{}.html'.format(self.args.name)),'w') as html_file:
+	        
+	        # Start HTML doc. 
+	        html_file.write('<html>')
+	        html_file.write('<body>')
+	        html_file.write('<p> Model: {0}</p>'.format(self.args.name))
+	        for i in range(self.N):
+	            
+	            if i%100==0:
+	                print("Datapoint:",i)                        
+	            html_file.write('<p> <b> Trajectory {}  </b></p>'.format(i))
+
+	            file_prefix = self.dir_name
+
+	            # Create gif_list by prefixing base_gif_list with file prefix.
+	            html_file.write('<div style="display: flex; justify-content: row;">  <img src="Traj_{0}_GT.gif"/>  <img src="Traj_{0}_Rollout.gif"/> </div>'.format(i))
+	                
+	            # Add gap space.
+	            html_file.write('<p> </p>')
+
+	        html_file.write('</body>')
+	        html_file.write('</html>')

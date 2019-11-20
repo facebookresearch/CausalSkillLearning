@@ -121,12 +121,8 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		self.variances_output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
 
 		self.activation_layer = torch.nn.Tanh()
-		if self.args.elu_variance:
-			self.variance_activation_layer = torch.nn.ELU()
-			self.variance_activation_bias = 1.
-		else:			
-			self.variance_activation_layer = torch.nn.Softplus()
-			self.variance_activation_bias = 0.
+		self.variance_activation_layer = torch.nn.Softplus()
+		self.variance_activation_bias = 0.
 
 		self.variance_factor = 0.01
 
@@ -312,7 +308,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 
 		self.args = args
 		# Input size is actually input_size + number_subpolicies +1 
-		self.input_size = input_size+self.args.z_dimensions+1
+		self.input_size = input_size+self.args.z_dimensions+1+self.args.condition_size
 		self.offset_for_z = input_size+1
 		self.hidden_size = hidden_size
 		# self.number_subpolicies = number_subpolicies
@@ -324,12 +320,12 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		# Define LSTM. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
 
-		# # Try initializing the network to something, so that we can escape the stupid constant output business.
-		for name, param in self.lstm.named_parameters():
-			if 'bias' in name:
-				torch.nn.init.constant_(param, 0.0)
-			elif 'weight' in name:
-				torch.nn.init.xavier_normal_(param,gain=5)
+		# # # Try initializing the network to something, so that we can escape the stupid constant output business.
+		# for name, param in self.lstm.named_parameters():
+		# 	if 'bias' in name:
+		# 		torch.nn.init.constant_(param, 0.0)
+		# 	elif 'weight' in name:
+		# 		torch.nn.init.xavier_normal_(param,gain=5)
 
 		# Transform to output space - Latent z and Latent b. 
 		# self.subpolicy_output_layer = torch.nn.Linear(self.hidden_size,self.output_size)
@@ -344,12 +340,8 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.variances_output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
 
 		self.activation_layer = torch.nn.Tanh()
-		if self.args.elu_variance:
-			self.variance_activation_layer = torch.nn.ELU()
-			self.variance_activation_bias = 1.
-		else:			
-			self.variance_activation_layer = torch.nn.Softplus()
-			self.variance_activation_bias = 0.
+		self.variance_activation_layer = torch.nn.Softplus()
+		self.variance_activation_bias = 0.
 			
 		self.variance_factor = 0.01
 
@@ -359,7 +351,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		hidden = None
 		outputs, hidden = self.lstm(format_input)
 	
-		latent_b_preprobabilities = self.termination_output_layer(outputs) + self.b_exploration_bias
+		latent_b_preprobabilities = self.termination_output_layer(outputs)
 		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
 		latent_b_logprobabilities = self.batch_logsoftmax_layer(latent_b_preprobabilities).squeeze(1)
 			
@@ -395,7 +387,8 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 			selected_b = self.select_greedy_action(latent_b_probabilities)
 			selected_z = mean_outputs
 		else:
-			selected_b = self.sample_action(latent_b_probabilities)
+			# selected_b = self.sample_action(latent_b_probabilities)
+			selected_b = self.select_greedy_action(latent_b_probabilities)
 			selected_z = self.dists.sample()
 
 		return selected_b, selected_z
@@ -560,12 +553,9 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		self.variances_output_layer = torch.nn.Linear(2*self.hidden_size, self.output_size)
 
 		self.activation_layer = torch.nn.Tanh()
-		if self.args.elu_variance:
-			self.variance_activation_layer = torch.nn.ELU()
-			self.variance_activation_bias = 1.
-		else:			
-			self.variance_activation_layer = torch.nn.Softplus()
-			self.variance_activation_bias = 0.
+
+		self.variance_activation_layer = torch.nn.Softplus()
+		self.variance_activation_bias = 0.
 			
 		self.variance_factor = 0.01
 
@@ -591,10 +581,7 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
 
-		if self.args.fake_b:
-			sampled_b = torch.ones((input.shape[0])).cuda().int()
-		else:
-			sampled_b = self.select_epsilon_greedy_action(variational_b_probabilities, epsilon)
+		sampled_b = self.select_epsilon_greedy_action(variational_b_probabilities, epsilon)
 
 		if epsilon==0.:
 			sampled_z_index = mean_outputs.squeeze(1)
@@ -685,31 +672,37 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		super(ContinuousVariationalPolicyNetwork_BPrior, self).__init__(input_size, hidden_size, z_dimensions, args, number_layers)
 
-	def get_prior_value(self, elapsed_t, skill_time_limit=4, max_limit=5):
+	def get_prior_value(self, elapsed_t, max_limit=5):
+
+		skill_time_limit = max_limit-1
+
+		if self.args.data=='MIME':
+			max_limit = 20
+			skill_time_limit = max_limit-1	
 
 		prior_value = torch.zeros((1,2)).cuda().float()
 		# If at or over hard limit.
 		if elapsed_t>=max_limit:
 			prior_value[0,1]=1.
 
-			if self.args.debug:
-				print("At max limit.")
+			# if self.args.debug:
+				# print("At max limit.")
 		# If at or more than typical, less than hard limit:
 		elif elapsed_t>=skill_time_limit:
 			# Random
 			prior_value[0,1]=0. 
 
-			if self.args.debug:
-				print("At typical limit.")
+			# if self.args.debug:
+				# print("At typical limit.")
 		# If less than typical. 
 		else:
 			# Continue.
 			prior_value[0,0]=1.
-			if self.args.debug:
-				print("Below limit, continuing")
+			# if self.args.debug:
+				# print("Below limit, continuing")
 
-		if self.args.debug:
-			print("Elapsed:",elapsed_t," Prior:",prior_value)
+		# if self.args.debug:
+		# 	print("Elapsed:",elapsed_t," Prior:",prior_value)
 
 		return prior_value
 
@@ -742,11 +735,11 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 			# Compute prior value. 
 			delta_t = t-prev_time
 
-			if self.args.debug:
-				print("##########################")
-				print("Time: ",t, " Prev Time:",prev_time, " Delta T:",delta_t)
+			# if self.args.debug:
+			# 	print("##########################")
+			# 	print("Time: ",t, " Prev Time:",prev_time, " Delta T:",delta_t)
 
-			prior_values[t] = self.get_prior_value(delta_t)
+			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
 
 			# Construct probabilities.
 			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
@@ -757,8 +750,8 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 			if sampled_b[t]==1:
 				prev_time = t				
 
-			if self.args.debug:
-				print("Sampled b:",sampled_b[t])
+			# if self.args.debug:
+			# 	print("Sampled b:",sampled_b[t])
 
 		if epsilon==0.:
 			sampled_z_index = mean_outputs.squeeze(1)
@@ -805,10 +798,10 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		# Prior loglikelihood
 		prior_loglikelihood = standard_distribution.log_prob(sampled_z_index)
 
-		if self.args.debug:
-			print("#################################")
-			print("Embedding in Variational Network.")
-			embed()
+		# if self.args.debug:
+		# 	print("#################################")
+		# 	print("Embedding in Variational Network.")
+		# 	embed()
 
 		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
@@ -905,12 +898,8 @@ class ContinuousEncoderNetwork(PolicyNetwork_BaseClass):
 		self.variances_output_layer = torch.nn.Linear(2*self.hidden_size, self.output_size)
 
 		self.activation_layer = torch.nn.Tanh()
-		if self.args.elu_variance:
-			self.variance_activation_layer = torch.nn.ELU()
-			self.variance_activation_bias = 1.
-		else:			
-			self.variance_activation_layer = torch.nn.Softplus()
-			self.variance_activation_bias = 0.
+		self.variance_activation_layer = torch.nn.Softplus()
+		self.variance_activation_bias = 0.
 
 		self.variance_factor = 0.01
 

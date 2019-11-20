@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader
-import PolicyManager_GTSubpolicy, PolicyManager_LearntSubpolicy, PolicyManager_BatchGTSubpolicy
-import Pretrain_Subpolicy
+# import PolicyManager_GTSubpolicy, PolicyManager_LearntSubpolicy, PolicyManager_BatchGTSubpolicy
+import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy
 
 class Master():
 
@@ -22,16 +22,22 @@ class Master():
 			self.dataset = DataLoaders.ContinuousNonZeroToyDataset(self.args.datadir)
 		elif self.args.data=='ContinuousDir':			
 			self.dataset = DataLoaders.ContinuousDirectedToyDataset(self.args.datadir)
+		elif self.args.data=='ContinuousDirNZ':			
+			self.dataset = DataLoaders.ContinuousDirectedNonZeroToyDataset(self.args.datadir)
+		elif self.args.data=='GoalDirected':
+			self.dataset = DataLoaders.GoalDirectedDataset(self.args.datadir)
+		elif self.args.data=='DeterGoal':
+			self.dataset = DataLoaders.DeterministicGoalDirectedDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
 			self.dataset = MIME_DataLoader.MIME_Dataset()
 
-		if self.args.setting=='gtsub':
-			self.policy_manager = PolicyManager_GTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		# if self.args.setting=='just_actions':
-		# 	self.policy_manager = PolicyManager_GTSubpolicy_ActionLikelihood.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		elif self.args.setting=='batchgtsub':
-			self.policy_manager = PolicyManager_BatchGTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		elif self.args.setting=='learntsub':
+		# if self.args.setting=='gtsub':
+		# 	self.policy_manager = PolicyManager_GTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+		# # if self.args.setting=='just_actions':
+		# # 	self.policy_manager = PolicyManager_GTSubpolicy_ActionLikelihood.PolicyManager(self.args.number_policies, self.dataset, self.args)
+		# elif self.args.setting=='batchgtsub':
+		# 	self.policy_manager = PolicyManager_BatchGTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+		if self.args.setting=='learntsub':
 			self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
@@ -63,26 +69,31 @@ class Master():
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
+
+	# Setup training. 
 	parser.add_argument('--datadir', dest='datadir',type=str,default='../../DataGenerator/ContData/')
 	parser.add_argument('--train',dest='train',type=int,default=0)
 	parser.add_argument('--debug',dest='debug',type=int,default=0)
-	parser.add_argument('--batch_size',dest='batch_size',type=int,default=1)
+	parser.add_argument('--notes',dest='notes',type=str)
+	parser.add_argument('--name',dest='name',type=str,default=None)
 	parser.add_argument('--fake_batch_size',dest='fake_batch_size',type=int,default=1)
-	parser.add_argument('--fake_b',dest='fake_b',type=int,default=0)
+	parser.add_argument('--batch_size',dest='batch_size',type=int,default=1)
 	parser.add_argument('--training_phase_size',dest='training_phase_size',type=int,default=500000)
 	parser.add_argument('--data',dest='data',type=str,default='Continuous')
 	parser.add_argument('--setting',dest='setting',type=str,default='gtsub')
+	parser.add_argument('--model',dest='model',type=str)	
+	parser.add_argument('--logdir',dest='logdir',type=str,default='Experiment_Logs/')
+
+	# Parameters for training. 
 	parser.add_argument('--discrete_z',dest='discrete_z',type=int,default=0)
 	parser.add_argument('--z_dimensions',dest='z_dimensions',type=int,default=8)
+	parser.add_argument('--condition_size',dest='condition_size',type=int,default=4)
 	parser.add_argument('--new_gradient',dest='new_gradient',type=int,default=1)
 	parser.add_argument('--b_prior',dest='b_prior',type=int,default=1)
 	parser.add_argument('--reparam',dest='reparam',type=int,default=1)	
-	parser.add_argument('--model',dest='model',type=str)
 	parser.add_argument('--number_policies',dest='number_policies',type=int,default=4)
 	parser.add_argument('--subpolicy_model',dest='subpolicy_model',type=str)
 	parser.add_argument('--fix_subpolicy',dest='fix_subpolicy',type=int,default=1)
-	parser.add_argument('--notes',dest='notes',type=str)
-	parser.add_argument('--name',dest='name',type=str,default=None)
 	parser.add_argument('--entropy',dest='entropy',type=int,default=0)
 	parser.add_argument('--var_entropy',dest='var_entropy',type=int,default=0)
 	parser.add_argument('--ent_weight',dest='ent_weight',type=float,default=0.)
@@ -94,12 +105,10 @@ def parse_arguments():
 	parser.add_argument('--subpolicy_clamp_value',dest='subpolicy_clamp_value',type=float,default=-5)
 	parser.add_argument('--latent_clamp_value',dest='latent_clamp_value',type=float,default=-5)
 	parser.add_argument('--min_variance_bias',dest='min_variance_bias',type=float,default=0.01)
-	parser.add_argument('--elu_variance',dest='elu_variance',type=int,default=0)
 	parser.add_argument('--display_freq',dest='display_freq',type=int,default=25000)
 	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)
-	parser.add_argument('--expert',dest='expert',type=int,default=0)
-	parser.add_argument('--logdir',dest='logdir',type=str,default='Experiment_Logs/')
 	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
+	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)
 	parser.add_argument('--likelihood_penalty',dest='likelihood_penalty',type=int,default=10)
 	parser.add_argument('--subpolicy_ratio',dest='subpolicy_ratio',type=float,default=0.01)
 	parser.add_argument('--latentpolicy_ratio',dest='latentpolicy_ratio',type=float,default=0.1)
@@ -108,8 +117,6 @@ def parse_arguments():
 	parser.add_argument('--kl_weight',dest='kl_weight',type=float,default=0.01)
 	parser.add_argument('--var_loss_weight',dest='var_loss_weight',type=float,default=1.)
 	parser.add_argument('--prior_weight',dest='prior_weight',type=float,default=0.00001)
-	parser.add_argument('--regularize_pretraining',dest='regularize_pretraining',type=int,default=0)
-	parser.add_argument('--reg_loss_wt',dest='reg_loss_wt',type=float,default=0.1)
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.2)
 	parser.add_argument('--epsilon_to',dest='epsilon_to',type=float,default=0.05)
 	parser.add_argument('--epsilon_over',dest='epsilon_over',type=int,default=30)
@@ -124,3 +131,4 @@ def main(args):
 
 if __name__=='__main__':
 	main(sys.argv)
+
