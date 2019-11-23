@@ -813,8 +813,8 @@ class PolicyManager():
 
 			# Pick latent_z and latent_b. 
 
-			# selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=True)
-			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=False)
+			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=True)
+			# selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=False)
 
 			if t==0:
 				selected_b = torch.ones_like(selected_b).cuda().float()
