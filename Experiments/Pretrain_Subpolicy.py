@@ -25,18 +25,18 @@ class PolicyManager():
 		# Inputs is now states and actions.
 
 		# Model size parameters
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
-			self.state_size = 2
-			self.input_size = 2*self.state_size
-			self.hidden_size = 20
-			# Number of actions
-			self.output_size = 2		
-			self.latent_z_dimensionality = self.args.z_dimensions
-			self.number_layers = 4
-			self.traj_length = 5
-			self.number_epochs = 200
+		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
+		self.state_size = 2
+		self.input_size = 2*self.state_size
+		self.hidden_size = 20
+		# Number of actions
+		self.output_size = 2		
+		self.latent_z_dimensionality = self.args.z_dimensions
+		self.number_layers = 4
+		self.traj_length = 5
+		self.number_epochs = 200
 
-		elif self.args.data=='MIME':
+		if self.args.data=='MIME':
 			self.state_size = 16			
 			self.input_size = 2*self.state_size
 			self.hidden_size = 64
