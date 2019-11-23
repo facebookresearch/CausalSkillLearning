@@ -127,6 +127,9 @@ python cluster_run.py --name=C340 --cmd='python Master.py --train=1 --setting=le
 
 python cluster_run.py --name=C341 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C341_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
 
+# Trying out ... CausalSkillLearning Repo
+python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=CCSL_T1 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4
+
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
