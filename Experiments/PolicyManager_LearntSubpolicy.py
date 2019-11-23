@@ -819,8 +819,8 @@ class PolicyManager():
 			if t==0:
 				selected_b = torch.ones_like(selected_b).cuda().float()
 
-			print("Embedding in latent policy rollout")
-			embed()
+			# print("Embedding in latent policy rollout")
+			# embed()
 
 			if selected_b[-1]==1:
 				selected_z = torch.tensor(new_selected_z).cuda().float()
