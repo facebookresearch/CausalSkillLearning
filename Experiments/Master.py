@@ -28,6 +28,8 @@ class Master():
 			self.dataset = DataLoaders.GoalDirectedDataset(self.args.datadir)
 		elif self.args.data=='DeterGoal':
 			self.dataset = DataLoaders.DeterministicGoalDirectedDataset(self.args.datadir)			
+		elif self.args.data=='Separable':
+			self.dataset = DataLoaders.SeparableDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
 			self.dataset = MIME_DataLoader.MIME_Dataset()
 
@@ -100,6 +102,8 @@ def parse_arguments():
 	parser.add_argument('--var_ent_weight',dest='var_ent_weight',type=float,default=2.)
 	parser.add_argument('--z_ex_bias',dest='z_exploration_bias',type=float,default=0.)
 	parser.add_argument('--b_ex_bias',dest='b_exploration_bias',type=float,default=0.)
+	parser.add_argument('--lat_z_wt',dest='lat_z_wt',type=float,default=0.1)
+	parser.add_argument('--lat_b_wt',dest='lat_b_wt',type=float,default=1.)
 	parser.add_argument('--z_probability_factor',dest='z_probability_factor',type=float,default=0.1)
 	parser.add_argument('--b_probability_factor',dest='b_probability_factor',type=float,default=0.1)
 	parser.add_argument('--subpolicy_clamp_value',dest='subpolicy_clamp_value',type=float,default=-5)

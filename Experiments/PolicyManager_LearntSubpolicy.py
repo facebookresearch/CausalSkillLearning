@@ -26,7 +26,7 @@ class PolicyManager():
 		# Global input size: trajectory at every step - x,y,action
 		# Inputs is now states and actions.
 		# Model size parameters
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
 			self.state_size = 2
 			self.state_dim = 2
 			self.input_size = 2*self.state_size
@@ -60,6 +60,9 @@ class PolicyManager():
 		# self.variational_entropy_regularization_weight = self.args.var_ent_weight
 		self.variational_b_ent_reg_weight = 0.5
 		self.variational_z_ent_reg_weight = 0.5
+
+		self.latent_b_loss_weight = self.args.lat_b_wt
+		self.latent_z_loss_weight = self.args.lat_z_wt
 
 		self.initial_epsilon = self.args.epsilon_from
 		self.final_epsilon = self.args.epsilon_to
@@ -180,6 +183,14 @@ class PolicyManager():
 			else:
 				self.training_phase=3
 
+				# For training phase = 3, set latent_b_loss weight to 1 and latent_z_loss weight to something like 0.1 or 0.01. 
+				# After another double training_phase... (i.e. counter>3*self.training_phase_size), 
+				# This should be run when counter > 2*self.training_phase_size, and less than 3*self.training_phase_size.
+				if counter>3*self.training_phase_size:
+					self.latent_z_loss_weight = self.args.lat_z_wt
+				if counter>4*self.training_phase_size:
+					# Set equal after 4. 
+					self.latent_z_loss_weight = self.args.lat_b_wt
 		else:
 			self.epsilon = 0.
 			self.training_phase=1
@@ -325,7 +336,10 @@ class PolicyManager():
 			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size:self.input_size+self.latent_z_dimensionality] = latent_z_copy[:-1]
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality+1] = latent_b[:-1].float()	
-			assembled_inputs[range(1,len(input_trajectory)),-self.args.condition_size:] = torch.tensor(conditional_information).cuda().float()
+			# assembled_inputs[range(1,len(input_trajectory)),-self.args.condition_size:] = torch.tensor(conditional_information).cuda().float()
+
+			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
+			assembled_inputs[:,-self.args.condition_size:] = torch.tensor(conditional_information).cuda().float()
 
 			# Now assemble inputs for subpolicy.
 			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).cuda()
@@ -356,7 +370,7 @@ class PolicyManager():
 
 	def collect_inputs(self, i, get_latents=False):
 
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
 
 			sample_traj, sample_action_seq = self.dataset[i]
 			latent_b_seq, latent_z_seq = self.dataset.get_latent_variables(i)
@@ -381,7 +395,7 @@ class PolicyManager():
 			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
 			old_concatenated_traj = self.old_concat_state_action(sample_traj, sample_action_seq)
 		
-			if self.args.data=='GoalDirected' or self.args.data=='DeterGoal':
+			if self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
 
 				self.conditional_information = np.zeros((self.args.condition_size))
 				self.conditional_information[self.dataset.get_goal(i)] = 1
@@ -562,8 +576,11 @@ class PolicyManager():
 		# This is the actual loss.
 		# self.total_latent_loss = (torch.where(latent_b.byte(),self.latent_b_loss+self.latent_z_loss,self.latent_b_loss))[:-1].sum()
 		# Instead, try using latent_z at every timestep. 
-		self.total_latent_loss = (self.latent_b_loss+self.latent_z_loss)[:-1].sum()
 
+		self.total_latent_loss = (self.latent_b_loss_weight*self.latent_b_loss+self.latent_z_loss_weight*self.latent_z_loss)[:-1].sum()
+
+		# # DEBUG LATENT POLICY
+		# embed()	
 
 		# Now that we've computed total_latent_loss, only use it to update if we are not using reparameterization. 
 		# We need the global optimizer to propagate gradients back into the variational network.		
@@ -802,8 +819,8 @@ class PolicyManager():
 			if t==0:
 				selected_b = torch.ones_like(selected_b).cuda().float()
 
-			# print("Embedding in latent policy rollout")
-			# embed()
+			print("Embedding in latent policy rollout")
+			embed()
 
 			if selected_b[-1]==1:
 				selected_z = torch.tensor(new_selected_z).cuda().float()
@@ -886,11 +903,21 @@ class PolicyManager():
 
 				############# (3) #############
 				# Update latent policy Pi_z with Reinforce like update using LL as return. 
-				self.update_policies(i, sample_action_seq, subpolicy_loglikelihoods, subpolicy_entropy, latent_b, latent_z_indices,\
-					variational_z_logprobabilities, variational_b_logprobabilities, variational_z_probabilities, variational_b_probabilities, kl_divergence, \
-					latent_z_logprobabilities, latent_b_logprobabilities, latent_z_probabilities, latent_b_probabilities, \
-					learnt_subpolicy_loglikelihood, learnt_subpolicy_loglikelihoods, learnt_subpolicy_loglikelihood+latent_loglikelihood, \
-					prior_loglikelihood, latent_loglikelihood, temporal_loglikelihoods)
+				
+				full_update = True
+				if full_update:
+					self.update_policies(i, sample_action_seq, subpolicy_loglikelihoods, subpolicy_entropy, latent_b, latent_z_indices,\
+						variational_z_logprobabilities, variational_b_logprobabilities, variational_z_probabilities, variational_b_probabilities, kl_divergence, \
+						latent_z_logprobabilities, latent_b_logprobabilities, latent_z_probabilities, latent_b_probabilities, \
+						learnt_subpolicy_loglikelihood, learnt_subpolicy_loglikelihoods, learnt_subpolicy_loglikelihood+latent_loglikelihood, \
+						prior_loglikelihood, latent_loglikelihood, temporal_loglikelihoods)
+				else:
+					self.just_update_latent(i, sample_action_seq, subpolicy_loglikelihoods, subpolicy_entropy, latent_b, latent_z_indices,\
+						variational_z_logprobabilities, variational_b_logprobabilities, variational_z_probabilities, variational_b_probabilities, kl_divergence, \
+						latent_z_logprobabilities, latent_b_logprobabilities, latent_z_probabilities, latent_b_probabilities, \
+						learnt_subpolicy_loglikelihood, learnt_subpolicy_loglikelihoods, learnt_subpolicy_loglikelihood+latent_loglikelihood, \
+						prior_loglikelihood, latent_loglikelihood, temporal_loglikelihoods)
+
 
 				# Update Plots. 
 				# self.update_plots(counter, sample_map, loglikelihood)

@@ -391,6 +391,8 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 			selected_b = self.select_greedy_action(latent_b_probabilities)
 			selected_z = self.dists.sample()
 
+		embed()
+
 		return selected_b, selected_z
 
 	def select_greedy_action(self, action_probabilities):
