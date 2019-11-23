@@ -25,7 +25,7 @@ class PolicyManager():
 		# Inputs is now states and actions.
 
 		# Model size parameters
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
 			self.state_size = 2
 			self.input_size = 2*self.state_size
 			self.hidden_size = 20
@@ -241,7 +241,7 @@ class PolicyManager():
 
 	def get_trajectory_segment(self, i):
 
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected':
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
 			# Sample trajectory segment from dataset. 
 			sample_traj, sample_action_seq = self.dataset[i]
 
