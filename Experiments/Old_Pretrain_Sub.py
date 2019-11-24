@@ -172,8 +172,8 @@ class PolicyManager():
 			self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
 			self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
-		if self.args.regularize_pretraining:
-			self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
+		# if self.args.regularize_pretraining:
+		# 	self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
 
 		if self.args.entropy:
 			self.writer.add_scalar('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
@@ -342,11 +342,11 @@ class PolicyManager():
 		self.reinforce_encoder_loss = self.encoder_loss*(baseline_target-self.baseline)
 		self.total_encoder_loss = (self.reinforce_encoder_loss + self.args.kl_weight*self.encoder_KL).sum()
 
-		if self.args.regularize_pretraining:
-			z_epsilon = 0.1
-			self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
-		else:
-			self.regularization_loss = 0.
+		# if self.args.regularize_pretraining:
+		# 	z_epsilon = 0.1
+		# 	self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
+		# else:
+		self.regularization_loss = 0.
 
 		self.total_loss = (self.total_encoder_loss + self.subpolicy_loss + self.regularization_loss).sum()
 
@@ -496,19 +496,19 @@ class PolicyManager():
 			# 	(1) Sample another z. 
 			# 	(2) Construct inputs and such.
 			# 	(3) Compute distances, and feed to update_policies.
-			if self.args.regularize_pretraining:
+			# if self.args.regularize_pretraining:
 
 
-				alternate_latent_z, _, _, _ = self.encoder_network.forward(torch_traj_seg, self.epsilon)
+			# 	alternate_latent_z, _, _, _ = self.encoder_network.forward(torch_traj_seg, self.epsilon)
 
-				alt_latent_z_seq, _ = self.construct_dummy_latents(alternate_latent_z)
-				_, alt_subpolicy_inputs, _ = self.assemble_inputs(trajectory_segment, alt_latent_z_seq, latent_b, sample_action_seq)
+			# 	alt_latent_z_seq, _ = self.construct_dummy_latents(alternate_latent_z)
+			# 	_, alt_subpolicy_inputs, _ = self.assemble_inputs(trajectory_segment, alt_latent_z_seq, latent_b, sample_action_seq)
 
-				regularization_kl = self.policy_network.get_regularization_kl(subpolicy_inputs, alt_subpolicy_inputs)
-				z_distance = torch.norm(latent_z-alternate_latent_z,p=2)
-			else:
-				regularization_kl = None
-				z_distance = None
+			# 	regularization_kl = self.policy_network.get_regularization_kl(subpolicy_inputs, alt_subpolicy_inputs)
+			# 	z_distance = torch.norm(latent_z-alternate_latent_z,p=2)
+			# else:
+			regularization_kl = None
+			z_distance = None
 
 			if self.args.reparam:				
 				self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
