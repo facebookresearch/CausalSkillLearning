@@ -137,10 +137,13 @@ class PolicyManager():
 			self.writer = tensorboardX.SummaryWriter()		
 
 	def set_epoch(self, counter):
-		if counter<self.decay_counter:
-			self.epsilon = self.initial_epsilon-self.decay_rate*counter
+		if self.args.train:
+			if counter<self.decay_counter:
+				self.epsilon = self.initial_epsilon-self.decay_rate*counter
+			else:
+				self.epsilon = self.final_epsilon		
 		else:
-			self.epsilon = self.final_epsilon		
+			self.epsilon = self.final_epsilon
 
 	def visualize_trajectory(self, traj, no_axes=False):
 

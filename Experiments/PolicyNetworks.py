@@ -152,9 +152,9 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		# log_probabilities = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs)).log_prob(format_action_seq)
 		entropy = dist.entropy()
 
-		# if self.args.debug:
-		# 	print("Embedding in the policy network.")		
-		# 	embed()
+		if self.args.debug:
+			print("Embedding in the policy network.")		
+			embed()
 			
 		return log_probabilities, entropy
 
@@ -947,10 +947,10 @@ class ContinuousEncoderNetwork(PolicyNetwork_BaseClass):
 		# Compute KL.
 		kl_divergence = torch.distributions.kl_divergence(dist, standard_distribution)
 
-		# if self.args.debug:
-		# 	print("###############################")
-		# 	print("Embedding in Encoder Network.")
-		# 	embed()
+		if self.args.debug:
+			print("###############################")
+			print("Embedding in Encoder Network.")
+			embed()
 
 		if z_sample_to_evaluate is None:
 			return latent_z, logprobability, entropy, kl_divergence
