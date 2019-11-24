@@ -2,7 +2,7 @@
 from headers import *
 import DataLoaders, MIME_DataLoader
 # import PolicyManager_GTSubpolicy, PolicyManager_LearntSubpolicy, PolicyManager_BatchGTSubpolicy
-import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy
+import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub
 
 class Master():
 
@@ -43,7 +43,9 @@ class Master():
 			self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-			
+		elif self.args.setting=='oldpretrain_sub':
+			self.policy_manager = Old_Pretrain_Sub.PolicyManager(self.args.number_policies, self.dataset, self.args)
+
 		# Create networks and training operations. 
 		self.policy_manager.setup()
 
