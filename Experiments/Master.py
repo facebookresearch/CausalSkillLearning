@@ -109,7 +109,7 @@ def parse_arguments():
 	parser.add_argument('--subpolicy_clamp_value',dest='subpolicy_clamp_value',type=float,default=-5)
 	parser.add_argument('--latent_clamp_value',dest='latent_clamp_value',type=float,default=-5)
 	parser.add_argument('--min_variance_bias',dest='min_variance_bias',type=float,default=0.01)
-	parser.add_argument('--display_freq',dest='display_freq',type=int,default=25000)
+	parser.add_argument('--display_freq',dest='display_freq',type=int,default=10000)
 	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)
 	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
 	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)
