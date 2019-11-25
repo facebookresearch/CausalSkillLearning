@@ -989,10 +989,9 @@ class PolicyManager():
 			# for i in range(10):			
 
 				print("Epoch: ",e," Image:",i)
-				# self.run_iteration(counter, i)
-				# self.run_iteration(counter, index_list[i])
-				self.run_iteration(counter, index_list[0])
-				
+				self.run_iteration(counter, 0)
+				# self.run_iteration(counter, index_list[i])				
+
 				counter = counter+1
 
 		self.write_and_close()
