@@ -823,6 +823,7 @@ class PolicyManager():
 			# embed()
 
 			if selected_b[-1]==1:
+				# Copy over ALL z's. This is okay to do because we're greedily selecting, and hte latent policy is hence deterministic.
 				selected_z = torch.tensor(new_selected_z).cuda().float()
 
 			# Set z's to 0. 
@@ -989,7 +990,9 @@ class PolicyManager():
 
 				print("Epoch: ",e," Image:",i)
 				# self.run_iteration(counter, i)
-				self.run_iteration(counter, index_list[i])
+				# self.run_iteration(counter, index_list[i])
+				self.run_iteration(counter, index_list[0])
+				
 				counter = counter+1
 
 		self.write_and_close()
@@ -1013,3 +1016,4 @@ class PolicyManager():
 			self.run_iteration(0, i)
 
 		embed()
+
