@@ -20,8 +20,8 @@ class MujocoVisualizer():
 
         # Create environment.
         print("Do I have a display?", has_display)
-        self.base_env = robosuite.make('BaxterLift', has_renderer=has_display)
-        # self.base_env = robosuite.make("BaxterViz",has_renderer=True)
+        # self.base_env = robosuite.make('BaxterLift', has_renderer=has_display)
+        self.base_env = robosuite.make("BaxterViz",has_renderer=True)
 
         # Create kinematics object. 
         self.baxter_IK_object = IKWrapper(self.base_env)
