@@ -550,22 +550,10 @@ class PolicyManager():
 		# Compute baseline target according to NEW GRADIENT, and Equation (2) above. 
 		baseline_target = (temporal_loglikelihoods - self.args.prior_weight*prior_loglikelihood).clone().detach()
 
-		# COMPUTE BASELINE.	
-		if self.args.data=='MIME':
-			if self.baseline is None:
-				self.baseline = torch.zeros(1).cuda().float()
-			else:
-				self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.sum()
+		if self.baseline is None:
+			self.baseline = torch.zeros_like(baseline_target).cuda().float()
 		else:
-			if self.baseline is None:
-				self.baseline = torch.zeros_like(baseline_target).cuda().float()
-			else:
-				self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target
-
-		# if self.baseline is None:
-		# 	self.baseline = torch.zeros_like(baseline_target).cuda().float()
-		# else:
-		# 	self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.mean()
+			self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.mean()
 			
 		self.reinforce_variational_loss = self.variational_loss*(baseline_target-self.baseline)
 
@@ -591,11 +579,6 @@ class PolicyManager():
 		################################################
 		# Setting total loss based on phase of training.
 		################################################
-
-		##########
-		embed()
-		##########
-
 
 		# IF PHASE ONE: 
 		if self.training_phase==1:
