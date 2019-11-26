@@ -551,7 +551,7 @@ class PolicyManager():
 		baseline_target = (temporal_loglikelihoods - self.args.prior_weight*prior_loglikelihood).clone().detach()
 
 		if self.baseline is None:
-			self.baseline = torch.zeros_like(baseline_target).cuda().float()
+			self.baseline = torch.zeros_like(baseline_target.mean()).cuda().float()
 		else:
 			self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.mean()
 			
