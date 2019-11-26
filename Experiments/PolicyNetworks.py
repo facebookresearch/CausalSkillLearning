@@ -152,9 +152,9 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		# log_probabilities = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs)).log_prob(format_action_seq)
 		entropy = dist.entropy()
 
-		if self.args.debug:
-			print("Embedding in the policy network.")		
-			embed()
+		# if self.args.debug:
+		# 	print("Embedding in the policy network.")		
+		# 	embed()
 			
 		return log_probabilities, entropy
 
