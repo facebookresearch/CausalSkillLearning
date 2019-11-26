@@ -415,7 +415,9 @@ class PolicyManager():
 		learnt_subpolicy_loglikelihoods = self.args.subpolicy_ratio*learnt_subpolicy_loglikelihoods
 
 		# Summing until penultimate timestep.
-		learnt_subpolicy_loglikelihood = learnt_subpolicy_loglikelihoods[:-1].sum()
+		# learnt_subpolicy_loglikelihood = learnt_subpolicy_loglikelihoods[:-1].sum()
+		# TAKING AVERAGE HERE AS WELL.		
+		learnt_subpolicy_loglikelihood = learnt_subpolicy_loglikelihoods[:-1].mean()
 
 		###########################
 		# Compute Latent policy loglikelihood values. 
