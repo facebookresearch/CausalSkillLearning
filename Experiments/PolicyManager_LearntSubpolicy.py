@@ -251,41 +251,6 @@ class PolicyManager():
 				self.tf_logger.image_summary("Variational Rollout",[variational_rollout_image],counter)
 				self.tf_logger.image_summary("Latent Rollout",[latent_rollout_image],counter)				
 
-	# @profile
-	def previous_update_plots(self, counter, i, subpolicy_loglikelihood, latent_loglikelihood, subpolicy_entropy, sample_traj, latent_z_logprobability, latent_b_logprobability, kl_divergence, prior_loglikelihood):
-		# if len(sample_map.shape)==3:
-		# 	self.writer.add_image('Map', sample_map[:,:,0], counter)
-		# else:
-		# 	self.writer.add_image('Map', sample_map, counter)
-
-		self.writer.add_scalar('Latent Policy Loss', torch.mean(self.total_latent_loss), counter)
-		self.writer.add_scalar('SubPolicy Log Likelihood', subpolicy_loglikelihood.mean(), counter)
-		self.writer.add_scalar('Latent Log Likelihood', latent_loglikelihood.mean(), counter)
-		
-		self.writer.add_scalar('Variational Policy Loss', torch.mean(self.variational_loss), counter)
-		self.writer.add_scalar('Variational Reinforce Loss', torch.mean(self.reinforce_variational_loss), counter)
-		self.writer.add_scalar('Total Variational Policy Loss', torch.mean(self.total_variational_loss), counter)
-
-		self.writer.add_scalar('Baseline', self.baseline.mean(), counter)
-		self.writer.add_scalar('Total Likelihood', subpolicy_loglikelihood+latent_loglikelihood, counter)
-		self.writer.add_scalar('Epsilon', self.epsilon, counter)
-		self.writer.add_scalar('Latent Z LogProbability', latent_z_logprobability, counter)
-		self.writer.add_scalar('Latent B LogProbability', latent_b_logprobability, counter)
-		self.writer.add_scalar('KL Divergence', torch.mean(kl_divergence), counter)
-		self.writer.add_scalar('Prior LogLikelihood', torch.mean(prior_loglikelihood), counter)
-
-		if counter%self.args.display_freq==0:
-
-			# Now adding visuals for MIME, so it doesn't depend what data we use.
-			variational_rollout_image, latent_rollout_image = self.rollout_visuals(counter, i)
-			gt_trajectory_image = np.array(self.visualize_trajectory(sample_traj))
-			variational_rollout_image = np.array(variational_rollout_image)
-			latent_rollout_image = np.array(latent_rollout_image)
-
-			self.writer.add_image("GT Trajectory",gt_trajectory_image, counter).transpose((-1,0,1))
-			self.writer.add_image("Latent Rollout",latent_rollout_image, counter)
-			self.writer.add_image("Variational Rollout",variational_rollout_image, counter)
-	
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
 		self.writer.close()
