@@ -582,6 +582,8 @@ class PolicyManager():
 		# Setting total loss based on phase of training.
 		################################################
 
+		embed()
+
 		# IF PHASE ONE: 
 		if self.training_phase==1:
 			self.total_loss = self.subpolicy_loss + self.total_variational_loss + self.prior_loss
