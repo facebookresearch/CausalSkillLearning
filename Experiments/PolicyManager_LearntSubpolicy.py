@@ -26,17 +26,17 @@ class PolicyManager():
 		# Global input size: trajectory at every step - x,y,action
 		# Inputs is now states and actions.
 		# Model size parameters
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
-			self.state_size = 2
-			self.state_dim = 2
-			self.input_size = 2*self.state_size
-			self.hidden_size = 20
-			# Number of actions
-			self.output_size = 2					
-			self.number_layers = 4
-			self.traj_length = 5
+		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
+		self.state_size = 2
+		self.state_dim = 2
+		self.input_size = 2*self.state_size
+		self.hidden_size = 20
+		# Number of actions
+		self.output_size = 2					
+		self.number_layers = 4
+		self.traj_length = 5
 
-		elif self.args.data=='MIME':
+		if self.args.data=='MIME':
 			self.state_size = 16	
 			self.state_dim = 16		
 			self.input_size = 2*self.state_size
@@ -75,12 +75,6 @@ class PolicyManager():
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_counter)
-
-	def initialize_gt_subpolicies(self):
-
-		self.action_map = np.array([[0,-1],[-1,0],[0,1],[1,0]], dtype=np.float)
-		# self.dists = [stats.norm(loc=self.action_map[i],scale=[0.05,0.05]) for i in range(4)]
-		self.dists = [torch.distributions.MultivariateNormal(loc=torch.tensor(self.action_map[i]).cuda().float(),covariance_matrix=0.05*torch.eye((2)).cuda().float()) for i in range(4)]
 
 	def create_networks(self):
 		if self.args.discrete_z:
@@ -132,8 +126,6 @@ class PolicyManager():
 	def setup(self):
 		self.create_networks()
 		self.create_training_ops()
-		# self.create_util_ops()
-		self.initialize_gt_subpolicies()
 
 	def save_all_models(self, suffix):
 
