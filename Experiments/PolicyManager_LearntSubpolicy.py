@@ -582,7 +582,7 @@ class PolicyManager():
 
 		# IF PHASE ONE: 
 		if self.training_phase==1:
-			self.total_loss = self.subpolicy_loss. + self.total_variational_loss + self.prior_loss
+			self.total_loss = self.subpolicy_loss + self.total_variational_loss + self.prior_loss
 		# IF DONE WITH PHASE ONE:
 		elif self.training_phase==2 or self.training_phase==3:
 			self.total_loss = self.subpolicy_loss + self.total_weighted_latent_loss + self.total_variational_loss + self.prior_loss
