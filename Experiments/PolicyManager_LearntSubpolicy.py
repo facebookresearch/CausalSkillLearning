@@ -561,34 +561,41 @@ class PolicyManager():
 				self.baseline = torch.zeros_like(baseline_target).cuda().float()
 			else:
 				self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target
-			
-		##########
-		embed()
-		##########
 
+		# if self.baseline is None:
+		# 	self.baseline = torch.zeros_like(baseline_target).cuda().float()
+		# else:
+		# 	self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.mean()
+			
 		self.reinforce_variational_loss = self.variational_loss*(baseline_target-self.baseline)
 
 		# If reparam, the variational loss is a combination of three things. 
 		# Losses from latent policy and subpolicy into variational network for the latent_z's, the reinforce loss on the latent_b's, and the KL divergence. 
 		# But since we don't need to additionall compute the gradients from latent and subpolicy into variational network, just set the variational loss to reinforce + KL.
-		self.total_variational_loss = (self.reinforce_variational_loss.sum() + self.args.kl_weight*kl_divergence.squeeze(1).sum()).sum()
+		# self.total_variational_loss = (self.reinforce_variational_loss.sum() + self.args.kl_weight*kl_divergence.squeeze(1).sum()).sum()
+		self.total_variational_loss = (self.reinforce_variational_loss + self.args.kl_weight*kl_divergence.squeeze(1)).mean()
 
 		######################################################
 		# Set other losses, subpolicy, latent, and prior.
 		######################################################
 
 		# Get subpolicy losses.
-		self.subpolicy_loss = (-learnt_subpolicy_loglikelihood).sum()
+		self.subpolicy_loss = (-learnt_subpolicy_loglikelihood).mean()
 
 		# Get prior losses. 
-		self.prior_loss = (-self.args.prior_weight*prior_loglikelihood).sum()
+		self.prior_loss = (-self.args.prior_weight*prior_loglikelihood).mean()
 
 		# Reweight latent loss.
-		self.total_weighted_latent_loss = (self.args.latent_loss_weight*self.total_latent_loss).sum()
+		self.total_weighted_latent_loss = (self.args.latent_loss_weight*self.total_latent_loss).mean()
 
 		################################################
 		# Setting total loss based on phase of training.
 		################################################
+
+		##########
+		embed()
+		##########
+
 
 		# IF PHASE ONE: 
 		if self.training_phase==1:
