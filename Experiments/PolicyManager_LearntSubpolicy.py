@@ -409,7 +409,7 @@ class PolicyManager():
 		learnt_subpolicy_loglikelihoods, entropy = self.policy_network.forward(subpolicy_inputs, padded_action_seq)
 
 		# Clip values. # Comment this out to remove clipping.
-		learnt_subpolicy_loglikelihoods = torch.clamp(learnt_subpolicy_loglikelihoods,min=self.args.subpolicy_clamp_value)
+		# learnt_subpolicy_loglikelihoods = torch.clamp(learnt_subpolicy_loglikelihoods,min=self.args.subpolicy_clamp_value)
 
 		# Multiplying the likelihoods with the subpolicy ratio before summing.
 		learnt_subpolicy_loglikelihoods = self.args.subpolicy_ratio*learnt_subpolicy_loglikelihoods
@@ -452,7 +452,6 @@ class PolicyManager():
 			latent_b_logprobabilities, latent_b_probabilities, latent_distributions = self.latent_policy.forward(assembled_inputs_copy, self.epsilon)
 			# Evalute loglikelihood of latent z vectors under the latent policy's distributions. 
 			latent_z_logprobabilities = latent_distributions.log_prob(latent_z_copy.unsqueeze(1))
-			# clipped_latent_z_logprobabilities = torch.clamp(latent_z_logprobabilities,min=self.args.latent_clip_value)
 
 			# Multiply logprobabilities by the latent policy ratio.
 			latent_z_temporal_logprobabilities = latent_z_logprobabilities[:-1]*self.args.latentpolicy_ratio
@@ -470,15 +469,8 @@ class PolicyManager():
 		latent_loglikelihood += latent_b_logprobability
 		latent_loglikelihood += latent_z_logprobability
 
-		# We need to add this temporal likelihood to the subpolicy likelihood. To make sure it doesn't wash out the value of subpolicy likelihood (and indeed wash out each other), #
-		# Clip and then add. 
-
-		# Adding the temporal z and b logprobabilities.
-		clamped_latent_b_temporal_logprobabilities = latent_b_temporal_logprobabilities
-		# clamped_latent_b_temporal_logprobabilities = torch.clamp(latent_b_temporal_logprobabilities,min=self.args.latent_clamp_value)
-		clamped_latent_z_temporal_logprobabilities = torch.clamp(latent_z_temporal_logprobabilities,min=self.args.latent_clamp_value)
-
-		latent_temporal_loglikelihoods = clamped_latent_b_temporal_logprobabilities + clamped_latent_z_temporal_logprobabilities.squeeze(1)
+		# DON'T CLAMP, JUST MULTIPLY BY SUITABLE RATIO! Probably use the same lat_z_wt and lat_b_wt ratios from the losses. 
+		latent_temporal_loglikelihoods = self.args.lat_b_wt*latent_b_temporal_logprobabilities + self.args.lat_z_wt*latent_z_temporal_logprobabilities.squeeze(1)
 
 		##################################################
 		#### Manage merging likelihoods for REINFORCE ####
