@@ -781,7 +781,7 @@ class PolicyManager():
 		trajectory_rollout = self.rollout_MIME(trajectory[0], latent_z)
 
 		# 3) Run rollout trajectory in visualizer. 
-		rollout_gif = self.visualizer.visualize_joint_trajectory(trajectory_rollout, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i))
+		rollout_gif = self.visualizer.visualize_joint_trajectory(trajectory_rollout, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
 		
 		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
 
