@@ -714,6 +714,7 @@ class PolicyManager():
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
 		self.trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		self.indices = []
 
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 
@@ -731,7 +732,7 @@ class PolicyManager():
 			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, i, return_z=True)
 
 			if latent_z is not None:
-			
+				self.indices.append(i)
 				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
 				self.trajectory_set[i] = copy.deepcopy(sample_traj)
 
@@ -856,24 +857,23 @@ class PolicyManager():
 		artists = []
 		
 		# For number of samples in TSNE / Embedding, create a Image object for each of them. 
-		for i in range(number_samples):
+		for i in range(len(self.indices)):
 			if i%10==0:
 				print(i)
 			# Create offset image (so that we can place it where we choose), with specific zoom. 
-			print("Buzz")
-			print(len(self.rollout_gif_list))
-			print(len(self.rollout_gif_list[i]))
+
 			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)
 			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
-			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
+			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 			# Add the annotation box artist to the list artists. 
 			artists.append(ax.add_artist(ab))
 			
 		def update(t):
-			for i in range(number_samples):
+			# for i in range(number_samples):
+			for i in range(len(self.indices)):
 				
 				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
-				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
+				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
 		update_len = 20
