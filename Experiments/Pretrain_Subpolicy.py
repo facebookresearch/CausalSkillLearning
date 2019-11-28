@@ -860,6 +860,9 @@ class PolicyManager():
 			if i%10==0:
 				print(i)
 			# Create offset image (so that we can place it where we choose), with specific zoom. 
+			print("Buzz")
+			print(len(self.rollout_gif_list))
+			print(len(self.rollout_gif_list[i]))
 			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)
 			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
 			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
