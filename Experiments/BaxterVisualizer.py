@@ -111,7 +111,7 @@ class MujocoVisualizer():
         image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
         return image
 
-    def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None):
+    def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
 
         image_list = []
         for t in range(trajectory.shape[0]):
@@ -123,7 +123,10 @@ class MujocoVisualizer():
                 if t>0 and segmentations[t]==1:
                     image_list.append(255*np.ones_like(new_image)+new_image)
 
-        if return_gif:
+        if return_and_save:
+            imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
+            return image_list
+        elif return_gif:
             return image_list
         else:
             imageio.mimsave(os.path.join(gif_path,gif_name), image_list)            
