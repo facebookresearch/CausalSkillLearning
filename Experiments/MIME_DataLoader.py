@@ -99,11 +99,9 @@ class MIME_Dataset(Dataset):
 		elem['la_trajectory'] = select_baxter_angles(elem['joint_angle_trajectory'], self.joint_names, arm='left')
 		# If max norm of differences is <1.0, valid. 
 
-		if elem['joint_angle_trajectory'].shape[0]>1:
-			elem['is_valid'] = int(np.linalg.norm(np.diff(elem['joint_angle_trajectory'],axis=0),axis=1).max() < 1.0)
-		else:
-			embed()
-			elem['is_valid'] = 0
+		# if elem['joint_angle_trajectory'].shape[0]>1:
+		elem['is_valid'] = int(np.linalg.norm(np.diff(elem['joint_angle_trajectory'],axis=0),axis=1).max() < 1.0)
+
 
 		return elem
 
