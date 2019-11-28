@@ -276,6 +276,8 @@ class PolicyManager():
 
 					# Get trajectory segment and actions. 
 					trajectory = trajectory[start_timepoint:end_timepoint]				
+				else:					
+					return None, None, None
 
 				action_sequence = np.diff(trajectory,axis=0)
 
