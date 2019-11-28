@@ -705,17 +705,19 @@ class PolicyManager():
 
 	def visualize_MIME_data(self):
 
-		self.N = 10
+		self.N = 50
 		self.rollout_timesteps = self.args.traj_length
 		self.state_dim = 16
 
 		self.visualizer = BaxterVisualizer.MujocoVisualizer()
 
-		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
-		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
-		trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
+		self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		self.trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
 
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+
+		self.rollout_gif_list = []
 
 		# Create save directory:
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
@@ -730,17 +732,17 @@ class PolicyManager():
 
 			if latent_z is not None:
 			
-				latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
-				trajectory_set[i] = copy.deepcopy(sample_traj)
+				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
+				self.trajectory_set[i] = copy.deepcopy(sample_traj)
 
 				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
-				trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)			
+				self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)			
+
+		# Get MIME embedding. 
+		animation_object = self.visualize_MIME_embedding()
 
 		# Save webpage. 
-		self.write_results_HTML()
-
-		# Do embedding thingamajiggy.
-		# EMBED MIME		
+		self.write_results_HTML(animation_object)
 
 
 	def rollout_MIME(self, trajectory_start, latent_z):
@@ -780,33 +782,96 @@ class PolicyManager():
 
 		# 3) Run rollout trajectory in visualizer. 
 		rollout_gif = self.visualizer.visualize_joint_trajectory(trajectory_rollout, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i))
+		
+		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
 
 		return trajectory_rollout
 
-	def write_results_HTML(self):
-	    # Retrieve, append, and print images from datapoints across different models. 
+	def write_results_HTML(self, animation_object):
+		# Retrieve, append, and print images from datapoints across different models. 
 
-	    print("Writing HTML File.")
-	    # Open Results HTML file. 	    
-	    with open(os.path.join(self.dir_name,'Results_{}.html'.format(self.args.name)),'w') as html_file:
-	        
-	        # Start HTML doc. 
-	        html_file.write('<html>')
-	        html_file.write('<body>')
-	        html_file.write('<p> Model: {0}</p>'.format(self.args.name))
-	        for i in range(self.N):
-	            
-	            if i%100==0:
-	                print("Datapoint:",i)                        
-	            html_file.write('<p> <b> Trajectory {}  </b></p>'.format(i))
+		print("Writing HTML File.")
+		# Open Results HTML file. 	    
+		with open(os.path.join(self.dir_name,'Results_{}.html'.format(self.args.name)),'w') as html_file:
+			
+			# Start HTML doc. 
+			html_file.write('<html>')
+			html_file.write('<body>')
+			html_file.write('<p> Model: {0}</p>'.format(self.args.name))
 
-	            file_prefix = self.dir_name
+			for i in range(self.N):
+				
+				if i%100==0:
+					print("Datapoint:",i)                        
+				html_file.write('<p> <b> Trajectory {}  </b></p>'.format(i))
 
-	            # Create gif_list by prefixing base_gif_list with file prefix.
-	            html_file.write('<div style="display: flex; justify-content: row;">  <img src="Traj_{0}_GT.gif"/>  <img src="Traj_{0}_Rollout.gif"/> </div>'.format(i))
-	                
-	            # Add gap space.
-	            html_file.write('<p> </p>')
+				file_prefix = self.dir_name
 
-	        html_file.write('</body>')
-	        html_file.write('</html>')
+				# Create gif_list by prefixing base_gif_list with file prefix.
+				html_file.write('<div style="display: flex; justify-content: row;">  <img src="Traj_{0}_GT.gif"/>  <img src="Traj_{0}_Rollout.gif"/> </div>'.format(i))
+					
+				# Add gap space.
+				html_file.write('<p> </p>')
+
+			html_file.write('</body>')
+			html_file.write('</html>')
+
+		# Open Results HTML file. 	    
+		with open(os.path.join(self.dir_name,'Embedding_{}.html'.format(self.args.name)),'w') as html_file:
+			
+			# Start HTML doc. 
+			html_file.write('<html>')
+			html_file.write('<body>')
+			html_file.write('<p> Model: {0}</p>'.format(self.args.name))
+
+    		html_file.write(animation_object.to_html5_video())
+
+			html_file.write('</body>')
+			html_file.write('</html>')
+
+	def visualize_MIME_embedding(self):
+
+		# Create figure and axis objects.
+		matplotlib.rcParams['figure.figsize'] = [50, 50]
+		fig, ax = plt.subplots()
+
+		# number_samples = 400
+		number_samples = self.N
+		scale_factor = 1
+		
+		# Mean and variance normalize z.
+		mean = self.latent_z_set.mean(axis=0)
+		std = self.latent_z_set.std(axis=0)
+		normed_z = (self.latent_z_set-mean)/std
+		
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		embedded_zs = tsne.fit_transform(normed_z)
+
+		scaled_embedded_zs = scale_factor*embedded_zs
+
+		# Create a scatter plot of the embedding itself. The plot does not seem to work without this. 
+		ax.scatter(scaled_embedded_zs[:number_samples,0],scaled_embedded_zs[:number_samples,1])
+		ax.axis('off')
+		ax.set_title("Embedding of Latent Representation of Pre-trained Subpolicy",fontdict={'fontsize':40})
+		artists = []
+		
+		# For number of samples in TSNE / Embedding, create a Image object for each of them. 
+		for i in range(number_samples):
+			if i%10==0:
+				print(i)
+			embed()
+			# Create offset image (so that we can place it where we choose), with specific zoom. 
+			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)
+			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
+			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
+			# Add the annotation box artist to the list artists. 
+			artists.append(ax.add_artist(ab))
+			
+		def update(t):
+			for i in range(number_samples):
+				
+				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
+				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
+				artists.append(ax.add_artist(ab))
+			
+		anim = FuncAnimation(fig, update, frames=np.arange(0, 10), interval=200)
