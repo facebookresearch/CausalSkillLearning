@@ -859,7 +859,6 @@ class PolicyManager():
 		for i in range(number_samples):
 			if i%10==0:
 				print(i)
-			embed()
 			# Create offset image (so that we can place it where we choose), with specific zoom. 
 			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)
 			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
@@ -874,4 +873,5 @@ class PolicyManager():
 				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[i,0], scaled_embedded_zs[i,1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
-		anim = FuncAnimation(fig, update, frames=np.arange(0, 10), interval=200)
+		update_len = 20
+		anim = FuncAnimation(fig, update, frames=np.arange(0, update_len), interval=200)
