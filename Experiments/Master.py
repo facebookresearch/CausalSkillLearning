@@ -88,7 +88,7 @@ def parse_arguments():
 	parser.add_argument('--model',dest='model',type=str)	
 	parser.add_argument('--logdir',dest='logdir',type=str,default='Experiment_Logs/')
 
-	# Parameters for training. 
+	# Training setting. 
 	parser.add_argument('--discrete_z',dest='discrete_z',type=int,default=0)
 	parser.add_argument('--z_dimensions',dest='z_dimensions',type=int,default=8)
 	parser.add_argument('--condition_size',dest='condition_size',type=int,default=4)
@@ -96,12 +96,18 @@ def parse_arguments():
 	parser.add_argument('--b_prior',dest='b_prior',type=int,default=1)
 	parser.add_argument('--reparam',dest='reparam',type=int,default=1)	
 	parser.add_argument('--number_policies',dest='number_policies',type=int,default=4)
-	parser.add_argument('--subpolicy_model',dest='subpolicy_model',type=str)
 	parser.add_argument('--fix_subpolicy',dest='fix_subpolicy',type=int,default=1)
+	parser.add_argument('--subpolicy_model',dest='subpolicy_model',type=str)
+	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
+	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)
+	parser.add_argument('--display_freq',dest='display_freq',type=int,default=10000)
+	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)	
+
 	parser.add_argument('--entropy',dest='entropy',type=int,default=0)
 	parser.add_argument('--var_entropy',dest='var_entropy',type=int,default=0)
 	parser.add_argument('--ent_weight',dest='ent_weight',type=float,default=0.)
 	parser.add_argument('--var_ent_weight',dest='var_ent_weight',type=float,default=2.)
+	
 	parser.add_argument('--z_ex_bias',dest='z_exploration_bias',type=float,default=0.)
 	parser.add_argument('--b_ex_bias',dest='b_exploration_bias',type=float,default=0.)
 	parser.add_argument('--lat_z_wt',dest='lat_z_wt',type=float,default=0.1)
@@ -111,10 +117,8 @@ def parse_arguments():
 	parser.add_argument('--subpolicy_clamp_value',dest='subpolicy_clamp_value',type=float,default=-5)
 	parser.add_argument('--latent_clamp_value',dest='latent_clamp_value',type=float,default=-5)
 	parser.add_argument('--min_variance_bias',dest='min_variance_bias',type=float,default=0.01)
-	parser.add_argument('--display_freq',dest='display_freq',type=int,default=10000)
-	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)
-	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
-	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)
+	parser.add_argument('--normalization',dest='normalization',type='str',default='None')
+
 	parser.add_argument('--likelihood_penalty',dest='likelihood_penalty',type=int,default=10)
 	parser.add_argument('--subpolicy_ratio',dest='subpolicy_ratio',type=float,default=0.01)
 	parser.add_argument('--latentpolicy_ratio',dest='latentpolicy_ratio',type=float,default=0.1)
@@ -123,6 +127,7 @@ def parse_arguments():
 	parser.add_argument('--kl_weight',dest='kl_weight',type=float,default=0.01)
 	parser.add_argument('--var_loss_weight',dest='var_loss_weight',type=float,default=1.)
 	parser.add_argument('--prior_weight',dest='prior_weight',type=float,default=0.00001)
+
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.2)
 	parser.add_argument('--epsilon_to',dest='epsilon_to',type=float,default=0.05)
 	parser.add_argument('--epsilon_over',dest='epsilon_over',type=int,default=30)
