@@ -48,6 +48,13 @@ class PolicyManager():
 			# Create Baxter visualizer for MIME data
 			self.visualizer = BaxterVisualizer.MujocoVisualizer()
 
+			if self.args.normalization=='meanvar':
+				self.norm_sub_value = np.load("MIME_Means.npy")
+				self.norm_denom_value = np.load("MIME_Var.npy")
+			elif self.args.normalization=='minmax':
+				self.norm_sub_value = np.load("MIME_Min.npy")
+				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
+
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 200
 		self.baseline_value = 0.
@@ -75,6 +82,7 @@ class PolicyManager():
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_counter)
+
 
 	def create_networks(self):
 		if self.args.discrete_z:
@@ -371,8 +379,13 @@ class PolicyManager():
 			if data_element['is_valid']:
 				
 				self.conditional_information = np.zeros((self.args.condition_size))
-				# Sample a trajectory length that's valid. 			
+				# Sample a trajectory length that's valid. 						
 				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+
+				# If normalization is set to some value.
+				if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+					trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
 				action_sequence = np.diff(trajectory,axis=0)
 
 				# Concatenate
