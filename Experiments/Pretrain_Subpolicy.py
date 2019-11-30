@@ -46,6 +46,13 @@ class PolicyManager():
 			self.traj_length = self.args.traj_length
 			self.number_epochs = 200
 
+			if self.args.normalization=='meanvar':
+				self.norm_sub_value = np.load("MIME_Means.npy")
+				self.norm_denom_value = np.load("MIME_Var.npy")
+			elif self.args.normalization=='minmax':
+				self.norm_sub_value = np.load("MIME_Min.npy")
+				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
+
 		# Training parameters. 		
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
@@ -276,6 +283,11 @@ class PolicyManager():
 
 					# Get trajectory segment and actions. 
 					trajectory = trajectory[start_timepoint:end_timepoint]				
+
+					# If normalization is set to some value.
+					if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+						trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
 				else:					
 					return None, None, None
 
@@ -779,18 +791,27 @@ class PolicyManager():
 
 	def get_MIME_visuals(self, i, latent_z, trajectory, sample_action_seq):		
 
-		# 1) First, run ground truth trajectory in visualizer. 
-		ground_truth_gif = self.visualizer.visualize_joint_trajectory(trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
-		
-		# 2) Feed Z into policy, rollout trajectory. 
+		# 1) Feed Z into policy, rollout trajectory. 
 		trajectory_rollout = self.rollout_MIME(trajectory[0], latent_z)
 
-		# 3) Run rollout trajectory in visualizer. 
-		rollout_gif = self.visualizer.visualize_joint_trajectory(trajectory_rollout, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
+		# 2) Unnormalize data. 
+		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+			unnorm_gt_trajectory = (trajectory + self.norm_sub_value)*self.norm_denom_value
+			unnorm_pred_trajectory = (trajectory_rollout + self.norm_sub_value)*self.norm_denom_value
+
+		# 3) Run unnormalized ground truth trajectory in visualizer. 
+		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
+		
+		# 4) Run unnormalized rollout trajectory in visualizer. 
+		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
 		
 		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
 
-		return trajectory_rollout
+		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+			return unnorm_pred_trajectory
+		else:
+			return trajectory_rollout
+
 
 	def write_results_HTML(self, animation_object):
 		# Retrieve, append, and print images from datapoints across different models. 
