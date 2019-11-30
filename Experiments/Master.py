@@ -117,7 +117,7 @@ def parse_arguments():
 	parser.add_argument('--subpolicy_clamp_value',dest='subpolicy_clamp_value',type=float,default=-5)
 	parser.add_argument('--latent_clamp_value',dest='latent_clamp_value',type=float,default=-5)
 	parser.add_argument('--min_variance_bias',dest='min_variance_bias',type=float,default=0.01)
-	parser.add_argument('--normalization',dest='normalization',type='str',default='None')
+	parser.add_argument('--normalization',dest='normalization',type=str,default='None')
 
 	parser.add_argument('--likelihood_penalty',dest='likelihood_penalty',type=int,default=10)
 	parser.add_argument('--subpolicy_ratio',dest='subpolicy_ratio',type=float,default=0.01)
