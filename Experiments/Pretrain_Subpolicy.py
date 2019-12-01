@@ -173,9 +173,9 @@ class PolicyManager():
 	# def update_plots(self, counter, sample_map, loglikelihood):
 	def update_plots(self, counter, loglikelihood, sample_traj):		
 		
-		self.writer.add_scalar('Subpolicy Likelihood', loglikelihood.sum(), counter)
-		self.writer.add_scalar('Total Loss', self.total_loss.sum(), counter)
-		self.writer.add_scalar('Encoder KL', self.encoder_KL.sum(), counter)
+		self.writer.add_scalar('Subpolicy Likelihood', loglikelihood.mean(), counter)
+		self.writer.add_scalar('Total Loss', self.total_loss.mean(), counter)
+		self.writer.add_scalar('Encoder KL', self.encoder_KL.mean(), counter)
 
 		if not(self.args.reparam):
 			self.writer.add_scalar('Baseline', self.baseline.sum(), counter)
