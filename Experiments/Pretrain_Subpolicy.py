@@ -378,7 +378,7 @@ class PolicyManager():
 		if self.args.debug:			
 			print("Embedding in Update subpolicies.")
 			embed()
-			
+				
 		self.total_loss.backward()
 
 		self.subpolicy_optimizer.step()
@@ -387,11 +387,17 @@ class PolicyManager():
 	def update_policies_reparam(self, loglikelihood, latent_z, encoder_KL):
 		self.optimizer.zero_grad()
 
-		self.likelihood_loss = -loglikelihood.sum()
-		self.encoder_KL = encoder_KL.sum()
+		# Losses computed as sums.
+		# self.likelihood_loss = -loglikelihood.sum()
+		# self.encoder_KL = encoder_KL.sum()
 
-		self.total_loss = (self.likelihood_loss + self.args.kl_weight*self.encoder_KL).sum()
-		
+		# Instead of summing losses, we should try taking the mean of the  losses, so we can avoid running into issues of variable timesteps and stuff like that. 
+		# We should also consider training with randomly sampled number of timesteps.
+		self.likelihood_loss = -loglikelihood.mean()
+		self.encoder_KL = encoder_KL.mean()
+
+		self.total_loss = (self.likelihood_loss + self.args.kl_weight*self.encoder_KL)
+
 		if self.args.debug:
 			print("Embedding in Update subpolicies.")
 			embed()
