@@ -514,7 +514,7 @@ class PolicyManager():
 
 			# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
 			loglikelihoods, _ = self.policy_network.forward(subpolicy_inputs, sample_action_seq)
-			loglikelihood = loglikelihoods[:-1].sum()
+			loglikelihood = loglikelihoods[:-1].mean()
 			 
 			if self.args.debug:
 				print("Embedding in Train.")
