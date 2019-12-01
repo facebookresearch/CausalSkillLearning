@@ -743,6 +743,11 @@ class PolicyManager():
 		self.rollout_gif_list = []
 
 		# Create save directory:
+		upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+		if not(os.path.isdir(upper_dir_name)):
+			os.mkdir(upper_dir_name)
+
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
