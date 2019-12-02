@@ -809,6 +809,9 @@ class PolicyManager():
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 			unnorm_gt_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
 			unnorm_pred_trajectory = (trajectory_rollout*self.norm_denom_value) + self.norm_sub_value
+		else:
+			unnorm_gt_trajectory = trajectory
+			unnorm_pred_trajectory = trajectory_rollout
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
 		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
@@ -899,7 +902,7 @@ class PolicyManager():
 				print(i)
 			# Create offset image (so that we can place it where we choose), with specific zoom. 
 
-			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)
+			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)			
 			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
 			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 			# Add the annotation box artist to the list artists. 
@@ -909,8 +912,8 @@ class PolicyManager():
 			# for i in range(number_samples):
 			for i in range(len(self.indices)):
 				
-				# imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
-				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][0]),zoom=0.4)
+				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
+				# imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][0]),zoom=0.4)
 				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
