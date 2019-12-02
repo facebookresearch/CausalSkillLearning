@@ -727,7 +727,7 @@ class PolicyManager():
 
 	def visualize_MIME_data(self):
 
-		self.N = 50
+		self.N = 5
 		self.rollout_timesteps = self.args.traj_length
 		self.state_dim = 16
 
@@ -864,7 +864,8 @@ class PolicyManager():
 			html_file.write('<body>')
 			html_file.write('<p> Model: {0}</p>'.format(self.args.name))
 
-			html_file.write(animation_object.to_html5_video())
+			# html_file.write(animation_object.to_html5_video())
+			print(animation_object.to_html5_video(), file=html_file)
 
 			html_file.write('</body>')
 			html_file.write('</html>')
