@@ -826,7 +826,6 @@ class PolicyManager():
 		else:
 			return trajectory_rollout
 
-
 	def write_results_HTML(self, animation_object):
 		# Retrieve, append, and print images from datapoints across different models. 
 
@@ -869,6 +868,8 @@ class PolicyManager():
 
 			html_file.write('</body>')
 			html_file.write('</html>')
+
+		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))		
 
 	def visualize_MIME_embedding(self):
 
