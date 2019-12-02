@@ -808,7 +808,7 @@ class PolicyManager():
 		# 2) Unnormalize data. 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 			unnorm_gt_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
-			unnorm_pred_trajectory = (trajectory_rollout*self.norm_denom_value) + self.norm_sub_value
+			unnorm_pred_trajectory = (trajectory_rollout*self.norm_denom_value) + self.norm_sub_value)
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
 		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
@@ -853,6 +853,7 @@ class PolicyManager():
 			html_file.write('</body>')
 			html_file.write('</html>')
 
+		print("Writing Embedding File.")
 		# Open Results HTML file. 	    
 		with open(os.path.join(self.dir_name,'Embedding_{}.html'.format(self.args.name)),'w') as html_file:
 			
