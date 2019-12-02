@@ -288,8 +288,6 @@ class PolicyManager():
 					if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 						trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
 
-					embed()
-					
 				else:					
 					return None, None, None
 
@@ -809,8 +807,8 @@ class PolicyManager():
 
 		# 2) Unnormalize data. 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-			unnorm_gt_trajectory = (trajectory + self.norm_sub_value)*self.norm_denom_value
-			unnorm_pred_trajectory = (trajectory_rollout + self.norm_sub_value)*self.norm_denom_value
+			unnorm_gt_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
+			unnorm_pred_trajectory = (trajectory_rollout*self.norm_denom_value) + self.norm_sub_value
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
 		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
