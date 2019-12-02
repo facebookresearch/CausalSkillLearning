@@ -887,6 +887,8 @@ class PolicyManager():
 
 		scaled_embedded_zs = scale_factor*embedded_zs
 
+		embed()
+		
 		# Create a scatter plot of the embedding itself. The plot does not seem to work without this. 
 		ax.scatter(scaled_embedded_zs[:number_samples,0],scaled_embedded_zs[:number_samples,1])
 		ax.axis('off')
