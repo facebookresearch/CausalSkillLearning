@@ -727,7 +727,7 @@ class PolicyManager():
 
 	def visualize_MIME_data(self):
 
-		self.N = 50
+		self.N = 5
 		self.rollout_timesteps = self.args.traj_length
 		self.state_dim = 16
 
