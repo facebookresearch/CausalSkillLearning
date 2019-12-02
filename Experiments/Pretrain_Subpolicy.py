@@ -920,6 +920,4 @@ class PolicyManager():
 		update_len = 20
 		anim = FuncAnimation(fig, update, frames=np.arange(0, update_len), interval=200)
 
-		embed()
-
 		return anim
