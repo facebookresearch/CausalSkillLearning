@@ -288,6 +288,8 @@ class PolicyManager():
 					if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 						trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
 
+					embed()
+					
 				else:					
 					return None, None, None
 
