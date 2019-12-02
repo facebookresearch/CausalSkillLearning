@@ -887,8 +887,6 @@ class PolicyManager():
 
 		scaled_embedded_zs = scale_factor*embedded_zs
 
-		embed()
-
 		# Create a scatter plot of the embedding itself. The plot does not seem to work without this. 
 		ax.scatter(scaled_embedded_zs[:number_samples,0],scaled_embedded_zs[:number_samples,1])
 		ax.axis('off')
@@ -911,7 +909,8 @@ class PolicyManager():
 			# for i in range(number_samples):
 			for i in range(len(self.indices)):
 				
-				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
+				# imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
+				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][0]),zoom=0.4)
 				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
