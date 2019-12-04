@@ -741,6 +741,7 @@ class PolicyManager():
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 
 		self.rollout_gif_list = []
+		self.gt_gif_list = []
 
 		# Create save directory:
 		upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
@@ -766,11 +767,16 @@ class PolicyManager():
 				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
 				self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)			
 
-		# Get MIME embedding. 
-		animation_object = self.visualize_MIME_embedding()
+		# Get MIME embedding for rollout and GT trajectories, with same Z embedding. 
+		embedded_z = self.get_MIME_embedding()
+		gt_animation_object = self.visualize_MIME_embedding(embedded_z, gt=True)
+		rollout_animation_object = self.visualize_MIME_embedding(embedded_z, gt=False)
+
+		self.write_embedding_HTML(gt_animation_object,prefix="GT")
+		self.write_embedding_HTML(rollout_animation_object,prefix="Rollout")
 
 		# Save webpage. 
-		self.write_results_HTML(animation_object)
+		self.write_results_HTML()
 
 
 	def rollout_MIME(self, trajectory_start, latent_z):
@@ -819,6 +825,7 @@ class PolicyManager():
 		# 4) Run unnormalized rollout trajectory in visualizer. 
 		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
 		
+		self.gt_gif_list.append(copy.deepcopy(ground_truth_gif))
 		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -826,7 +833,7 @@ class PolicyManager():
 		else:
 			return trajectory_rollout
 
-	def write_results_HTML(self, animation_object):
+	def write_results_HTML(self):
 		# Retrieve, append, and print images from datapoints across different models. 
 
 		print("Writing HTML File.")
@@ -855,9 +862,10 @@ class PolicyManager():
 			html_file.write('</body>')
 			html_file.write('</html>')
 
+	def write_embedding_HTML(self, animation_object, prefix=""):
 		print("Writing Embedding File.")
 		# Open Results HTML file. 	    
-		with open(os.path.join(self.dir_name,'Embedding_{}.html'.format(self.args.name)),'w') as html_file:
+		with open(os.path.join(self.dir_name,'Embedding_{0}_{1}.html'.format(prefix,self.args.name)),'w') as html_file:
 			
 			# Start HTML doc. 
 			html_file.write('<html>')
@@ -872,16 +880,8 @@ class PolicyManager():
 
 		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))		
 
-	def visualize_MIME_embedding(self):
+	def get_MIME_embedding(self):
 
-		# Create figure and axis objects.
-		matplotlib.rcParams['figure.figsize'] = [50, 50]
-		fig, ax = plt.subplots()
-
-		# number_samples = 400
-		number_samples = self.N
-		scale_factor = 1
-		
 		# Mean and variance normalize z.
 		mean = self.latent_z_set.mean(axis=0)
 		std = self.latent_z_set.std(axis=0)
@@ -890,7 +890,19 @@ class PolicyManager():
 		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
 		embedded_zs = tsne.fit_transform(normed_z)
 
+		scale_factor = 1
 		scaled_embedded_zs = scale_factor*embedded_zs
+
+		return scaled_embedded_zs
+
+	def visualize_MIME_embedding(self, scaled_embedded_zs, gt=False):
+
+		# Create figure and axis objects.
+		matplotlib.rcParams['figure.figsize'] = [50, 50]
+		fig, ax = plt.subplots()
+
+		# number_samples = 400
+		number_samples = self.N		
 
 		# Create a scatter plot of the embedding itself. The plot does not seem to work without this. 
 		ax.scatter(scaled_embedded_zs[:number_samples,0],scaled_embedded_zs[:number_samples,1])
@@ -904,7 +916,11 @@ class PolicyManager():
 				print(i)
 			# Create offset image (so that we can place it where we choose), with specific zoom. 
 
-			imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)			
+			if gt:
+				imagebox = OffsetImage(self.gt_gif_list[i][0],zoom=0.4)
+			else:
+				imagebox = OffsetImage(self.rollout_gif_list[i][0],zoom=0.4)			
+
 			# Create an annotation box to put the offset image into. specify offset image, position, and disable bounding frame. 
 			ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 			# Add the annotation box artist to the list artists. 
@@ -914,8 +930,11 @@ class PolicyManager():
 			# for i in range(number_samples):
 			for i in range(len(self.indices)):
 				
-				imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][t]),zoom=0.4)
-				# imagebox = OffsetImage(copy.deepcopy(self.rollout_gif_list[i][0]),zoom=0.4)
+				if gt:
+					imagebox = OffsetImage(self.gt_gif_list[i][t],zoom=0.4)
+				else:
+					imagebox = OffsetImage(self.rollout_gif_list[i][t],zoom=0.4)			
+
 				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
