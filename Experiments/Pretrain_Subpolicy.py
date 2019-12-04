@@ -820,7 +820,7 @@ class PolicyManager():
 			unnorm_pred_trajectory = trajectory_rollout
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
-		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i))
+		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True)
 		
 		# 4) Run unnormalized rollout trajectory in visualizer. 
 		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
