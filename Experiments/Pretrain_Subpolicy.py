@@ -575,9 +575,6 @@ class PolicyManager():
 			
 			print("Starting Epoch: ",e)
 
-			if e%self.args.eval_freq==0:
-				self.automatic_evaluation(e)
-
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
 
@@ -591,8 +588,8 @@ class PolicyManager():
 				self.run_iteration(counter, i)
 				counter = counter+1
 
-			# if e%self.args.eval_every==0:
-			# 	self.automatic_evaluation(e)
+			if e%self.args.eval_freq==0:
+				self.automatic_evaluation(e)
 
 		self.write_and_close()
 	
@@ -600,10 +597,9 @@ class PolicyManager():
 
 		# This should be a good template command. 
 		base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data=MIME --kl_weight={1} --var_skill_length={2} --z_dimensions=64 --normalization={3}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
-		cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd={1}'.format(self.args.name, base_command)
-
-		embed()
-		subprocess.call(cluster_command.split(),shell=False, cwd='~/Research/Code/CausalSkillLearning/Experiments')
+		cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
+		
+		subprocess.call([cluster_command],shell=True)
 		
 	def evaluate(self, model):
 		if model:
