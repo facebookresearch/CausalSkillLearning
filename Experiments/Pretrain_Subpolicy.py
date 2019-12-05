@@ -322,21 +322,15 @@ class PolicyManager():
 	def construct_dummy_latents(self, latent_z):
 
 		if self.args.discrete_z:
-			latent_z_indices = latent_z.float()*torch.ones((self.traj_length)).cuda().float()
+			latent_z_indices = latent_z.float()*torch.ones((self.traj_length)).cuda().float()			
 		else:
-
-			# if self.args.reparam:			
-			# 	latent_z_indices = torch.cat([latent_z.squeeze(0).clone() for i in range(self.traj_length)],dim=0)
-			# else:				
-			# 	latent_z_indices = latent_z.squeeze(0)*torch.ones((self.traj_length, self.latent_z_dimensionality)).cuda()
-			
 			# This construction should work irrespective of reparam or not.
-			latent_z_indices = torch.cat([latent_z.squeeze(0) for i in range(self.traj_length)],dim=0)
+			latent_z_indices = torch.cat([latent_z.squeeze(0) for i in range(self.current_traj_len)],dim=0)
 
 		# Setting latent_b's to 00001. 
 		# This is just a dummy value.
 		# latent_b = torch.ones((5)).cuda().float()
-		latent_b = torch.zeros((self.traj_length)).cuda().float()
+		latent_b = torch.zeros((self.current_traj_len)).cuda().float()
 		# latent_b[-1] = 1.
 
 		return latent_z_indices, latent_b	
