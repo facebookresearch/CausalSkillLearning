@@ -575,7 +575,7 @@ class PolicyManager():
 			
 			print("Starting Epoch: ",e)
 
-			if e%self.args.eval_every==0:
+			if e%self.args.eval_freq==0:
 				self.automatic_evaluation(e)
 
 			if e%self.args.save_freq==0:
