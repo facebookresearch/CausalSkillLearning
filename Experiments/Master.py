@@ -100,6 +100,7 @@ def parse_arguments():
 	parser.add_argument('--subpolicy_model',dest='subpolicy_model',type=str)
 	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
 	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)
+	parser.add_argument('--var_skill_length',dest='var_skill_length',type=int,default=0)
 	parser.add_argument('--display_freq',dest='display_freq',type=int,default=10000)
 	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)	
 

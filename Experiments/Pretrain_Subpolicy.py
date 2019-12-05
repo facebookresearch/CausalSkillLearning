@@ -275,11 +275,18 @@ class PolicyManager():
 				
 				# Sample a trajectory length that's valid. 			
 				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-				
+
+				# If allowing variable skill length, set length for this sample.				
+				if self.args.var_skill_length:
+					# Choose length of 12-16 with certain probabilities. 
+					self.current_traj_len = np.random.choice([12,13,14,15,16],p=[0.1,0.2,0.4,0.2,0.1])
+				else:
+					self.current_traj_len = self.traj_length
+
 				# Sample random start point.
-				if trajectory.shape[0]>self.traj_length:
-					start_timepoint = np.random.randint(0,trajectory.shape[0]-self.traj_length)
-					end_timepoint = start_timepoint + self.traj_length
+				if trajectory.shape[0]>self.current_traj_len:
+					start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
+					end_timepoint = start_timepoint + self.current_traj_len
 
 					# Get trajectory segment and actions. 
 					trajectory = trajectory[start_timepoint:end_timepoint]				
