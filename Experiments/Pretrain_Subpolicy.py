@@ -768,6 +768,8 @@ class PolicyManager():
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
 
+		self.max_len = 0
+
 		for i in range(self.N):
 
 			print("#########################################")	
@@ -776,6 +778,10 @@ class PolicyManager():
 
 			if latent_z is not None:
 				self.indices.append(i)
+
+				if len(sample_traj)>self.max_len:
+					self.max_len = len(sample_traj)
+
 				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())		
 				
 				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
@@ -950,14 +956,14 @@ class PolicyManager():
 			for i in range(len(self.indices)):
 				
 				if gt:
-					imagebox = OffsetImage(self.gt_gif_list[i][t],zoom=0.4)
+					imagebox = OffsetImage(self.gt_gif_list[i][min(t, len(self.gt_gif_list[i])-1)],zoom=0.4)
 				else:
-					imagebox = OffsetImage(self.rollout_gif_list[i][t],zoom=0.4)			
+					imagebox = OffsetImage(self.rollout_gif_list[i][min(t, len(self.rollout_gif_list[i])-1)],zoom=0.4)			
 
 				ab = AnnotationBbox(imagebox, (scaled_embedded_zs[self.indices[i],0], scaled_embedded_zs[self.indices[i],1]), frameon=False)
 				artists.append(ax.add_artist(ab))
 			
-		update_len = 20
-		anim = FuncAnimation(fig, update, frames=np.arange(0, update_len), interval=200)
+		# update_len = 20
+		anim = FuncAnimation(fig, update, frames=np.arange(0, self.max_len), interval=200)
 
 		return anim
