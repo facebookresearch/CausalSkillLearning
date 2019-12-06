@@ -746,9 +746,12 @@ class PolicyManager():
 		self.visualizer = BaxterVisualizer.MujocoVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
-		self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
-		self.trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		# self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		# self.trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
 		self.indices = []
+
+		self.trajectory_set = []
+		self.trajectory_rollout_set = []		
 
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 
@@ -773,11 +776,15 @@ class PolicyManager():
 
 			if latent_z is not None:
 				self.indices.append(i)
-				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
-				self.trajectory_set[i] = copy.deepcopy(sample_traj)
-
+				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())		
+				
 				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
-				self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)			
+				
+				# self.trajectory_set[i] = copy.deepcopy(sample_traj)
+				# self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)	
+
+				self.trajectory_set.append(copy.deepcopy(sample_traj))
+				self.trajectory_rollout_set.append(copy.deepcopy(trajectory_rollout))
 
 		# Get MIME embedding for rollout and GT trajectories, with same Z embedding. 
 		embedded_z = self.get_MIME_embedding()
