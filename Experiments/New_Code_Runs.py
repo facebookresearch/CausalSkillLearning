@@ -19,8 +19,44 @@ python Master.py --train=0 --setting=pretrain_sub --name=S181_m5 --data=Continuo
 # Training on Separable Data with Reparam with New Repo
 #######################################################
 python cluster_run.py --partition=learnfair --name=S200_Separable --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S200_Separable --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M5 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch5 && python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M10 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch10 && python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M15 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch15 && python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M20 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch20 && python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M25 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch25 && python Master.py --train=0 --setting=pretrain_sub --name=S200_Separable_M30 --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S200_Separable/saved_models/Model_epoch30
 
 python cluster_run.py --partition=learnfair --name=S201_Separable --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S201_Separable --entropy=0 --data=Separable --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+
+python cluster_run.py --partition=learnfair --name=S203 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S203 --entropy=0 --data=ContinuousNonZero --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=S203 --entropy=0 --data=ContinuousNonZero --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S203/saved_models/Model_epoch6
+
+python cluster_run.py --partition=learnfair --name=S204 --cmd='python Master.py --train=1 --setting=oldpretrain_sub --name=S204 --entropy=0 --data=ContinuousNonZero --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+# Eval
+python Master.py --train=0 --setting=oldpretrain_sub --name=S204 --entropy=0 --data=ContinuousNonZero --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S204/saved_models/Model_epoch6
+
+python cluster_run.py --partition=learnfair --name=S205 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S205 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=S205 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch3
+# 
+python Master.py --train=0 --setting=pretrain_sub --name=S205_m9 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch9
+python Master.py --train=0 --setting=pretrain_sub --name=S205_m10 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch10
+python Master.py --train=0 --setting=pretrain_sub --name=S205_m15 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch15 && python Master.py --train=0 --setting=pretrain_sub --name=S205_m20 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch20 && python Master.py --train=0 --setting=pretrain_sub --name=S205_m25 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S205/saved_models/Model_epoch25
+
+python cluster_run.py --partition=learnfair --name=S206 --cmd='python Master.py --train=1 --setting=oldpretrain_sub --name=S206 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+# Eval
+python Master.py --train=0 --setting=oldpretrain_sub --name=S206 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch3
+# 
+python Master.py --train=0 --setting=oldpretrain_sub --name=S206_m9 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch9
+python Master.py --train=0 --setting=oldpretrain_sub --name=S206_m10 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch10
+python Master.py --train=0 --setting=oldpretrain_sub --name=S206_m15 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch15 && python Master.py --train=0 --setting=oldpretrain_sub --name=S206_m20 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch20 && python Master.py --train=0 --setting=oldpretrain_sub --name=S206_m25 --entropy=0 --data=ContinuousNonZero --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --model=Experiment_Logs/S206/saved_models/Model_epoch25
+
+python cluster_run.py --partition=learnfair --name=S207 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S207 --entropy=0 --data=ContinuousNonZero --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+
+python cluster_run.py --partition=learnfair --name=S208 --cmd='python Master.py --train=1 --setting=oldpretrain_sub --name=S208 --entropy=0 --data=ContinuousNonZero --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+
+# Pretrain with KL. 
+python cluster_run.py --partition=learnfair --name=S209 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S209 --entropy=0 --data=Separable --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
+
+python cluster_run.py --partition=learnfair --name=S210 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=S210 --entropy=0 --data=Separable --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1'
 
 #######################################################
 #######################################################
@@ -123,7 +159,7 @@ python cluster_run.py --name=C335 --cmd='python Master.py --train=1 --setting=le
 
 python cluster_run.py --name=C336 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C336_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
 
-python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C336_loadS170_debug --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4 --model=Experiment_Logs/C336_loadS170/saved_models/Model_epoch25 --debug=1
+python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C336_loadS170_debug --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4 --model=Experiment_Logs/C336_loadS170/saved_models/Model_epoch25
 
 python cluster_run.py --name=C337 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C337_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
 
@@ -139,8 +175,325 @@ python cluster_run.py --name=C341 --cmd='python Master.py --train=1 --setting=le
 # Trying out ... CausalSkillLearning Repo
 python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=CCSL_T1 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4
 
+# Rerun C338-C341 with greedy selection in latent rollout.. which is what we should have been doing all this while. :O
+python cluster_run.py --name=C342 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C342_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
 
-# Trying out pretraining on the Separable data with the CausalSkillLearning repo.
+python cluster_run.py --name=C343 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C343_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C344 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C344_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# Visualize every 1000 images. 
+python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C344_loadS170_viz --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4 --display_freq=1000 --model=Experiment_Logs/C344_loadS170/saved_models/Model_epoch19
+
+python cluster_run.py --name=C345 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C345_loadS170 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S170/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# We've been training joint objective loading S170. Now we will try to load S205, S206, so that it's in distribution. 
+python cluster_run.py --name=C346 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C346_loadS205_m10 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch10 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C347 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C347_loadS205_m10 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch10 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C348 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C348_loadS205_m10 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch10 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+python cluster_run.py --name=C349 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C349_loadS205_m10 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch10 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# Running with S205_m15 model. # THESE HAVE ALSO BEEN RUN WITH NEW UPDATE POLICY FUNCTION
+python cluster_run.py --name=C350 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C350_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C351 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C351_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C352 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C352_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+python cluster_run.py --name=C353 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C353_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# Rerun C350-C353 with baseline and baseline_target as scalars. 
+python cluster_run.py --name=C354 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C354_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C355 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C355_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C356 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C356_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+python cluster_run.py --name=C357 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C357_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# Run C354-C357 again without clamps on either subpolicy or latent policy likelihoods. 
+python cluster_run.py --name=C358 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C358_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C359 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C359_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C360 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C360_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+python cluster_run.py --name=C361 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C361_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+# Run C358-C361 with clamps on subpolicy but without clamps on latent policy. 
+python cluster_run.py --name=C362 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C362_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C363 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C363_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --condition_size=4'
+
+python cluster_run.py --name=C364 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C364_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+python cluster_run.py --name=C365 --cmd='python Master.py --train=1 --setting=learntsub --discrete_z=0 --traj_length=-1 --name=C365_loadS205_m15 --ent_weight=0. --subpolicy_ratio=0.1 --latentpolicy_ratio=0.1 --b_ex_bias=0. --b_probability_factor=0.01 --min_variance_bias=0.01 --data=Separable --kl_weight=0.01 --epsilon_from=0.2 --epsilon_to=0.05 --epsilon_over=30 --fix_subpolicy=1 --var_loss_weight=1.0 --subpolicy_model=Experiment_Logs/S205/saved_models/Model_epoch15 --subpolicy_clamp_value=-5 --latent_loss_weight=1. --training_phase_size=100000 --condition_size=4'
+
+
+
+
+
+
+###############################################################
+################### NEW MIME PRETRAINING ######################
+###############################################################
+#Debug
+python Master.py --train=1 --setting=pretrain_sub --name=M15_trial --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar
+
+python cluster_run.py --partition=learnfair --name=M15 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M15 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M16 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M16 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M17 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M17 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M18 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M18 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M19 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M19 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M20 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M21 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M21 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M22 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M22 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python Master.py --train=0 --setting=pretrain_sub --name=M15 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M15/saved_models/Model_epoch85
+
+# Eval at whatever was done 
+python cluster_run.py --partition=learnfair --name=M15_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M15 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M15/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M16_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M16 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M16/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M17_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M17 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M17/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M18_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M18 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M18/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M19_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M19 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M19/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M20_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M20 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M20/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M21_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M21 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M21/saved_models/Model_epoch70'
+
+python cluster_run.py --partition=learnfair --name=M22_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M22 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M22/saved_models/Model_epoch70'
+
+# Eval at 190
+python cluster_run.py --partition=learnfair --name=M15_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M15 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M15/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M16_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M16 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M16/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M17_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M17 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M17/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M18_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M18 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar --model=Experiment_Logs/M18/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M19_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M19 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M19/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M20_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M20 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M20/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M21_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M21 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M21/saved_models/Model_epoch190'
+
+python cluster_run.py --partition=learnfair --name=M22_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M22 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax --model=Experiment_Logs/M22/saved_models/Model_epoch190'
+
+# Rerun M15-M22 with the mean losses instead of sum losses. 
+python cluster_run.py --partition=learnfair --name=M23 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M23 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M24 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M24 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M25 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M25 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M26 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M26 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M27 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M27 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M28 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M28 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M29 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M29 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M30 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M30 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+# Eval
+python cluster_run.py --partition=learnfair --name=M23_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M23/saved_models/Model_epoch70 --setting=pretrain_sub --name=M23 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M24_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M24/saved_models/Model_epoch70 --setting=pretrain_sub --name=M24 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M25_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M25/saved_models/Model_epoch70 --setting=pretrain_sub --name=M25 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M26_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M26/saved_models/Model_epoch70 --setting=pretrain_sub --name=M26 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M27_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M27/saved_models/Model_epoch70 --setting=pretrain_sub --name=M27 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M28_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M28/saved_models/Model_epoch70 --setting=pretrain_sub --name=M28 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M29_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M29/saved_models/Model_epoch70 --setting=pretrain_sub --name=M29 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M30_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M30/saved_models/Model_epoch70 --setting=pretrain_sub --name=M30 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M23_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M23/saved_models/Model_epoch190 --setting=pretrain_sub --name=M23 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M24_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M24/saved_models/Model_epoch190 --setting=pretrain_sub --name=M24 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M25_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M25/saved_models/Model_epoch190 --setting=pretrain_sub --name=M25 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M26_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M26/saved_models/Model_epoch190 --setting=pretrain_sub --name=M26 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M27_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M27/saved_models/Model_epoch190 --setting=pretrain_sub --name=M27 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M28_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M28/saved_models/Model_epoch190 --setting=pretrain_sub --name=M28 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M29_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M29/saved_models/Model_epoch190 --setting=pretrain_sub --name=M29 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=8 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M30_eval --cmd='python Master.py --train=0 --model=Experiment_Logs/M30/saved_models/Model_epoch190 --setting=pretrain_sub --name=M30 --entropy=0 --data=MIME --kl_weight=1.0 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+# Running with higher z dimensionality. For some reason we weren't doing this. 
+python cluster_run.py --partition=learnfair --name=M31 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M32 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M32 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M33 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M33 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=leranfair --name=M34 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M34 --entropy=0 --data=MIME --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M35 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M36 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M36 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M37 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M37 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M38 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M38 --entropy=0 --data=MIME --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M39 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M40 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M40 --entropy=0 --data=MIME --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M41 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M41 --entropy=0 --data=MIME --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M42 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M42 --entropy=0 --data=MIME --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval at m15, m30, m75
+python cluster_run.py --partition=learnfair --name=M31_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch75 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M32_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M32 --entropy=0 --data=MIME --model=Experiment_Logs/M32/saved_models/Model_epoch75 --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M33_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M33 --entropy=0 --data=MIME --model=Experiment_Logs/M33/saved_models/Model_epoch75 --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M34_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M34 --entropy=0 --data=MIME --model=Experiment_Logs/M34/saved_models/Model_epoch75 --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M35_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch75 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M36_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M36 --entropy=0 --data=MIME --model=Experiment_Logs/M36/saved_models/Model_epoch75 --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M37_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M37 --entropy=0 --data=MIME --model=Experiment_Logs/M37/saved_models/Model_epoch75 --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M38_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M38 --entropy=0 --data=MIME --model=Experiment_Logs/M38/saved_models/Model_epoch75 --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M39_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch75 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M40_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M40 --entropy=0 --data=MIME --model=Experiment_Logs/M40/saved_models/Model_epoch75 --kl_weight=0.1 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M41_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M41 --entropy=0 --data=MIME --model=Experiment_Logs/M41/saved_models/Model_epoch75 --kl_weight=0.5 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M42_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M42 --entropy=0 --data=MIME --model=Experiment_Logs/M42/saved_models/Model_epoch75 --kl_weight=1. --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval runs with KL=0.01 at m80 with GT and 100 samples. 
+python cluster_run.py --partition=learnfair --name=M31_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch80 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+python cluster_run.py --partition=learnfair --name=M31_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch100 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+python cluster_run.py --partition=learnfair --name=M31_eval_m120 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch120 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M35_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch80 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+python cluster_run.py --partition=learnfair --name=M35_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch100 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+python cluster_run.py --partition=learnfair --name=M35_eval_m125 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch125 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M39_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch80 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+python cluster_run.py --partition=learnfair --name=M39_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch100 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+python cluster_run.py --partition=learnfair --name=M39_eval_m125 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch125 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval at m150
+python cluster_run.py --partition=learnfair --name=M31_eval_m155 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch155 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M35_eval_m160 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch160 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M39_eval_m165 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch165 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval at m185+
+python cluster_run.py --partition=learnfair --name=M31_eval_m198 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M31 --entropy=0 --data=MIME --model=Experiment_Logs/M31/saved_models/Model_epoch198 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M35_eval_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M35 --entropy=0 --data=MIME --model=Experiment_Logs/M35/saved_models/Model_epoch199 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M39_eval_m185 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch185 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+python cluster_run.py --partition=learnfair --name=M39_eval_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M39 --entropy=0 --data=MIME --model=Experiment_Logs/M39/saved_models/Model_epoch199 --kl_weight=0.01 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Running with KL magnitude decreased even further than 0.01, because maybe KL divergence for larger dimensional z spaces is just higher magnitude. 
+python cluster_run.py --partition=learnfair --name=M43 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M43 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M44 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M44 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M45 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M45 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+python cluster_run.py --partition=learnfair --name=M43_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M43 --model=Experiment_Logs/M43/saved_models/Model_epoch75 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M44_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M44 --model=Experiment_Logs/M44/saved_models/Model_epoch75 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M45_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M45 --model=Experiment_Logs/M45/saved_models/Model_epoch75 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval at m100-125
+python cluster_run.py --partition=learnfair --name=M43_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M43 --model=Experiment_Logs/M43/saved_models/Model_epoch118 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M44_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M44 --model=Experiment_Logs/M44/saved_models/Model_epoch100 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M45_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M45 --model=Experiment_Logs/M45/saved_models/Model_epoch125 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Eval at m158+
+python cluster_run.py --partition=learnfair --name=M43_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M43 --model=Experiment_Logs/M43/saved_models/Model_epoch158 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M45_eval --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M45 --model=Experiment_Logs/M45/saved_models/Model_epoch167 --entropy=0 --data=MIME --kl_weight=0.001 --discrete_z=0 --z_dimensions=64 --epsilon_from=0.3 --epsilon_to=0.05 --epsilon_over=30 --reparam=1 --traj_length=20'
+
+# Running with variable length pretraining to reduce intersection of skills. 
+python cluster_run.py --partition=learnfair --name=M46 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M46 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M47 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M47 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M48 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M48 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M49 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M49 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M50 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M50 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M51 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M51 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Eval M46-M51 at m70ish. 
+# debug 
+python Master.py --train=0 --setting=pretrain_sub --name=M46 --model=Experiment_Logs/M46/saved_models/Model_epoch74 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar
+
+# Run
+python cluster_run.py --partition=learnfair --name=M46_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M46 --model=Experiment_Logs/M46/saved_models/Model_epoch180 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M47_eval_m172 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M47 --model=Experiment_Logs/M47/saved_models/Model_epoch172 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M48_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M48 --model=Experiment_Logs/M48/saved_models/Model_epoch180 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M49_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M49 --model=Experiment_Logs/M49/saved_models/Model_epoch180 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M50_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M50 --model=Experiment_Logs/M50/saved_models/Model_epoch180 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M51_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M51 --model=Experiment_Logs/M51/saved_models/Model_epoch180 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Debug automatic eval 
+python Master.py --train=1 --setting=pretrain_sub --name=Mdebug_autoeval --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar
+
+# Rerun M46-M51 with auto-eval. Auto-eval was just screwing up, so treat this as... a low var run if need it. 
+python cluster_run.py --partition=learnfair --name=M52 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M52 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M53 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M53 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M54 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M54 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M55 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M55 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M56 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M56 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M57 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M57 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
@@ -173,3 +526,41 @@ python cluster_run.py --name=MJ8 --cmd='python Master.py --train=1 --setting=lea
 
 # Debug everything in life
 python Master.py --train=1 --setting=learntsub --name=MJ_debug --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20 --debug=200
+
+# New MIME Joint trials. 
+python cluster_run.py --name=MJ9 --cmd='python Master.py --train=1 --setting=learntsub --name=MJ9_loadM10 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M10/saved_models/Model_epoch190 --latent_loss_weight=0.01 --z_dimensions=8 --traj_length=-1 --skill_length=20'
+
+python cluster_run.py --name=MJ10 --cmd='python Master.py --train=1 --setting=learntsub --name=MJ10_loadM14 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20'
+
+python Master.py --train=1 --setting=learntsub --name=MJ11_loadM14_debugsingle --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20
+
+python Master.py --train=1 --setting=learntsub --name=MJdebug_loadM14 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20
+
+# New MIME Joint trials with new_update_policy.
+python cluster_run.py --name=J12 --cmd='python Master.py --train=1 --setting=learntsub --name=J12_loadM10 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M10/saved_models/Model_epoch190 --latent_loss_weight=0.01 --z_dimensions=8 --traj_length=-1 --skill_length=20'
+
+python cluster_run.py --name=J13 --cmd='python Master.py --train=1 --setting=learntsub --name=J13_loadM14 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20'
+
+python Master.py --train=1 --setting=learntsub --name=MJdebug_loadM14_singledp --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20
+
+# Running with subpolicy_ratio set to 1, new_update_policies, and clamp_value=0.
+python cluster_run.py --name=J14 --cmd='python Master.py --train=1 --setting=learntsub --name=J14_loadM10 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M10/saved_models/Model_epoch190 --latent_loss_weight=0.01 --z_dimensions=8 --traj_length=-1 --skill_length=20'
+
+python cluster_run.py --name=J15 --cmd='python Master.py --train=1 --setting=learntsub --name=J15_loadM14 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20'
+
+python cluster_run.py --name=J16 --cmd='python Master.py --train=1 --setting=learntsub --name=J16_loadM10 --subpolicy_ratio=0.01 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M10/saved_models/Model_epoch190 --latent_loss_weight=0.01 --z_dimensions=8 --traj_length=-1 --skill_length=20'
+
+python cluster_run.py --name=J17 --cmd='python Master.py --train=1 --setting=learntsub --name=J17_loadM14 --subpolicy_ratio=0.01 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M14/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --skill_length=20'
+
+# New runs with M47+. 
+python cluster_run.py --name=J18 --cmd='python Master.py --train=1 --setting=learntsub --name=J18_loadM47_m172 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J19 --cmd='python Master.py --train=1 --setting=learntsub --name=J19_loadM47_m160 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J20 --cmd='python Master.py --train=1 --setting=learntsub --name=J20_loadM47_m140 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch140 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J21 --cmd='python Master.py --train=1 --setting=learntsub --name=J21_loadM50_m199 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J22 --cmd='python Master.py --train=1 --setting=learntsub --name=J22_loadM50_m180 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch180 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J23 --cmd='python Master.py --train=1 --setting=learntsub --name=J23_loadM50_m160 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'

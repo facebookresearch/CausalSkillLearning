@@ -679,32 +679,38 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		skill_time_limit = max_limit-1
 
 		if self.args.data=='MIME':
-			max_limit = 20
-			skill_time_limit = max_limit-1	
+			# If allowing variable skill length, set length for this sample.				
+			if self.args.var_skill_length:
+				# Choose length of 12-16 with certain probabilities. 
+				lens = np.array([12,13,14,15,16])
+				# probabilities = np.array([0.1,0.2,0.4,0.2,0.1])
+				prob_biases = np.array([[0.8,0.],[0.4,0.],[0.,0.],[0.,0.4]])				
+
+				max_limit = 16
+				skill_time_limit = 12
+
+			else:
+				max_limit = 20
+				skill_time_limit = max_limit-1	
 
 		prior_value = torch.zeros((1,2)).cuda().float()
 		# If at or over hard limit.
 		if elapsed_t>=max_limit:
 			prior_value[0,1]=1.
 
-			# if self.args.debug:
-				# print("At max limit.")
 		# If at or more than typical, less than hard limit:
 		elif elapsed_t>=skill_time_limit:
-			# Random
-			prior_value[0,1]=0. 
+	
+			if self.args.var_skill_length:
+				prior_value[0] = torch.tensor(prob_biases[t-skill_time_limit]).cuda().float()
+			else:
+				# Random
+				prior_value[0,1]=0. 
 
-			# if self.args.debug:
-				# print("At typical limit.")
 		# If less than typical. 
 		else:
 			# Continue.
 			prior_value[0,0]=1.
-			# if self.args.debug:
-				# print("Below limit, continuing")
-
-		# if self.args.debug:
-		# 	print("Elapsed:",elapsed_t," Prior:",prior_value)
 
 		return prior_value
 
