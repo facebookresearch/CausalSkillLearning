@@ -702,7 +702,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		elif elapsed_t>=skill_time_limit:
 	
 			if self.args.var_skill_length:
-				prior_value[0] = torch.tensor(prob_biases[t-skill_time_limit]).cuda().float()
+				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).cuda().float()
 			else:
 				# Random
 				prior_value[0,1]=0. 
