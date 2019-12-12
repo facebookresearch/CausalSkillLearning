@@ -368,7 +368,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		# Return log probabilities. 
 		return latent_b_logprobabilities, latent_b_probabilities, self.dists
 
-	def get_actions(self, input, greedy=False):
+	def get_actions(self, input, greedy=False, epsilon=0.001):
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 		hidden = None
 		outputs, hidden = self.lstm(format_input)
@@ -376,9 +376,10 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		latent_b_preprobabilities = self.termination_output_layer(outputs) + self.b_exploration_bias
 		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
 			
+
 		# Predict Gaussian means and variances. 		
 		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias
+		variance_outputs = self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias + epsilon
 
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
