@@ -835,7 +835,6 @@ class PolicyManager():
 
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 
-		# for e in range(1):
 			
 			print("Starting Epoch: ",e)
 			if e%self.args.save_freq==0:
@@ -846,11 +845,9 @@ class PolicyManager():
 
 			# For every item in the epoch:
 			for i in range(len(self.dataset)):
-			# for i in range(10):			
 
 				print("Epoch: ",e," Image:",i)
-				self.run_iteration(counter, 0)
-				# self.run_iteration(counter, index_list[i])				
+				self.run_iteration(counter, index_list[i])				
 
 				counter = counter+1
 
