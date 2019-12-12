@@ -198,7 +198,11 @@ class PolicyManager():
 	def visualize_trajectory(self, trajectory, segmentations=None):
 
 		if self.args.data=='MIME':
-			return self.visualizer.visualize_joint_trajectory(trajectory, return_gif=True, segmentations=segmentations)
+
+			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+				unnorm_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
+
+			return self.visualizer.visualize_joint_trajectory(unnorm_trajectory, return_gif=True, segmentations=segmentations)
 		else:
 			return self.visualize_2D_trajectory(trajectory)
 
