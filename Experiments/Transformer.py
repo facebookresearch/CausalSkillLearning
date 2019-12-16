@@ -45,7 +45,7 @@ class TransformerBaseClass(nn.Module):
 		h = attention_heads
 		N = number_layers
 		self.dummy_inputs = False
-		self.maximum_length = maximum_skills
+		# self.maximum_length = maximum_skills
 
 		c = copy.deepcopy
 		attn = MultiHeadedAttention(h, d_model)
@@ -157,148 +157,148 @@ class TransformerEncoder(TransformerBaseClass):
 			logprobability = dist.log_prob(z_sample_to_evaluate)
 			return logprobability
 
-class TransformerFixedNSeg(TransformerBaseClass):
+# class TransformerFixedNSeg(TransformerBaseClass):
 
-	def __init__(self, opts, number_layers=6, attention_heads=8, dropout=0.1, dummy_inputs=False, maximum_skills=5):
+# 	def __init__(self, opts, number_layers=6, attention_heads=8, dropout=0.1, dummy_inputs=False, maximum_skills=5):
 
-		# This just calls __init__ of base class.
-		super(TransformerFixedNSeg, self).__init__(opts, number_layers, attention_heads, dropout, dummy_inputs, maximum_skills)
+# 		# This just calls __init__ of base class.
+# 		super(TransformerFixedNSeg, self).__init__(opts, number_layers, attention_heads, dropout, dummy_inputs, maximum_skills)
 
-	# @profile
-	def forward(self, source, target=None, fake_fnseg=False):
+# 	# @profile
+# 	def forward(self, source, target=None, fake_fnseg=False):
 
-		# gc.collect()
-		# * Special case * Implementation of forward if we use fixed number of timesteps and zeros as inputs. 
-		if self.dummy_inputs:
-			# Set targets to torch zeros of size number of timesteps and size Z embedding.
-			target = torch.zeros((self.opts.n_skill_segments,self.opts.nz)).float().cuda()
-			datapoint = MultiDimensionalBatch(source,target)
-			enc_dec_output = self.encoder_decoder.forward(datapoint.source, datapoint.target, datapoint.source_mask, datapoint.target_mask)
-			return self.generator(enc_dec_output) 
+# 		# gc.collect()
+# 		# * Special case * Implementation of forward if we use fixed number of timesteps and zeros as inputs. 
+# 		if self.dummy_inputs:
+# 			# Set targets to torch zeros of size number of timesteps and size Z embedding.
+# 			target = torch.zeros((self.opts.n_skill_segments,self.opts.nz)).float().cuda()
+# 			datapoint = MultiDimensionalBatch(source,target)
+# 			enc_dec_output = self.encoder_decoder.forward(datapoint.source, datapoint.target, datapoint.source_mask, datapoint.target_mask)
+# 			return self.generator(enc_dec_output) 
 		
-		else:
-			# Common steps whether or not we are variable number of skills. 
-			# Create the datapoint.
-			datapoint = MultiDimensionalBatch(source)
+# 		else:
+# 			# Common steps whether or not we are variable number of skills. 
+# 			# Create the datapoint.
+# 			datapoint = MultiDimensionalBatch(source)
 			
-			# Encode the source sequence into "memory".
-			memory = self.encoder_decoder.encode(datapoint.source, datapoint.source_mask)
+# 			# Encode the source sequence into "memory".
+# 			memory = self.encoder_decoder.encode(datapoint.source, datapoint.source_mask)
 
-			# Initialize dummy target. 
-			target = torch.zeros((1,self.opts.nz)).float().cuda()
+# 			# Initialize dummy target. 
+# 			target = torch.zeros((1,self.opts.nz)).float().cuda()
 
-			# For fixed number of skills = self.opts.n_skill_segments
+# 			# For fixed number of skills = self.opts.n_skill_segments
 
-			# For number of skill segments
-			for t in range(self.opts.n_skill_segments):
+# 			# For number of skill segments
+# 			for t in range(self.opts.n_skill_segments):
 
-				# Rebatch and create target_masks.
-				datapoint = MultiDimensionalBatch(source, target)
+# 				# Rebatch and create target_masks.
+# 				datapoint = MultiDimensionalBatch(source, target)
 
-				# Decode memory with target.                   
-				decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)
-				latent_z = self.generator.forward(decoded_output)
+# 				# Decode memory with target.                   
+# 				decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)
+# 				latent_z = self.generator.forward(decoded_output)
 
-				if len(latent_z.shape)>2:
-					latent_z = latent_z.squeeze(0)
-				# Decode actually gives you the entire sequence of Zs. (Which are guaranteed to be the same every time, because deterministic output layer).
+# 				if len(latent_z.shape)>2:
+# 					latent_z = latent_z.squeeze(0)
+# 				# Decode actually gives you the entire sequence of Zs. (Which are guaranteed to be the same every time, because deterministic output layer).
 
-				# Since Dummy Input can't be true here, concatenate the last Z to target and go again.                    
-				target = torch.cat([target, latent_z[-1].view((-1,self.opts.nz))],dim=0)
+# 				# Since Dummy Input can't be true here, concatenate the last Z to target and go again.                    
+# 				target = torch.cat([target, latent_z[-1].view((-1,self.opts.nz))],dim=0)
 
-			return latent_z.view((-1,self.opts.nz))
+# 			return latent_z.view((-1,self.opts.nz))
 
-class TransformerVariableNSeg(TransformerBaseClass):
+# class TransformerVariableNSeg(TransformerBaseClass):
 
-	def __init__(self, opts, number_layers=6, attention_heads=8, dropout=0.1, dummy_inputs=False, maximum_skills=5):
+# 	def __init__(self, opts, number_layers=6, attention_heads=8, dropout=0.1, dummy_inputs=False, maximum_skills=5):
 
-		# This just calls __init__ of base class.
-		super(TransformerVariableNSeg, self).__init__(opts, number_layers, attention_heads, dropout, dummy_inputs, maximum_skills)
+# 		# This just calls __init__ of base class.
+# 		super(TransformerVariableNSeg, self).__init__(opts, number_layers, attention_heads, dropout, dummy_inputs, maximum_skills)
 
-	# @profile
-	def forward(self, source, target=None, fake_fnseg=False):   
-		# For variable number of skills. 
+# 	# @profile
+# 	def forward(self, source, target=None, fake_fnseg=False):   
+# 		# For variable number of skills. 
 
-		# gc.collect()
-		# Common steps whether or not we are variable number of skills. 
-		# Create the datapoint.
-		datapoint = MultiDimensionalBatch(source)
+# 		# gc.collect()
+# 		# Common steps whether or not we are variable number of skills. 
+# 		# Create the datapoint.
+# 		datapoint = MultiDimensionalBatch(source)
 		
-		# Encode the source sequence into "memory".
-		memory = self.encoder_decoder.encode(datapoint.source, datapoint.source_mask)
+# 		# Encode the source sequence into "memory".
+# 		memory = self.encoder_decoder.encode(datapoint.source, datapoint.source_mask)
 
-		# Initialize dummy target. 
-		target = torch.zeros((1,self.opts.nz)).float().cuda()
+# 		# Initialize dummy target. 
+# 		target = torch.zeros((1,self.opts.nz)).float().cuda()
 
-		# Initialize stop variables and timestep counter. 
-		stop = False
-		t = 0
+# 		# Initialize stop variables and timestep counter. 
+# 		stop = False
+# 		t = 0
 		
-		stop_probabilities = None
-		latent_z_seq = None
+# 		stop_probabilities = None
+# 		latent_z_seq = None
 
-		# print("######### Starting a new trajectory. ###########")
+# 		# print("######### Starting a new trajectory. ###########")
 
-		while not(stop):
+# 		while not(stop):
 
-			# Rebatch and create target_masks.
-			datapoint = MultiDimensionalBatch(source, target)
+# 			# Rebatch and create target_masks.
+# 			datapoint = MultiDimensionalBatch(source, target)
 
-			# Decode memory with target.
-			decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)                                    
-			# Pass only the last timestep decoded output through the generator. 
-			latent_z, stop_probability = self.generator.forward(decoded_output[0,-1])
+# 			# Decode memory with target.
+# 			decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)                                    
+# 			# Pass only the last timestep decoded output through the generator. 
+# 			latent_z, stop_probability = self.generator.forward(decoded_output[0,-1])
 
-			# If we are training a Variable NSeg model with fixed number seg for the first few iterations. 
-			if fake_fnseg and t>=self.maximum_length:
-				stop = True
-				stop_probability = stop_probability*0
-				stop_probability[1] += 1 
-			# If Fake FNSEG but not yet at 6 Zs. 
-			elif fake_fnseg and t<self.maximum_length:
-				stop = False
-			else:
-				epsilon_value = 1e-4
-				# Instead of assigning new variable make inplace modification. 
-				stop_probability = stop_probability+epsilon_value                       
+# 			# If we are training a Variable NSeg model with fixed number seg for the first few iterations. 
+# 			if fake_fnseg and t>=self.maximum_length:
+# 				stop = True
+# 				stop_probability = stop_probability*0
+# 				stop_probability[1] += 1 
+# 			# If Fake FNSEG but not yet at 6 Zs. 
+# 			elif fake_fnseg and t<self.maximum_length:
+# 				stop = False
+# 			else:
+# 				epsilon_value = 1e-4
+# 				# Instead of assigning new variable make inplace modification. 
+# 				stop_probability = stop_probability+epsilon_value                       
 
-				# Not adding stop probability here anymore unless opts.presoftmax_bias is false.			
-				if not(self.opts.presoftmax_bias):
-					stop_probability[0] = stop_probability[0] + self.continuing_bias
-				stop_probability = stop_probability/stop_probability.sum()
+# 				# Not adding stop probability here anymore unless opts.presoftmax_bias is false.			
+# 				if not(self.opts.presoftmax_bias):
+# 					stop_probability[0] = stop_probability[0] + self.continuing_bias
+# 				stop_probability = stop_probability/stop_probability.sum()
 
-				sample_t = torch.distributions.Categorical(probs=stop_probability).sample()
-				stop = bool(sample_t == 1)
+# 				sample_t = torch.distributions.Categorical(probs=stop_probability).sample()
+# 				stop = bool(sample_t == 1)
 				
-			if self.dummy_inputs:
-				# Concatenate dummy Z to target and go again. 
-				target = torch.cat([target,torch.zeros((1,self.opts.nz)).cuda().float()],dim=0)
+# 			if self.dummy_inputs:
+# 				# Concatenate dummy Z to target and go again. 
+# 				target = torch.cat([target,torch.zeros((1,self.opts.nz)).cuda().float()],dim=0)
 			
-			else:
-				# Concatenate the last Z to target and go again. 
-				try:
-					target = torch.cat([target, latent_z.view((-1,self.opts.nz))],dim=0)
-				except:
-					embed()
+# 			else:
+# 				# Concatenate the last Z to target and go again. 
+# 				try:
+# 					target = torch.cat([target, latent_z.view((-1,self.opts.nz))],dim=0)
+# 				except:
+# 					embed()
 
-			# These if blocks are just so that we can use torch tensors and not have to use lists.
-			if latent_z_seq is None:
-				latent_z_seq = latent_z.view(-1,self.opts.nz)
-			else:
-				latent_z_seq = torch.cat([latent_z_seq,latent_z.view(-1,self.opts.nz)],dim=0)
+# 			# These if blocks are just so that we can use torch tensors and not have to use lists.
+# 			if latent_z_seq is None:
+# 				latent_z_seq = latent_z.view(-1,self.opts.nz)
+# 			else:
+# 				latent_z_seq = torch.cat([latent_z_seq,latent_z.view(-1,self.opts.nz)],dim=0)
 
-			# These if blocks are just so that we can use torch tensors and not have to use lists
-			if stop_probabilities is None:
-				stop_probabilities = stop_probability.view(-1,2)
-			else:
-				stop_probabilities = torch.cat([stop_probabilities, stop_probability.view(-1,2)],dim=0)
+# 			# These if blocks are just so that we can use torch tensors and not have to use lists
+# 			if stop_probabilities is None:
+# 				stop_probabilities = stop_probability.view(-1,2)
+# 			else:
+# 				stop_probabilities = torch.cat([stop_probabilities, stop_probability.view(-1,2)],dim=0)
 
-			t+=1 
+# 			t+=1 
 
-		# print(t)
-		# return torch.cat(latent_z_seq,dim=0), torch.cat(stop_probabilities,dim=0)
-		return latent_z_seq, stop_probabilities
-		# return latent_z.view((-1,self.opts.nz)), stop_probabilities.view((-1,2))
+# 		# print(t)
+# 		# return torch.cat(latent_z_seq,dim=0), torch.cat(stop_probabilities,dim=0)
+# 		return latent_z_seq, stop_probabilities
+# 		# return latent_z.view((-1,self.opts.nz)), stop_probabilities.view((-1,2))
 
 class EncoderDecoder(nn.Module):
 	"""
@@ -327,28 +327,28 @@ class EncoderDecoder(nn.Module):
 	def decode(self, memory, src_mask, tgt, tgt_mask):
 		return self.decoder(self.tgt_embed(tgt), memory, src_mask, tgt_mask)
 
-class DistributionGenerator(nn.Module):
-	'''"Define standard linear + softmax generation step."'''
+# class DistributionGenerator(nn.Module):
+# 	'''"Define standard linear + softmax generation step."'''
 	
-	def __init__(self, d_model, output_size, variable_timesteps=False, presoftmax_bias=True):       
-		super(Generator, self).__init__()        
+# 	def __init__(self, d_model, output_size, variable_timesteps=False, presoftmax_bias=True):       
+# 		super(Generator, self).__init__()        
 		
-		self.variable_timesteps = variable_timesteps
-		self.linear_layer = nn.Linear(d_model, output_size)
-		self.presoftmax_bias = presoftmax_bias
-		if self.variable_timesteps:
-			self.stopping_probability_layer = torch.nn.Linear(d_model, 2) 			
-			self.softmax_layer = torch.nn.Softmax(dim=-1)
+# 		self.variable_timesteps = variable_timesteps
+# 		self.linear_layer = nn.Linear(d_model, output_size)
+# 		self.presoftmax_bias = presoftmax_bias
+# 		if self.variable_timesteps:
+# 			self.stopping_probability_layer = torch.nn.Linear(d_model, 2) 			
+# 			self.softmax_layer = torch.nn.Softmax(dim=-1)
 
-	def forward(self, x, bias=0.):
-		if self.variable_timesteps:
-			preprobs = self.stopping_probability_layer(x)
-			if self.presoftmax_bias:
-				preprobs = preprobs*self.opts.b_probability_factor	
-				preprobs[0] += bias
-			return self.linear_layer(x), self.softmax_layer(preprobs), 
-		else:
-			return self.linear_layer(x)
+# 	def forward(self, x, bias=0.):
+# 		if self.variable_timesteps:
+# 			preprobs = self.stopping_probability_layer(x)
+# 			if self.presoftmax_bias:
+# 				preprobs = preprobs*self.opts.b_probability_factor	
+# 				preprobs[0] += bias
+# 			return self.linear_layer(x), self.softmax_layer(preprobs), 
+# 		else:
+# 			return self.linear_layer(x)
 
 
 class Generator(nn.Module):
