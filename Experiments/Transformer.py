@@ -16,8 +16,8 @@ from memory_profiler import profile
 import gc
 from absl import flags
 
-flags.DEFINE_boolean('presoftmax_bias', True, 'Whether or not to apply continuing_bias before stop probability softmax.')
-flags.DEFINE_float('b_probability_factor', 0.01, 'Factor to multiply preprobabilities with before adding bias.')
+# flags.DEFINE_boolean('presoftmax_bias', True, 'Whether or not to apply continuing_bias before stop probability softmax.')
+# flags.DEFINE_float('b_probability_factor', 0.01, 'Factor to multiply preprobabilities with before adding bias.')
 
 class TransformerBaseClass(nn.Module):
 	
@@ -60,7 +60,7 @@ class TransformerBaseClass(nn.Module):
 		target_embedding_layer = EmbeddingLayer(output_size, d_model)
 
 		# Set continuing bias.
-		self.continuing_bias = self.opts.lpred_p_bias
+		# self.continuing_bias = self.opts.lpred_p_bias
 
 		# Create the Transformer. 
 		self.encoder_decoder = EncoderDecoder(
@@ -75,8 +75,7 @@ class TransformerBaseClass(nn.Module):
 			if p.dim() > 1:
 				nn.init.xavier_uniform_(p)
 
-		self.generator = Generator(d_model, output_size, variable_timesteps=self.opts.variable_nseg, presoftmax_bias=opts.presoftmax_bias)
-
+		# self.generator = Generator(d_model, output_size, variable_timesteps=self.opts.variable_nseg, presoftmax_bias=opts.presoftmax_bias)
 
 	# Modifying this forward function for Skill Net!
 	# 1) Instead of feeding in the target as input to the Transformer straight out, we encode the source,
