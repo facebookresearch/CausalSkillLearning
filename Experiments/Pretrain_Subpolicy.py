@@ -577,13 +577,13 @@ class PolicyManager():
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 
 		# for e in range(1):
-
-			self.automatic_evaluation(e)
-					
+				
 			print("Starting Epoch: ",e)
 
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
+
+			self.automatic_evaluation(e)
 
 			index_list = np.arange(0,len(self.dataset))
 			np.random.shuffle(index_list)
@@ -605,6 +605,8 @@ class PolicyManager():
 		# This should be a good template command. 
 		base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data=MIME --kl_weight={1} --var_skill_length={2} --z_dimensions=64 --normalization={3}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
 		cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
+
+		alt_cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd=\'{1}\''.format(self.args.name, base_command)		
 		embed()
 		subprocess.call([cluster_command],shell=True)
 		
