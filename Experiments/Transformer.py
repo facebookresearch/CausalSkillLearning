@@ -102,6 +102,7 @@ class TransformerEncoder(TransformerBaseClass):
 
 		super(TransformerEncoder, self).__init__(input_size, hidden_size, z_dimensionality, args, number_layers, attention_heads, dropout)
 		
+		d_model = hidden_size
 		# Define output layers for the LSTM, and activations for this output layer. 
 		self.mean_output_layer = torch.nn.Linear(d_model,self.z_dimensionality)
 		self.variances_output_layer = torch.nn.Linear(d_model, self.z_dimensionality)
