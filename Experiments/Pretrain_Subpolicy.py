@@ -574,12 +574,12 @@ class PolicyManager():
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
 
-		self.automatic_evaluation(e)
-
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 
 		# for e in range(1):
-			
+
+			self.automatic_evaluation(e)
+					
 			print("Starting Epoch: ",e)
 
 			if e%self.args.save_freq==0:
