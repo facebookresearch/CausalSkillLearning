@@ -494,6 +494,35 @@ python cluster_run.py --partition=learnfair --name=M56 --cmd='python Master.py -
 
 python cluster_run.py --partition=learnfair --name=M57 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M57 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Running with variable length pretraining to reduce intersection of skills. 
+python cluster_run.py --partition=learnfair --name=M46 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M46 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M47 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M47 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M48 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M48 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M49 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M49 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M50 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M50 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M51 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M51 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Debug auto eval
+python Master.py --train=1 --setting=pretrain_sub --name=Mdebug_autoeval --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar
+
+# Running M46-51 with transformer. 
+python cluster_run.py --partition=learnfair --name=M58 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M58 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M59 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M59 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M60 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M60 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M61 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M61 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M62 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M62 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M63 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M63 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
