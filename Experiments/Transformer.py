@@ -44,7 +44,7 @@ class TransformerBaseClass(nn.Module):
 
 		h = attention_heads
 		N = number_layers
-		self.dummy_inputs = dummy_inputs
+		self.dummy_inputs = False
 		self.maximum_length = maximum_skills
 
 		c = copy.deepcopy
