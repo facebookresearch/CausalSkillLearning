@@ -595,6 +595,9 @@ python cluster_run.py --name=J34 --cmd='python Master.py --train=1 --setting=lea
 python cluster_run.py --name=J35 --cmd='python Master.py --train=1 --setting=learntsub --name=J35_loadM50_m160 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
 
 # We forgot to run with normalization. 
+# Debug
+python Master.py --train=1 --setting=learntsub --name=J35_loadM47_m172 --normalization=minmax --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --debug=300
+
 #KL Weight 0.01
 python cluster_run.py --name=J35 --cmd='python Master.py --train=1 --setting=learntsub --name=J35_loadM47_m172 --normalization=minmax --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
 

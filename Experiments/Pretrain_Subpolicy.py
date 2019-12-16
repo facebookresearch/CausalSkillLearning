@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, EncoderNetwork, ContinuousEncoderNetwork
+from Transformer import TransformerEncoder
 import BaxterVisualizer
 
 class PolicyManager():
@@ -91,7 +92,11 @@ class PolicyManager():
 			self.encoder_network = EncoderNetwork(self.input_size, self.hidden_size, self.number_policies).cuda()
 		else:
 			# self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality).cuda()
-			self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
+
+			if self.args.transformer:
+				self.encoder_network = TransformerEncoder(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
+			else:
+				self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()		
 
 	def create_training_ops(self):
 		# self.negative_log_likelihood_loss_function = torch.nn.NLLLoss()
