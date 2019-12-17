@@ -199,6 +199,8 @@ class TransformerVariationalNet(TransformerBaseClass):
 			delta_t = t-prev_time
 			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
 
+			embed()
+			
 			# Construct probabilities	
 			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
 			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
