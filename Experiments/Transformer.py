@@ -260,6 +260,35 @@ class TransformerVariationalNet(TransformerBaseClass):
 		return modified_sampled_z.squeeze(1), sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
 
+	def sample_action(self, action_probabilities):
+		# Categorical distribution sampling. 
+		# Sampling can handle batched action_probabilities. 
+		sample_action = torch.distributions.Categorical(probs=action_probabilities).sample()
+		return sample_action
+
+	def select_greedy_action(self, action_probabilities):
+		# Select action with max probability for test time. 
+		# NEED TO USE DIMENSION OF ARGMAX. 
+		return action_probabilities.argmax(dim=-1)
+
+	def select_epsilon_greedy_action(self, action_probabilities, epsilon=0.1):
+		epsilon = epsilon
+		# if np.random.random()<epsilon:
+		# 	# return(np.random.randint(0,high=len(action_probabilities)))
+		# 	return self.sample_action(action_probabilities)
+		# else:
+		# 	return self.select_greedy_action(action_probabilities)
+
+		# Issue with the current implementation is that it selects either sampling or greedy selection identically across the entire batch. 
+		# This is stupid, use a toch.where instead? 
+		# Sample an array of binary variables of size = batch size. 
+		# For each, use greedy or ... 
+
+		whether_greedy = torch.rand(action_probabilities.shape[0]).cuda()
+		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
+
+		return sample_actions
+		
 class TransformerEncoder(TransformerBaseClass):
 	# Class to select one z from a trajectory segment. 
 	def __init__(self, input_size, hidden_size, z_dimensionality, args, number_layers=6, attention_heads=8, dropout=0.1):
