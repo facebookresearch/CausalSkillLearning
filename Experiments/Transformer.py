@@ -200,7 +200,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
 
 			embed()
-			
+
 			# Construct probabilities	
 			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
 			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
@@ -236,7 +236,10 @@ class TransformerVariationalNet(TransformerBaseClass):
 			else:
 				# Set modified z to previous. 
 				modified_sampled_z[t] = modified_sampled_z[t-1]
-		
+			
+			# For bookkeeping, copy modified_sampled_z into target. 
+			target = torch.cat([target, modified_sampled_z[t].view((-1,self.z_dimensionality))],dim=0)
+
 		# Also compute logprobabilities of the latent_z's sampled from this net. 
 		variational_z_logprobabilities = self.dists.log_prob(modified_sampled_z)
 		variational_z_probabilities = None
