@@ -163,7 +163,6 @@ class TransformerVariationalNet(TransformerBaseClass):
 
 		# Initialize dummy target. 
 		target = torch.zeros((1,self.z_dimensionality)).float().cuda()
-		target = torch.zeros((1,1,self.z_dimensionality)).float().cuda()
 
 		prev_time = 0
 
@@ -191,7 +190,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 			datapoint = MultiDimensionalBatch(source, target)
 
 			# Decode memory with target.                   
-			decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)
+			decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask).squeeze(0).unsqueeze(1)
 
 			# Damping factor for probabilities to prevent washing out of bias. 
 			variational_b_preprobabilities = self.termination_output_layer(decoded_output)*self.b_probability_factor
