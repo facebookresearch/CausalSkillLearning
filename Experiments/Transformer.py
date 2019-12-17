@@ -168,6 +168,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 
 		# Since we don't have decoded_output beforehand, just initialize these. 
 		variational_b_preprobabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
+		prior_values = torch.zeros_like(variational_b_preprobabilities).cuda().float()
 		variational_b_probabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
 		variational_b_logprobabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
 
