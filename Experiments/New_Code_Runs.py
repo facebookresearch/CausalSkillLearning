@@ -508,7 +508,7 @@ python cluster_run.py --partition=learnfair --name=M50 --cmd='python Master.py -
 python cluster_run.py --partition=learnfair --name=M51 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M51 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
 # Debug auto eval
-python Master.py --train=1 --setting=pretrain_sub --name=Mdebug_autoeval --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar
+python Master.py --train=1 --setting=pretrain_sub --name=Mdebug_autoeval2 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --transformer=1
 
 # Running M46-51 with transformer. 
 python cluster_run.py --partition=learnfair --name=M58 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M58 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
@@ -522,6 +522,20 @@ python cluster_run.py --partition=learnfair --name=M61 --cmd='python Master.py -
 python cluster_run.py --partition=learnfair --name=M62 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M62 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
 
 python cluster_run.py --partition=learnfair --name=M63 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M63 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Eval
+python cluster_run.py --partition=learnfair --name=M58_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M58 --transformer=1 --data=MIME --model=Experiment_Logs/M58/saved_models/Model_epoch20 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M59_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M59 --transformer=1 --data=MIME --model=Experiment_Logs/M59/saved_models/Model_epoch20 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M60_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M60 --transformer=1 --data=MIME --model=Experiment_Logs/M60/saved_models/Model_epoch20 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M61_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M61 --transformer=1 --data=MIME --model=Experiment_Logs/M61/saved_models/Model_epoch20 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M62_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M62 --transformer=1 --data=MIME --model=Experiment_Logs/M62/saved_models/Model_epoch20 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M63_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M63 --transformer=1 --data=MIME --model=Experiment_Logs/M63/saved_models/Model_epoch20 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
 
 
 ###############################################################

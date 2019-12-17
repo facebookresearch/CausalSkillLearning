@@ -188,6 +188,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		hidden = None
 		# format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
 		lstm_outputs_z1, _ = self.lstm(format_input_z1)
+		# Reset hidden? 
 		lstm_outputs_z2, _ = self.lstm(format_input_z2)
 
 		# Predict Gaussian means and variances. 
@@ -379,7 +380,8 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 
 		# Predict Gaussian means and variances. 		
 		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias + epsilon
+		# We should be multiply by self.variance_factor.
+		variance_outputs = self.variances_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
@@ -562,7 +564,7 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 			
 		self.variance_factor = 0.01
 
-	def forward(self, input, epsilon, new_z_selection=True):
+	def forward(self, input, epsilon, new_z_selection=True, var_epsilon=0.001):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 		hidden = None
@@ -579,7 +581,7 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# Predict Gaussian means and variances. 
 		mean_outputs = self.mean_output_layer(outputs)
 		# Still need a softplus activation for variance because needs to be positive. 
-		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + var_epsilon
 
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
@@ -815,7 +817,6 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
 
-	
 class EncoderNetwork(PolicyNetwork_BaseClass):
 
 	# Policy Network inherits from torch.nn.Module. 

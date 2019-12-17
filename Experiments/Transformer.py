@@ -125,6 +125,7 @@ class TransformerEncoder(TransformerBaseClass):
 		# Decode memory with target.                   
 		decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)
 
+		# Here, we do NOT need to select the last output of decoded_output, because the target provided itself was just ONE Z, meaning our outputs are also just ONE Z.
 		# Compute mean and variance.
 		mean_outputs = self.mean_output_layer(decoded_output)
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(decoded_output)))+ epsilon
