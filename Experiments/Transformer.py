@@ -177,7 +177,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 		sampled_b[0] = 1
 
 		# Create variable to store sampled z's. 
-		modified_sampled_z = torch.zeros(source.shape[0],1,self.z_dimensionality)
+		modified_sampled_z = torch.zeros(source.shape[0],1,self.z_dimensionality).cuda().float()
 
 		# In the original variational policy implementation, the rollout was from (1,Number_Timepoints). 
 		# Here, do it from the first timestep, because we need to pass things through the transformer decoder.
@@ -199,9 +199,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 			delta_t = t-prev_time
 			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
 
-			embed()
 			# Construct probabilities	
-			# Make sure this is actually the dimensions : Tx1x2
 			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
 			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
 				
@@ -254,7 +252,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 		# 	print("Embedding in Variational Network.")
 		# 	embed()
 
-		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
+		return modified_sampled_z.squeeze(1), sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
 
 class TransformerEncoder(TransformerBaseClass):
