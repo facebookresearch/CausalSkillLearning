@@ -92,9 +92,168 @@ class TransformerBaseClass(nn.Module):
 
 class TransformerVariationalNet(TransformerBaseClass):
 
-	def __init__(self):
+	def __init__(self, input_size, hidden_size, z_dimensionality, args, number_layers=6, attention_heads=8, dropout=0.1):
 
-		pass
+		super(TransformerVariationalNet, self).__init__(input_size, hidden_size, z_dimensionality, args, number_layers, attention_heads, dropout)
+		
+		d_model = hidden_size
+
+		# Transform to output space - Latent z and Latent b. 
+		# THIS OUTPUT LAYER TAKES 2*HIDDEN SIZE as input because it's bidirectional. 
+		self.termination_output_layer = torch.nn.Linear(d_model,2)
+		self.b_probability_factor = self.args.b_probability_factor
+
+		# Softmax activation functions for Bernoulli termination probability and latent z selection .
+		self.batch_softmax_layer = torch.nn.Softmax(dim=-1)
+		self.batch_logsoftmax_layer = torch.nn.LogSoftmax(dim=-1)
+
+		# Define output layers for the LSTM, and activations for this output layer. 
+		self.mean_output_layer = torch.nn.Linear(d_model,self.z_dimensionality)
+		self.variances_output_layer = torch.nn.Linear(d_model, self.z_dimensionality)
+		self.variance_activation_layer = torch.nn.Softplus()
+		self.variance_factor = 0.01
+		self.variance_activation_bias = 0.			
+
+	def get_prior_value(self, elapsed_t, max_limit=5):
+
+		skill_time_limit = max_limit-1
+
+		if self.args.data=='MIME':
+			# If allowing variable skill length, set length for this sample.				
+			if self.args.var_skill_length:
+				# Choose length of 12-16 with certain probabilities. 
+				lens = np.array([12,13,14,15,16])
+				# probabilities = np.array([0.1,0.2,0.4,0.2,0.1])
+				prob_biases = np.array([[0.8,0.],[0.4,0.],[0.,0.],[0.,0.4]])				
+
+				max_limit = 16
+				skill_time_limit = 12
+
+			else:
+				max_limit = 20
+				skill_time_limit = max_limit-1	
+
+		prior_value = torch.zeros((1,2)).cuda().float()
+		# If at or over hard limit.
+		if elapsed_t>=max_limit:
+			prior_value[0,1]=1.
+
+		# If at or more than typical, less than hard limit:
+		elif elapsed_t>=skill_time_limit:
+	
+			if self.args.var_skill_length:
+				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).cuda().float()
+			else:
+				# Random
+				prior_value[0,1]=0. 
+
+		# If less than typical. 
+		else:
+			# Continue.
+			prior_value[0,0]=1.
+
+		return prior_value
+
+	def forward(self, source, epsilon, target=None, var_epsilon=0.001):
+
+		datapoint = MultiDimensionalBatch(source)
+		
+		# Encode the source sequence into "memory".
+		memory = self.encoder_decoder.encode(datapoint.source, datapoint.source_mask)
+
+		# Initialize dummy target. 
+		target = torch.zeros((1,self.z_dimensionality)).float().cuda()
+
+		prev_time = 0
+
+		# Since we don't have decoded_output beforehand, just initialize these. 
+		variational_b_preprobabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
+		variational_b_probabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
+		variational_b_logprobabilities = torch.zeros((source.shape[0],1,2)).cuda().float()
+
+		# Create variable to store sampled b's. 
+		sampled_b = torch.zeros(source.shape[0]).cuda().int()		
+		sampled_b[0] = 1
+
+		# Create variable to store sampled z's. 
+		modified_sampled_z = torch.zeros(source.shape[0],1,self.z_dimensionality)
+
+		# In the original variational policy implementation, the rollout was from (1,Number_Timepoints). 
+		# Here, do it from the first timestep, because we need to pass things through the transformer decoder.
+
+		# For number of timesteps in trajectory, make prediction at timestep t, concatenate to targets, then feed into decoder and run again. 
+		# Here, should we just be sampling z's concurrently? 		
+		for t in range(source.shape[0]):
+
+			# Rebatch and create target_masks.
+			datapoint = MultiDimensionalBatch(source, target)
+
+			# Decode memory with target.                   
+			decoded_output = self.encoder_decoder.decode(memory, datapoint.source_mask, datapoint.target, datapoint.target_mask)
+
+			# Damping factor for probabilities to prevent washing out of bias. 
+			variational_b_preprobabilities = self.termination_output_layer(decoded_output)*self.b_probability_factor
+
+			# Compute prior value. 
+			delta_t = t-prev_time
+			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
+
+			# Construct probabilities	
+			# Make sure this is actually the dimensions : Tx1x2
+			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+				
+			# Don't need to sample if it's timestep 0. This wasn't in the earlier variational policy implementation because the rollout was from (1,T).
+			if t>0:
+				sampled_b[t] = self.select_epsilon_greedy_action(variational_b_probabilities[t:t+1], epsilon)
+
+			# Predict Gaussian means and variances. We're doing this at every timestep because we need the distributions at every timestep to train. 
+			mean_outputs = self.mean_output_layer(decoded_output)
+			# Still need a softplus activation for variance because needs to be positive. 
+			variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(decoded_output))) + var_epsilon
+			# This should be a SET of distributions. 
+			self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
+
+			# If we are choosing a new option. 
+			if sampled_b[t]==1:
+				# Set prior counter. 
+				prev_time = t
+
+				# Now pick random z. 
+				if epsilon==0. or self.args.train==0:
+					sampled_z = mean_outputs.squeeze(1)
+				else:
+					# Assuming reparameterization. 
+					noise = torch.randn_like(variance_outputs)
+					sampled_z = mean_outputs + variance_outputs*noise
+
+				# Set the modified z's to the currently sampled one. 
+				modified_sampled_z[t] = sampled_z[t]
+
+			# If continuing previous option. 
+			else:
+				# Set modified z to previous. 
+				modified_sampled_z[t] = modified_sampled_z[t-1]
+		
+		# Also compute logprobabilities of the latent_z's sampled from this net. 
+		variational_z_logprobabilities = self.dists.log_prob(modified_sampled_z)
+		variational_z_probabilities = None
+
+		# Set standard distribution for KL. 
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		# Compute KL.
+		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
+
+		# Prior loglikelihood
+		prior_loglikelihood = standard_distribution.log_prob(modified_sampled_z)
+
+		# if self.args.debug:
+		# 	print("#################################")
+		# 	print("Embedding in Variational Network.")
+		# 	embed()
+
+		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
+		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
 
 class TransformerEncoder(TransformerBaseClass):
 	# Class to select one z from a trajectory segment. 
