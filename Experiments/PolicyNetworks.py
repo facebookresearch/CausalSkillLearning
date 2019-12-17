@@ -381,7 +381,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		# Predict Gaussian means and variances. 		
 		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
 		# We should be multiply by self.variance_factor.
-		variance_outputs = self.variances_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
