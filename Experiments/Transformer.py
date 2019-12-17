@@ -199,8 +199,6 @@ class TransformerVariationalNet(TransformerBaseClass):
 			delta_t = t-prev_time
 			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
 
-			embed()
-
 			# Construct probabilities	
 			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
 			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
@@ -288,7 +286,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
-		
+
 class TransformerEncoder(TransformerBaseClass):
 	# Class to select one z from a trajectory segment. 
 	def __init__(self, input_size, hidden_size, z_dimensionality, args, number_layers=6, attention_heads=8, dropout=0.1):
