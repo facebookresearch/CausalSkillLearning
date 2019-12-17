@@ -163,6 +163,7 @@ class TransformerVariationalNet(TransformerBaseClass):
 
 		# Initialize dummy target. 
 		target = torch.zeros((1,self.z_dimensionality)).float().cuda()
+		target = torch.zeros((1,1,self.z_dimensionality)).float().cuda()
 
 		prev_time = 0
 
