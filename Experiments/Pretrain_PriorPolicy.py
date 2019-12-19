@@ -464,7 +464,7 @@ class PolicyManager():
 			# Update parameters. 
 			if self.args.train:
 
-				self.update_policies_reparam(loglikelihood, torch_traj_seg)
+				self.update_policies_reparam(loglikelihood)
 
 				# Update Plots. 
 				self.update_plots(counter, loglikelihood, trajectory_segment)
