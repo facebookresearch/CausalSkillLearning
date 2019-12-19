@@ -536,6 +536,45 @@ python cluster_run.py --partition=learnfair --name=M62_eval_m20 --cmd='python Ma
 
 python cluster_run.py --partition=learnfair --name=M63_eval_m20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M63 --transformer=1 --data=MIME --model=Experiment_Logs/M63/saved_models/Model_epoch20 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Rerun M46-M51 with transformer argument in autoeval.
+python cluster_run.py --partition=learnfair --name=M64 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M64 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M65 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M65 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M66 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M66 --transformer=1 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M67 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M67 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M68 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M68 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M69 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M69 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+#### Runs with biased sampling, and various parameters. 
+# Rerun M46-M51 without transformer with biased sampling. 
+python cluster_run.py --partition=learnfair --name=M70 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M70 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M71 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M71 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M72 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M72 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M73 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M73 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M74 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M74 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M75 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M75 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
+
+# Now running with 20% of the trajectory and 30% probability of sampling biased.
+python cluster_run.py --partition=learnfair --name=M76 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M76 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M77 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M77 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M78 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M78 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M79 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M79 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M80 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M80 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M81 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M81 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
 
 ###############################################################
@@ -679,3 +718,20 @@ python cluster_run.py --name=J50 --cmd='python Master.py --train=1 --setting=lea
 python cluster_run.py --name=J51 --cmd='python Master.py --train=1 --setting=learntsub --name=J51_loadM50_m180 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch180 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
 
 python cluster_run.py --name=J52 --cmd='python Master.py --train=1 --setting=learntsub --name=J52_loadM50_m160 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+# Debug the transformer joint training. 
+python Master.py --train=1 --setting=learntsub --name=Jdebug_transformer --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --transformer=1
+
+
+########################################################
+# Pretraining prior for experiments on diversity
+
+# Debug
+python Master.py --train=1 --setting=pretrain_prior --name=Pdebug --data=MIME --var_skill_length=1 --z_dimensions=0
+
+python cluster_run.py --name=P1 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P1 --data=MIME --var_skill_length=1 --z_dimensions=0'
+
+python cluster_run.py --name=P2 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P2 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=meanvar'
+
+python cluster_run.py --name=P3 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P3 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=minmax'
+

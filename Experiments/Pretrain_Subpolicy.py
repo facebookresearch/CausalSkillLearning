@@ -290,7 +290,21 @@ class PolicyManager():
 
 				# Sample random start point.
 				if trajectory.shape[0]>self.current_traj_len:
-					start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
+
+					bias_length = int(self.args.pretrain_bias_sampling*trajectory.shape[0])
+
+					# Probability with which to sample biased segment: 
+					sample_biased_segment = np.random.binomial(1,p=self.args.pretrain_bias_sampling_prob)
+
+					# If we want to bias sampling of trajectory segments towards the middle of the trajectory, to increase proportion of trajectory segments
+					# that are performing motions apart from reaching and returning. 
+
+					# Sample a biased segment if trajectory length is sufficient, and based on probability of sampling.
+					if ((trajectory.shape[0]-2*bias_length)>self.current_traj_len) and sample_biased_segment:		
+						start_timepoint = np.random.randint(bias_length, trajectory.shape[0] - self.current_traj_len - bias_length)
+					else:
+						start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
+
 					end_timepoint = start_timepoint + self.current_traj_len
 
 					# Get trajectory segment and actions. 

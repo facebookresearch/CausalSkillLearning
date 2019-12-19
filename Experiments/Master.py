@@ -113,6 +113,9 @@ def parse_arguments():
 	parser.add_argument('--ent_weight',dest='ent_weight',type=float,default=0.)
 	parser.add_argument('--var_ent_weight',dest='var_ent_weight',type=float,default=2.)
 	
+	parser.add_argument('--pretrain_bias_sampling',type=float,default=0.) # Defines percentage of trajectory within which to sample trajectory segments for pretraining.
+	parser.add_argument('--pretrain_bias_sampling_prob',type=float,default=0.)
+
 	parser.add_argument('--z_ex_bias',dest='z_exploration_bias',type=float,default=0.)
 	parser.add_argument('--b_ex_bias',dest='b_exploration_bias',type=float,default=0.)
 	parser.add_argument('--lat_z_wt',dest='lat_z_wt',type=float,default=0.1)
