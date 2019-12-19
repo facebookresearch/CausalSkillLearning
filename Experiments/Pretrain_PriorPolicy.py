@@ -126,13 +126,13 @@ class PolicyManager():
 			os.mkdir(savedir)
 		save_object = {}
 		save_object['Policy_Network'] = self.policy_network.state_dict()
-		save_object['Encoder_Network'] = self.encoder_network.state_dict()
+		# save_object['Encoder_Network'] = self.encoder_network.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
 	def load_all_models(self, path):
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		self.encoder_network.load_state_dict(load_object['Encoder_Network'])
+		# self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
 	def initialize_plots(self):
 		if self.args.name is not None:
