@@ -43,22 +43,24 @@ class Master():
 			self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		elif self.args.setting=='oldpretrain_sub':
-			self.policy_manager = Old_Pretrain_Sub.PolicyManager(self.args.number_policies, self.dataset, self.args)
+		elif self.args.setting='pretrain_prior':
+			self.policy_manager = Pretrain_PriorPolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+		# elif self.args.setting=='oldpretrain_sub':
+		# 	self.policy_manager = Old_Pretrain_Sub.PolicyManager(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
 
 	def run(self):
-		if self.args.setting=='pretrain_sub':			
+		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
 				else:
 					self.policy_manager.train()
 			else:
-				self.policy_manager.evaluate(self.args.model)
-		else:
+				self.policy_manager.evaluate(self.args.model)		
+		elif self.args.setting='learntsub':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
