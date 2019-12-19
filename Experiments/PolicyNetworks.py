@@ -95,7 +95,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 
 	# def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4, batch_size=1):
 	# def __init__(self, input_size, hidden_size, output_size, z_space_size, number_layers=4, batch_size=1, whether_latentb_input=False):
-	def __init__(self, input_size, hidden_size, output_size, args, number_layers=4, whether_latentb_input=False):
+	def __init__(self, input_size, hidden_size, output_size, args, number_layers=4, whether_latentb_input=False, zero_z_dim=False):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		# super().__init__()
@@ -112,7 +112,10 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		if whether_latentb_input:
 			self.input_size = input_size+self.args.z_dimensions+1
 		else:
-			self.input_size = input_size+self.args.z_dimensions
+			if zero_z_dim:
+				self.input_size = input_size
+			else:
+				self.input_size = input_size+self.args.z_dimensions
 		# Create LSTM Network. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers)		
 
