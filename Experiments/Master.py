@@ -2,7 +2,7 @@
 from headers import *
 import DataLoaders, MIME_DataLoader
 # import PolicyManager_GTSubpolicy, PolicyManager_LearntSubpolicy, PolicyManager_BatchGTSubpolicy
-import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub
+import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub, Pretrain_PriorPolicy
 
 class Master():
 
