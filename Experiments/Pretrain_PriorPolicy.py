@@ -450,8 +450,10 @@ class PolicyManager():
 			############# (1) #############
 			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
 
+			padded_action_seq = np.concatenate([sample_action_seq,np.zeros((1,self.output_size))],axis=0)
+
 			# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
-			loglikelihoods, _ = self.policy_network.forward(torch_traj_seg, sample_action_seq)
+			loglikelihoods, _ = self.policy_network.forward(torch_traj_seg, padded_action_seq)
 			loglikelihood = loglikelihoods[:-1].mean()
 			 
 			if self.args.debug:
