@@ -17,6 +17,7 @@ import numpy as np
 
 import robosuite
 from robosuite.utils.mjcf_utils import postprocess_model_xml
+from IPython import embed
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -68,7 +69,7 @@ if __name__ == "__main__":
         xml = postprocess_model_xml(model_xml)
         env.reset_from_xml_string(xml)
         env.sim.reset()
-        env.viewer.set_camera(0)
+        # env.viewer.set_camera(0)
 
         # load the flattened mujoco states
         states = f["data/{}/states".format(ep)].value
@@ -87,11 +88,13 @@ if __name__ == "__main__":
 
             for j, action in enumerate(actions):
                 env.step(action)
-                env.render()
+                # env.render()
 
                 if j < num_actions - 1:
                     # ensure that the actions deterministically lead to the same recorded states
                     state_playback = env.sim.get_state().flatten()
+
+                    embed()
                     assert(np.all(np.equal(states[j + 1], state_playback)))
 
         else:
