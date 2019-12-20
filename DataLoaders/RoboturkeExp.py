@@ -99,6 +99,8 @@ if __name__ == "__main__":
 
         else:
 
+            print("Embedding in not use actions branch")
+            embed()
             # force the sequence of internal mujoco states one by one
             for state in states:
                 env.sim.set_state_from_flattened(state)
