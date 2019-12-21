@@ -469,6 +469,9 @@ python Master.py --train=0 --setting=pretrain_sub --name=M46 --model=Experiment_
 python cluster_run.py --partition=learnfair --name=M46_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M46 --model=Experiment_Logs/M46/saved_models/Model_epoch180 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
 
 python cluster_run.py --partition=learnfair --name=M47_eval_m172 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M47 --model=Experiment_Logs/M47/saved_models/Model_epoch172 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=M47 --model=Experiment_Logs/M47/saved_models/Model_epoch172 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --debug=1
+
 
 python cluster_run.py --partition=learnfair --name=M48_eval_m180 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M48 --model=Experiment_Logs/M48/saved_models/Model_epoch180 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
 
@@ -578,6 +581,58 @@ python cluster_run.py --partition=learnfair --name=M79 --cmd='python Master.py -
 python cluster_run.py --partition=learnfair --name=M80 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M80 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
 python cluster_run.py --partition=learnfair --name=M81 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M81 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+# Rerunning M46-M51 with action scale factor.
+python cluster_run.py --partition=learnfair --name=M82 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M82 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M83 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M83 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M84 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M84 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M85 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M85 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M86 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M86 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M87 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M87 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Scale factor 10, increased KL
+python cluster_run.py --partition=learnfair --name=M88 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M88 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M89 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M89 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M90 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M90 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M91 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M91 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M92 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M92 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M93 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M93 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64'
+
+# Scale factor 100
+python cluster_run.py --partition=learnfair --name=M94 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M94 --data=MIME --action_scale_factor=100 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M95 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M95 --data=MIME --action_scale_factor=100 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M96 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M96 --data=MIME --action_scale_factor=100 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M97 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M97 --data=MIME --action_scale_factor=100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M98 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M98 --data=MIME --action_scale_factor=100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M99 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M99 --data=MIME --action_scale_factor=100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Scale factor 100, incrased KL
+python cluster_run.py --partition=learnfair --name=M100 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M100 --data=MIME --action_scale_factor=100 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M101 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M101 --data=MIME --action_scale_factor=100 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M102 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M102 --data=MIME --action_scale_factor=100 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M103 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M103 --data=MIME --action_scale_factor=100 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M104 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M104 --data=MIME --action_scale_factor=100 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M105 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M105 --data=MIME --action_scale_factor=100 --kl_weight=1. --var_skill_length=1 --z_dimensions=64'
 
 
 ###############################################################

@@ -322,6 +322,9 @@ class PolicyManager():
 
 				action_sequence = np.diff(trajectory,axis=0)
 
+				# NOW SCALE THIS ACTION SEQUENCE BY SOME FACTOR: 
+				action_sequence = self.args.action_scale_factor*action_sequence
+
 				# Concatenate
 				concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 
@@ -457,6 +460,10 @@ class PolicyManager():
 			
 			# Select last action to execute. 
 			action_to_execute = actions[-1].squeeze(1)
+
+			# Downscale the actions by action_scale_factor.
+			action_to_execute = action_to_execute/self.args.action_scale_factor
+
 			# Compute next state. 
 			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
 
@@ -843,6 +850,9 @@ class PolicyManager():
 
 			# Select last action to execute. 
 			action_to_execute = actions[-1].squeeze(1)
+
+			# Downscale the actions by action_scale_factor.
+			action_to_execute = action_to_execute/self.args.action_scale_factor
 
 			# Compute next state. 
 			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
