@@ -14,6 +14,69 @@ import os
 import robosuite
 from robosuite.wrappers import IKWrapper
 
+class SawyerVisualizer():
+
+    def __init__(self, has_display=False):
+
+        # Create environment.
+        print("Do I have a display?", has_display)
+        # self.base_env = robosuite.make('BaxterLift', has_renderer=has_display)
+        self.base_env = robosuite.make("SawyerViz",has_renderer=has_display)
+
+        # Create kinematics object. 
+        self.sawyer_IK_object = IKWrapper(self.base_env)
+        self.environment = self.sawyer_IK_object.env        
+
+    def update_state(self):
+        # Updates all joint states
+        self.full_state = self.environment._get_observation()
+
+    def set_joint_pose_return_image(self, joint_angles, arm='both', gripper=False):
+
+        # In the roboturk dataset, we've the following joint angles: 
+        # ('time','right_j0', 'head_pan', 'right_j1', 'right_j2', 'right_j3', 'right_j4', 'right_j5', 'right_j6', 'r_gripper_l_finger_joint', 'r_gripper_r_finger_joint')
+
+        # Set usual joint angles through set joint positions API. 
+        self.environment.set_robot_joint_positions(joint_angles[:7])
+
+        # For gripper, use "step". 
+        # Mujoco requires actions that are -1 for Open and 1 for Close.
+
+        # [l,r]
+        # gripper_open = [0.0115, -0.0115]
+        # gripper_closed = [-0.020833, 0.020833]
+        # In mujoco, -1 is open, and 1 is closed.
+        
+        actions = np.zeros((8))
+        actions[-1] = joint_angles[-1]
+
+        # Move gripper positions.
+        self.environment.step(action)
+
+        image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
+        return image
+
+    def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
+
+        image_list = []
+        for t in range(trajectory.shape[0]):
+            new_image = self.set_joint_pose_return_image(trajectory[t])
+            image_list.append(new_image)
+
+            # Insert white 
+            if segmentations is not None:
+                if t>0 and segmentations[t]==1:
+                    image_list.append(255*np.ones_like(new_image)+new_image)
+
+        if return_and_save:
+            imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
+            return image_list
+        elif return_gif:
+            return image_list
+        else:
+            imageio.mimsave(os.path.join(gif_path,gif_name), image_list)            
+
+
 class BaxterVisualizer():
 
     def __init__(self, has_display=False):
@@ -134,7 +197,7 @@ class BaxterVisualizer():
 if __name__ == '__main__':
     # end_eff_pose = [0.3, -0.3, 0.09798524029948213, 0.38044099037703677, 0.9228975092885654, -0.021717379118030174, 0.05525572942370394]
     # end_eff_pose = [0.53303758, -0.59997265,  0.09359371,  0.77337391,  0.34998901, 0.46797516, -0.24576358]
-    end_eff_pose = np.array([0.64, -0.83, 0.09798524029948213, 0.38044099037703677, 0.9228975092885654, -0.021717379118030174, 0.05525572942370394])
+    # end_eff_pose = np.array([0.64, -0.83, 0.09798524029948213, 0.38044099037703677, 0.9228975092885654, -0.021717379118030174, 0.05525572942370394])
     visualizer = MujocoVisualizer()
-    img = visualizer.set_ee_pose_return_image(end_eff_pose, arm='right')
-    scipy.misc.imsave('mj_vis.png', img)
+    # img = visualizer.set_ee_pose_return_image(end_eff_pose, arm='right')
+    # scipy.misc.imsave('mj_vis.png', img)
