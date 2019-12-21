@@ -769,7 +769,8 @@ class PolicyManager():
 		self.rollout_timesteps = self.args.traj_length
 		self.state_dim = 16
 
-		self.visualizer = Visualizers.BaxterVisualizer()
+		# self.visualizer = Visualizers.BaxterVisualizer()
+		self.visualizer = BaxterVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
