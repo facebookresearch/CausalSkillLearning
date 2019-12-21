@@ -472,6 +472,7 @@ class PolicyManager():
 				self.update_plots(counter, loglikelihood, trajectory_segment)
 			else:
 
+				print("Length:",trajectory_segment.shape[0]," Mean Likelihood:", loglikelihood, " Likelihoods: \n", loglikelihoods)
 				embed()
 				# if return_z: 
 				# 	return latent_z, sample_traj, sample_action_seq
