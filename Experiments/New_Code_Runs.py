@@ -550,6 +550,9 @@ python cluster_run.py --partition=learnfair --name=M68 --cmd='python Master.py -
 python cluster_run.py --partition=learnfair --name=M69 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M69 --transformer=1 --data=MIME --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
 #### Runs with biased sampling, and various parameters. 
+# Debug
+python Master.py --train=1 --setting=pretrain_sub --name=Mdebug_biasing --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3
+
 # Rerun M46-M51 without transformer with biased sampling. 
 python cluster_run.py --partition=learnfair --name=M70 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M70 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.1 --pretrain_bias_sampling_prob=0.3'
 
@@ -734,4 +737,14 @@ python cluster_run.py --name=P1 --cmd='python Master.py --train=1 --setting=pret
 python cluster_run.py --name=P2 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P2 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=meanvar'
 
 python cluster_run.py --name=P3 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P3 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=minmax'
+
+# Run again with differently named model. 
+python cluster_run.py --name=P4 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P4 --data=MIME --var_skill_length=1 --z_dimensions=0'
+
+# Eval
+python Master.py --train=0 --setting=pretrain_prior --name=P4 --data=MIME --var_skill_length=1 --z_dimensions=0 --model=Experiment_Logs/P4/saved_models/Model_epoch199
+
+python cluster_run.py --name=P5 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P5 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=meanvar'
+
+python cluster_run.py --name=P6 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P6 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=minmax'
 

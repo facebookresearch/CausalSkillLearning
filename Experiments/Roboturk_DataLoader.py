@@ -42,6 +42,11 @@ class Roboturk_Dataset(Dataset):
 		# self.r_gripper_r_finger_joint = np.array([-0.0116,   0.020833])
 		# self.r_gripper_l_finger_joint = np.array([-0.020833, 0.0135])
 
+		# [l,r]
+        # gripper_open = [0.0115, -0.0115]
+        # gripper_closed = [-0.020833, 0.020833]
+        
+
 	def __len__(self):
 
 		return self.total_length
@@ -68,6 +73,11 @@ class Roboturk_Dataset(Dataset):
 		gripper_finger_values = state_sequence[:,self.gripper_indices]
 
 		# Normalize gripper values. 
+
+		# 1 is right finger. 0 is left finger. 
+		# 1-0 is right-left. 
+		
+
 		gripper_values = gripper_finger_values[:,1]-gripper_finger_values[:,0]
 		gripper_values = (gripper_values-gripper_values.min()) / (gripper_values.max()-gripper_values.min())
 		gripper_values = 2*gripper_values-1

@@ -2,7 +2,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, EncoderNetwork, ContinuousEncoderNetwork
 from Transformer import TransformerEncoder
-import BaxterVisualizer
+from Visualizers import BaxterVisualizer
 
 class PolicyManager():
 
@@ -54,17 +54,20 @@ class PolicyManager():
 				self.norm_sub_value = np.load("MIME_Min.npy")
 				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
 
+		elif self.args.data=='Roboturk':
+			self.state_size = 8	
+			self.state_dim = 8		
+			self.input_size = 2*self.state_size
+			self.hidden_size = 64
+			self.output_size = self.state_size
+			self.number_layers = 5
+			self.traj_length = self.args.traj_length
+
 		# Training parameters. 		
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
 		self.learning_rate = 1e-4
 		
-		# Entropy regularization weight.
-		self.entropy_regularization_weight = self.args.ent_weight
-		# self.variational_entropy_regularization_weight = self.args.var_ent_weight
-		self.variational_b_ent_reg_weight = 0.5
-		self.variational_z_ent_reg_weight = 0.5
-
 		self.initial_epsilon = self.args.epsilon_from
 		self.final_epsilon = self.args.epsilon_to
 		self.decay_epochs = self.args.epsilon_over
