@@ -458,9 +458,9 @@ class PolicyManager():
 			loglikelihoods, _ = self.policy_network.forward(torch_traj_seg, padded_action_seq)
 			loglikelihood = loglikelihoods[:-1].mean()
 			 
-			if self.args.debug:
-				print("Embedding in Train.")
-				embed()
+			# if self.args.debug:
+			# 	print("Embedding in Train.")
+			# 	embed()
 
 			############# (3) #############
 			# Update parameters. 
