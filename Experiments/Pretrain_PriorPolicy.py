@@ -2,7 +2,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, EncoderNetwork, ContinuousEncoderNetwork
 from Transformer import TransformerEncoder
-import BaxterVisualizer
+from Visualizers import BaxterVisualizer
 
 class PolicyManager():
 
@@ -126,12 +126,14 @@ class PolicyManager():
 			os.mkdir(savedir)
 		save_object = {}
 		save_object['PriorPolicy_Network'] = self.policy_network.state_dict()
+		# save_object['Policy_Network'] = self.policy_network.state_dict()
 		# save_object['Encoder_Network'] = self.encoder_network.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
 	def load_all_models(self, path):
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['PriorPolicy_Network'])
+		# self.policy_network.load_state_dict(load_object['Policy_Network'])
 		# self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
 	def initialize_plots(self):
@@ -469,15 +471,17 @@ class PolicyManager():
 				# Update Plots. 
 				self.update_plots(counter, loglikelihood, trajectory_segment)
 			else:
-				if return_z: 
-					return latent_z, sample_traj, sample_action_seq
-				else:
-					np.set_printoptions(suppress=True,precision=2)
-					print("###################", i)
-					# print("Trajectory: \n",trajectory_segment)
-					# print("Encoder Likelihood: \n", encoder_loglikelihood.detach().cpu().numpy())
-					# print("Policy Mean: \n", self.policy_network.get_actions(subpolicy_inputs, greedy=True).detach().cpu().numpy())
-					print("Policy loglikelihood:", loglikelihood)
+
+				embed()
+				# if return_z: 
+				# 	return latent_z, sample_traj, sample_action_seq
+				# else:
+				# 	np.set_printoptions(suppress=True,precision=2)
+				# 	print("###################", i)
+				# 	# print("Trajectory: \n",trajectory_segment)
+				# 	# print("Encoder Likelihood: \n", encoder_loglikelihood.detach().cpu().numpy())
+				# 	# print("Policy Mean: \n", self.policy_network.get_actions(subpolicy_inputs, greedy=True).detach().cpu().numpy())
+				# 	print("Policy loglikelihood:", loglikelihood)
 			
 			print("#########################################")	
 		else: 

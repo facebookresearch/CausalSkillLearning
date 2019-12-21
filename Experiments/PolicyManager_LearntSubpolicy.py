@@ -3,7 +3,7 @@ from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 from Transformer import TransformerVariationalNet
-import BaxterVisualizer
+from Visualizers import BaxterVisualizer
 import TFLogger 
 
 class PolicyManager():
@@ -27,7 +27,6 @@ class PolicyManager():
 		# Global input size: trajectory at every step - x,y,action
 		# Inputs is now states and actions.
 		# Model size parameters
-		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
 		self.state_size = 2
 		self.state_dim = 2
 		self.input_size = 2*self.state_size
@@ -56,18 +55,21 @@ class PolicyManager():
 				self.norm_sub_value = np.load("MIME_Min.npy")
 				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
 
+		elif self.args.data=='Roboturk':
+			self.state_size = 8	
+			self.state_dim = 8		
+			self.input_size = 2*self.state_size
+			self.hidden_size = 64
+			self.output_size = self.state_size
+			self.number_layers = 5
+			self.traj_length = self.args.traj_length
+
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 200
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
 
 		self.learning_rate = 1e-4
-
-		# Entropy regularization weight.
-		self.entropy_regularization_weight = self.args.ent_weight
-		# self.variational_entropy_regularization_weight = self.args.var_ent_weight
-		self.variational_b_ent_reg_weight = 0.5
-		self.variational_z_ent_reg_weight = 0.5
 
 		self.latent_b_loss_weight = self.args.lat_b_wt
 		self.latent_z_loss_weight = self.args.lat_z_wt

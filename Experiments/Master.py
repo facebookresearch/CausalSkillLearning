@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from headers import *
-import DataLoaders, MIME_DataLoader
-# import PolicyManager_GTSubpolicy, PolicyManager_LearntSubpolicy, PolicyManager_BatchGTSubpolicy
+import DataLoaders, MIME_DataLoader, Roboturk_DataLoader
 import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub, Pretrain_PriorPolicy
 
 class Master():
@@ -10,15 +9,15 @@ class Master():
 		self.args = arguments 
 
 		# Define Data Loader. 
-		if self.args.data=='Bigmaps':
-			self.dataset = DataLoaders.GridWorldDataset(self.args.datadir)
-		elif self.args.data=='Smallmaps':
-			self.dataset = DataLoaders.SmallMapsDataset(self.args.datadir)
-		elif self.args.data=='ToyData':
-			self.dataset = DataLoaders.ToyDataset(self.args.datadir)
-		elif self.args.data=='Continuous':
-			self.dataset = DataLoaders.ContinuousToyDataset(self.args.datadir)
-		elif self.args.data=='ContinuousNonZero':
+		# if self.args.data=='Bigmaps':
+		# 	self.dataset = DataLoaders.GridWorldDataset(self.args.datadir)
+		# elif self.args.data=='Smallmaps':
+		# 	self.dataset = DataLoaders.SmallMapsDataset(self.args.datadir)
+		# elif self.args.data=='ToyData':
+		# 	self.dataset = DataLoaders.ToyDataset(self.args.datadir)
+		# elif self.args.data=='Continuous':
+		# 	self.dataset = DataLoaders.ContinuousToyDataset(self.args.datadir)
+		if self.args.data=='ContinuousNonZero':
 			self.dataset = DataLoaders.ContinuousNonZeroToyDataset(self.args.datadir)
 		elif self.args.data=='ContinuousDir':			
 			self.dataset = DataLoaders.ContinuousDirectedToyDataset(self.args.datadir)
@@ -32,21 +31,15 @@ class Master():
 			self.dataset = DataLoaders.SeparableDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
 			self.dataset = MIME_DataLoader.MIME_Dataset()
+		elif self.args.data=='Roboturk':
+			self.dataset = Roboturk_DataLoader.Roboturk_Dataset()
 
-		# if self.args.setting=='gtsub':
-		# 	self.policy_manager = PolicyManager_GTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		# # if self.args.setting=='just_actions':
-		# # 	self.policy_manager = PolicyManager_GTSubpolicy_ActionLikelihood.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		# elif self.args.setting=='batchgtsub':
-		# 	self.policy_manager = PolicyManager_BatchGTSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		if self.args.setting=='learntsub':
 			self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_prior':
 			self.policy_manager = Pretrain_PriorPolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
-		# elif self.args.setting=='oldpretrain_sub':
-		# 	self.policy_manager = Old_Pretrain_Sub.PolicyManager(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
@@ -59,7 +52,11 @@ class Master():
 				else:
 					self.policy_manager.train()
 			else:
-				self.policy_manager.evaluate(self.args.model)		
+				if self.args.setting=='pretrain_prior':
+					self.policy_manager.train(self.args.model)
+				else:
+					self.policy_manager.evaluate(self.args.model)		
+				
 		elif self.args.setting=='learntsub':
 			if self.args.train:
 				if self.args.model:
