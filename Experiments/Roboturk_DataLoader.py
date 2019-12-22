@@ -68,8 +68,6 @@ class Roboturk_Dataset(Dataset):
 			print("Out of bounds of dataset.")
 			return None
 
-		embed()
-
 		# Get bucket that index falls into based on num_demos array. 
 		task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
 		
