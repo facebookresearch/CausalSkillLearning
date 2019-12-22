@@ -95,6 +95,8 @@ class Roboturk_Dataset(Dataset):
 		gripper_values = (gripper_values-gripper_values.min()) / (gripper_values.max()-gripper_values.min())
 		gripper_values = 2*gripper_values-1
 
+		embed()
+
 		concatenated_demonstration = np.concatenate([joint_values,gripper_values],axis=1)
 
 		donwsampled_demonstration = resample(concatenated_demonstration, concatenated_demonstration.shape[0]//self.ds_freq)
