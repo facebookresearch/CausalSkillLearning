@@ -31,7 +31,7 @@ class Roboturk_Dataset(Dataset):
 		# Load data from all tasks. 			
 		self.files = []
 		for i in range(len(self.task_list)):
-			self.files.append(h5py.File("{0}/demo.hdf5".format(self.task_list[i]),'r'))
+			self.files.append(h5py.File("{0}/{1}/demo.hdf5".format(self.dataset_directory,self.task_list[i]),'r'))
 
 		# Seems to follow joint angles order:
 		# ('time','right_j0', 'head_pan', 'right_j1', 'right_j2', 'right_j3', 'right_j4', 'right_j5', 'right_j6', 'r_gripper_l_finger_joint', 'r_gripper_r_finger_joint', 'Milk0', 'Bread0', 'Cereal0', 'Can0').
