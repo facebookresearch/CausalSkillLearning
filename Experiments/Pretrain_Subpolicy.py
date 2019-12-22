@@ -275,63 +275,65 @@ class PolicyManager():
 
 			return concatenated_traj, sample_action_seq, sample_traj
 		
-		elif self.args.data=='MIME':
+		elif self.args.data=='MIME' or self.args.data=='Roboturk':
 
 			data_element = self.dataset[i]
 
-			if data_element['is_valid']:
+			# If Invalid.
+			if not(data_element['is_valid']):
+				return None, None, None
 				
+			if self.args.data=='MIME':
 				# Sample a trajectory length that's valid. 			
 				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			elif self.args.data=='Roboturk':
+				trajectory = data_element['demo']
 
-				# If allowing variable skill length, set length for this sample.				
-				if self.args.var_skill_length:
-					# Choose length of 12-16 with certain probabilities. 
-					self.current_traj_len = np.random.choice([12,13,14,15,16],p=[0.1,0.2,0.4,0.2,0.1])
-				else:
-					self.current_traj_len = self.traj_length
-
-				# Sample random start point.
-				if trajectory.shape[0]>self.current_traj_len:
-
-					bias_length = int(self.args.pretrain_bias_sampling*trajectory.shape[0])
-
-					# Probability with which to sample biased segment: 
-					sample_biased_segment = np.random.binomial(1,p=self.args.pretrain_bias_sampling_prob)
-
-					# If we want to bias sampling of trajectory segments towards the middle of the trajectory, to increase proportion of trajectory segments
-					# that are performing motions apart from reaching and returning. 
-
-					# Sample a biased segment if trajectory length is sufficient, and based on probability of sampling.
-					if ((trajectory.shape[0]-2*bias_length)>self.current_traj_len) and sample_biased_segment:		
-						start_timepoint = np.random.randint(bias_length, trajectory.shape[0] - self.current_traj_len - bias_length)
-					else:
-						start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
-
-					end_timepoint = start_timepoint + self.current_traj_len
-
-					# Get trajectory segment and actions. 
-					trajectory = trajectory[start_timepoint:end_timepoint]				
-
-					# If normalization is set to some value.
-					if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-						trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
-
-				else:					
-					return None, None, None
-
-				action_sequence = np.diff(trajectory,axis=0)
-
-				# NOW SCALE THIS ACTION SEQUENCE BY SOME FACTOR: 
-				action_sequence = self.args.action_scale_factor*action_sequence
-
-				# Concatenate
-				concatenated_traj = self.concat_state_action(trajectory, action_sequence)
-
-				return concatenated_traj, action_sequence, trajectory
-
+			# If allowing variable skill length, set length for this sample.				
+			if self.args.var_skill_length:
+				# Choose length of 12-16 with certain probabilities. 
+				self.current_traj_len = np.random.choice([12,13,14,15,16],p=[0.1,0.2,0.4,0.2,0.1])
 			else:
+				self.current_traj_len = self.traj_length
+
+			# Sample random start point.
+			if trajectory.shape[0]>self.current_traj_len:
+
+				bias_length = int(self.args.pretrain_bias_sampling*trajectory.shape[0])
+
+				# Probability with which to sample biased segment: 
+				sample_biased_segment = np.random.binomial(1,p=self.args.pretrain_bias_sampling_prob)
+
+				# If we want to bias sampling of trajectory segments towards the middle of the trajectory, to increase proportion of trajectory segments
+				# that are performing motions apart from reaching and returning. 
+
+				# Sample a biased segment if trajectory length is sufficient, and based on probability of sampling.
+				if ((trajectory.shape[0]-2*bias_length)>self.current_traj_len) and sample_biased_segment:		
+					start_timepoint = np.random.randint(bias_length, trajectory.shape[0] - self.current_traj_len - bias_length)
+				else:
+					start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
+
+				end_timepoint = start_timepoint + self.current_traj_len
+
+				# Get trajectory segment and actions. 
+				trajectory = trajectory[start_timepoint:end_timepoint]				
+
+				# If normalization is set to some value.
+				if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+					trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
+			else:					
 				return None, None, None
+
+			action_sequence = np.diff(trajectory,axis=0)
+
+			# NOW SCALE THIS ACTION SEQUENCE BY SOME FACTOR: 
+			action_sequence = self.args.action_scale_factor*action_sequence
+
+			# Concatenate
+			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
+
+			return concatenated_traj, action_sequence, trajectory
 
 	def get_test_trajectory_segment(self, i):
 		sample_traj = np.zeros((5,2))

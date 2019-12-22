@@ -86,7 +86,12 @@ class Roboturk_Dataset(Dataset):
 
 		donwsampled_demonstration = resample(concatenated_demonstration, concatenated_demonstration.shape[0]//self.ds_freq)
 
-		return donwsampled_demonstration
+		data_element = {}
+		data_element['demo'] = donwsampled_demonstration
+		# Trivially setting is valid to true until we come up wiuth a better strategy. 
+		data_element['is_valid'] = True
+
+		return data_element
 
 	def close(self):
 		for file in self.files:
