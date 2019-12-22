@@ -634,6 +634,30 @@ python cluster_run.py --partition=learnfair --name=M104 --cmd='python Master.py 
 
 python cluster_run.py --partition=learnfair --name=M105 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M105 --data=MIME --action_scale_factor=100 --kl_weight=1. --var_skill_length=1 --z_dimensions=64'
 
+# Running with scale factor, various KL, and also biased trajectory sampling. 
+python cluster_run.py --partition=learnfair --name=M106 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M106 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M107 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M107 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M108 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M108 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M109 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M109 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M110 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M110 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M111 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M111 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M112 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M112 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M113 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M113 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M114 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M114 --data=MIME --action_scale_factor=10 --kl_weight=0.1 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M115 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M115 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M116 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M116 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M117 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M117 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
