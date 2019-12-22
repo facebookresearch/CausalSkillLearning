@@ -63,6 +63,7 @@ class Roboturk_Dataset(Dataset):
 		# Decide task ID, and new index modulo num_demos.
 		# Subtract number of demonstrations in cumsum until then, and then 		
 		new_index = index-self.cummulative_num_demos[max(task_index-1,0)]+1
+		embed()
 
 		# Get raw state sequence. 
 		state_sequence = self.files[task_index]['data/demo_{0}/states'.format(new_index)].value
