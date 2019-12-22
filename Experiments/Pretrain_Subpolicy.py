@@ -634,7 +634,6 @@ class PolicyManager():
 		# cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
 		cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd=\'{1}\''.format(self.args.name, base_command)				
 		subprocess.call([cluster_command],shell=True)
-
 				
 	def evaluate(self, model):
 		if model:
@@ -642,9 +641,9 @@ class PolicyManager():
 
 		np.set_printoptions(suppress=True,precision=2)
 
-		if self.args.data=="MIME":
-			print("Running Visualization on MIME Data.")	
-			self.visualize_MIME_data()			
+		if self.args.data=="MIME" or self.args.data=='Roboturk':
+			print("Running Visualization on Robot Data.")	
+			self.visualize_robot_data()			
 
 		else:
 			print("Running Eval on Dummy Trajectories!")
@@ -772,14 +771,18 @@ class PolicyManager():
 			plt.close()
 		# For all 4 actions, make fake rollout, feed into trajectory, evaluate likelihood. 
 
-	def visualize_MIME_data(self):
+	def visualize_robot_data(self):
 
 		self.N = 100
 		self.rollout_timesteps = self.args.traj_length
 		self.state_dim = 16
 
 		# self.visualizer = Visualizers.BaxterVisualizer()
-		self.visualizer = BaxterVisualizer()
+
+		if self.args.data=='MIME':
+			self.visualizer = BaxterVisualizer()
+		elif self.args.data=='Roboturk':
+			self.visualizer = SawyerVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
@@ -820,7 +823,7 @@ class PolicyManager():
 
 				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())		
 				
-				trajectory_rollout = self.get_MIME_visuals(i, latent_z, sample_traj, sample_action_seq)
+				trajectory_rollout = self.get_robot_visuals(i, latent_z, sample_traj, sample_action_seq)
 				
 				# self.trajectory_set[i] = copy.deepcopy(sample_traj)
 				# self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)	
@@ -829,9 +832,9 @@ class PolicyManager():
 				self.trajectory_rollout_set.append(copy.deepcopy(trajectory_rollout))
 
 		# Get MIME embedding for rollout and GT trajectories, with same Z embedding. 
-		embedded_z = self.get_MIME_embedding()
-		gt_animation_object = self.visualize_MIME_embedding(embedded_z, gt=True)
-		rollout_animation_object = self.visualize_MIME_embedding(embedded_z, gt=False)
+		embedded_z = self.get_robot_embedding()
+		gt_animation_object = self.visualize_robot_embedding(embedded_z, gt=True)
+		rollout_animation_object = self.visualize_robot_embedding(embedded_z, gt=False)
 
 		self.write_embedding_HTML(gt_animation_object,prefix="GT")
 		self.write_embedding_HTML(rollout_animation_object,prefix="Rollout")
@@ -839,8 +842,7 @@ class PolicyManager():
 		# Save webpage. 
 		self.write_results_HTML()
 
-
-	def rollout_MIME(self, trajectory_start, latent_z):
+	def rollout_robot_trajectory(self, trajectory_start, latent_z):
 
 		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
 		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
@@ -870,10 +872,10 @@ class PolicyManager():
 		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
 		return trajectory
 
-	def get_MIME_visuals(self, i, latent_z, trajectory, sample_action_seq):		
+	def get_robot_visuals(self, i, latent_z, trajectory, sample_action_seq):		
 
 		# 1) Feed Z into policy, rollout trajectory. 
-		trajectory_rollout = self.rollout_MIME(trajectory[0], latent_z)
+		trajectory_rollout = self.rollout_robot_trajectory(trajectory[0], latent_z)
 
 		# 2) Unnormalize data. 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -944,7 +946,7 @@ class PolicyManager():
 
 		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))		
 
-	def get_MIME_embedding(self):
+	def get_robot_embedding(self):
 
 		# Mean and variance normalize z.
 		mean = self.latent_z_set.mean(axis=0)
@@ -959,7 +961,7 @@ class PolicyManager():
 
 		return scaled_embedded_zs
 
-	def visualize_MIME_embedding(self, scaled_embedded_zs, gt=False):
+	def visualize_robot_embedding(self, scaled_embedded_zs, gt=False):
 
 		# Create figure and axis objects.
 		matplotlib.rcParams['figure.figsize'] = [50, 50]
