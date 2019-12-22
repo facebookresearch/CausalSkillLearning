@@ -26,6 +26,17 @@ class Roboturk_Dataset(Dataset):
 		self.task_list = ["bins-Bread", "bins-Can", "bins-Cereal", "bins-full", "bins-Milk", "pegs-full", "pegs-RoundNut", "pegs-SquareNut"]
 		self.num_demos = np.array([1069, 1069, 1069, 1069, 1069, 1145, 1144, 1145])
 		self.cummulative_num_demos = self.num_demos.cumsum()
+		self.cummulative_num_demos = np.insert(self.cummulative_num_demos,0,0)
+		# Append -1 to the start of cummulative_num_demos. This has two purposes. 
+		# The first is that when we are at index 0 of the dataset, if we appended 0, np.searchsorted returns 0, rather than 1. 
+		# For index 1, it returns 1. This was becoming inconsistent behavior for demonstrations in the same task. 
+		# Now with -1 added to cumm_num_demos, when we are at task index 0, it would add -1 to the demo index. This is necessary for ALL tasks, not just the first...  
+		# So that foils our really clever idea. 
+		# Well, if the searchsorted returns the index of the equalling element, it probably consistently does this irrespective of vlaue. 
+		# This means we can use this...
+
+		# No need for a clever solution, searchsorted has a "side" option that takes care of this. 
+
 		self.total_length = self.num_demos.sum()		
 
 		# Load data from all tasks. 			
@@ -53,16 +64,18 @@ class Roboturk_Dataset(Dataset):
 
 	def __getitem__(self, index):
 
-		if index>self.cummulative_num_demos[-1]:
+		if index>=self.total_length
 			print("Out of bounds of dataset.")
 			return None
-
 		# Get bucket that index falls into based on num_demos array. 
-		task_index = np.searchsorted(self.cummulative_num_demos, index)
+		task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
 		
+		if index==self.total_length-1:
+			task_index-=1
+
 		# Decide task ID, and new index modulo num_demos.
-		# Subtract number of demonstrations in cumsum until then, and then 		
-		new_index = index-self.cummulative_num_demos[max(task_index-1,0)]+1
+		# Subtract number of demonstrations in cumsum until then, and then 				
+		new_index = index-self.cummulative_num_demos[max(task_index,0)]+1
 		embed()
 
 		# Get raw state sequence. 
@@ -78,7 +91,6 @@ class Roboturk_Dataset(Dataset):
 		# 1 is right finger. 0 is left finger. 
 		# 1-0 is right-left. 
 		
-
 		gripper_values = gripper_finger_values[:,1]-gripper_finger_values[:,0]
 		gripper_values = (gripper_values-gripper_values.min()) / (gripper_values.max()-gripper_values.min())
 		gripper_values = 2*gripper_values-1
