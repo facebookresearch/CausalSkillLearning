@@ -86,6 +86,8 @@ class Roboturk_Dataset(Dataset):
 			data_element = {}
 			data_element['is_valid'] = False
 
+			return data_element
+
 		# Get joint angles from this state sequence.
 		joint_values = state_sequence[:,self.joint_angle_indices]
 		# Get gripper values from state sequence. 
