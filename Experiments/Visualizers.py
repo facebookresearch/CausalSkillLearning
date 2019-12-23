@@ -51,7 +51,7 @@ class SawyerVisualizer():
         actions[-1] = joint_angles[-1]
 
         # Move gripper positions.
-        self.environment.step(action)
+        self.environment.step(actions)
 
         image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
         return image
