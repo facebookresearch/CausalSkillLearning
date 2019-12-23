@@ -452,6 +452,8 @@ python cluster_run.py --partition=learnfair --name=M45_eval --cmd='python Master
 python cluster_run.py --partition=learnfair --name=M46 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M46 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
 
 python cluster_run.py --partition=learnfair --name=M47 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M47 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=M47 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --model=Experiment_Logs/M47/saved_models/Model_epoch172 --debug=1
 
 python cluster_run.py --partition=learnfair --name=M48 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M48 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
 
@@ -658,6 +660,32 @@ python cluster_run.py --partition=learnfair --name=M115 --cmd='python Master.py 
 python cluster_run.py --partition=learnfair --name=M116 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M116 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
 python cluster_run.py --partition=learnfair --name=M117 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M117 --data=MIME --action_scale_factor=10 --kl_weight=1. --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+# Rerunning M82-M87 with correctly scaled actions. 
+python cluster_run.py --partition=learnfair --name=M118 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M118 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M119 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M119 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M120 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M120 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M121 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M121 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M122 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M122 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M123 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M123 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Also running with biased trajectory sampling.
+python cluster_run.py --partition=learnfair --name=M124 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M124 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M125 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M125 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M126 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M126 --data=MIME --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M127 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M127 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M128 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M128 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
+
+python cluster_run.py --partition=learnfair --name=M129 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M129 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################

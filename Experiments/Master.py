@@ -90,7 +90,9 @@ def parse_arguments():
 	# Training setting. 
 	parser.add_argument('--discrete_z',dest='discrete_z',type=int,default=0)
 	parser.add_argument('--transformer',dest='transformer',type=int,default=0)	
-	parser.add_argument('--z_dimensions',dest='z_dimensions',type=int,default=8)
+	parser.add_argument('--z_dimensions',dest='z_dimensions',type=int,default=64)
+	parser.add_argument('--number_layers',dest='number_layers',type=int,default=5)
+	parser.add_argument('--hidden_size',dest='hidden_size',type=int,default=64)
 	parser.add_argument('--condition_size',dest='condition_size',type=int,default=4)
 	parser.add_argument('--new_gradient',dest='new_gradient',type=int,default=1)
 	parser.add_argument('--b_prior',dest='b_prior',type=int,default=1)

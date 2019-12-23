@@ -1,7 +1,7 @@
 # Start pretraining roboturk.
 
 # Debug run.
-python Master.py --train=1 --setting=pretrain_sub --name=R1 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64
+python Master.py --train=1 --setting=pretrain_sub --name=Rdebug --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --debug=1
 
 # M46 for comparison
 # python Master.py --train=1 --setting=pretrain_sub --name=M48 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64

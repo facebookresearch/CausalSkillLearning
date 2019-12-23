@@ -29,11 +29,11 @@ class PolicyManager():
 		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
 		self.state_size = 2
 		self.input_size = 2*self.state_size
-		self.hidden_size = 20
+		self.hidden_size = self.args.hidden_size
 		# Number of actions
 		self.output_size = 2		
 		self.latent_z_dimensionality = self.args.z_dimensions
-		self.number_layers = 4
+		self.number_layers = self.args.number_layers
 		self.traj_length = 5
 		self.number_epochs = 200
 
@@ -41,10 +41,10 @@ class PolicyManager():
 			self.state_size = 16			
 			self.state_dim = 16
 			self.input_size = 2*self.state_size
-			self.hidden_size = 64
+			self.hidden_size = self.args.hidden_size
 			self.output_size = self.state_size
 			self.latent_z_dimensionality = self.args.z_dimensions
-			self.number_layers = 5
+			self.number_layers = self.args.number_layers
 			self.traj_length = self.args.traj_length
 			self.number_epochs = 200
 
@@ -59,9 +59,9 @@ class PolicyManager():
 			self.state_size = 8	
 			self.state_dim = 8		
 			self.input_size = 2*self.state_size
-			self.hidden_size = 64
+			self.hidden_size = self.args.hidden_size
 			self.output_size = self.state_size
-			self.number_layers = 5
+			self.number_layers = self.args.number_layers
 			self.traj_length = self.args.traj_length
 
 		# Training parameters. 		
