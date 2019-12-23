@@ -774,7 +774,7 @@ class PolicyManager():
 
 	def visualize_robot_data(self):
 
-		self.N = 5
+		self.N = 100
 		self.rollout_timesteps = self.args.traj_length
 		
 
