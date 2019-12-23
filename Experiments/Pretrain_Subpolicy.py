@@ -328,13 +328,13 @@ class PolicyManager():
 
 			action_sequence = np.diff(trajectory,axis=0)
 
-			# NOW SCALE THIS ACTION SEQUENCE BY SOME FACTOR: 
-			action_sequence = self.args.action_scale_factor*action_sequence
-
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 
-			return concatenated_traj, action_sequence, trajectory
+			# NOW SCALE THIS ACTION SEQUENCE BY SOME FACTOR: 
+			scaled_action_sequence = self.args.action_scale_factor*action_sequence
+
+			return concatenated_traj, scaled_action_sequence, trajectory
 
 	def get_test_trajectory_segment(self, i):
 		sample_traj = np.zeros((5,2))
