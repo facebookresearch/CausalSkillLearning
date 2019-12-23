@@ -2,7 +2,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, EncoderNetwork, ContinuousEncoderNetwork
 from Transformer import TransformerEncoder
-from Visualizers import BaxterVisualizer
+from Visualizers import BaxterVisualizer, SawyerVisualizer
 
 class PolicyManager():
 
