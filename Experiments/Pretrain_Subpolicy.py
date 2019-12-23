@@ -39,6 +39,7 @@ class PolicyManager():
 
 		if self.args.data=='MIME':
 			self.state_size = 16			
+			self.state_dim = 16
 			self.input_size = 2*self.state_size
 			self.hidden_size = 64
 			self.output_size = self.state_size
@@ -775,14 +776,16 @@ class PolicyManager():
 
 		self.N = 100
 		self.rollout_timesteps = self.args.traj_length
-		self.state_dim = 16
+		
 
 		# self.visualizer = Visualizers.BaxterVisualizer()
 
 		if self.args.data=='MIME':
 			self.visualizer = BaxterVisualizer()
+			# self.state_dim = 16
 		elif self.args.data=='Roboturk':
 			self.visualizer = SawyerVisualizer()
+			# self.state_dim = 8
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
