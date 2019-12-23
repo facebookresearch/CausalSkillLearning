@@ -36,7 +36,8 @@ class SawyerVisualizer():
         # In the roboturk dataset, we've the following joint angles: 
         # ('time','right_j0', 'head_pan', 'right_j1', 'right_j2', 'right_j3', 'right_j4', 'right_j5', 'right_j6', 'r_gripper_l_finger_joint', 'r_gripper_r_finger_joint')
 
-        # Set usual joint angles through set joint positions API. 
+        # Set usual joint angles through set joint positions API.
+        self.environment.reset()
         self.environment.set_robot_joint_positions(joint_angles[:7])
 
         # For gripper, use "step". 
