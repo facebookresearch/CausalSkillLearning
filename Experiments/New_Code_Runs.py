@@ -687,6 +687,32 @@ python cluster_run.py --partition=learnfair --name=M128 --cmd='python Master.py 
 
 python cluster_run.py --partition=learnfair --name=M129 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M129 --data=MIME --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --pretrain_bias_sampling=0.2 --pretrain_bias_sampling_prob=0.3'
 
+# Rerunning M46-M51 with ridiculous network capacity. 
+python cluster_run.py --partition=learnfair --name=M130 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M130 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M131 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M131 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M132 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M132 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M133 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M133 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M134 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M134 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M135 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M136 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M136 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M137 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M137 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M138 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M138 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M139 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M139 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M140 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M140 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M141 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M141 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
 ###############################################################
