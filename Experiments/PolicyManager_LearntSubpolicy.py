@@ -3,7 +3,7 @@ from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 from Transformer import TransformerVariationalNet
-from Visualizers import BaxterVisualizer
+from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger 
 
 class PolicyManager():
@@ -46,7 +46,8 @@ class PolicyManager():
 			self.traj_length = self.args.traj_length
 
 			# Create Baxter visualizer for MIME data
-			self.visualizer = BaxterVisualizer.MujocoVisualizer()
+			# self.visualizer = BaxterVisualizer.MujocoVisualizer()
+			self.visualizer = BaxterVisualizer()
 
 			if self.args.normalization=='meanvar':
 				self.norm_sub_value = np.load("MIME_Means.npy")
