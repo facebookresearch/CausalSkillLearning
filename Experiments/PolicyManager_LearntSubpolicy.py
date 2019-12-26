@@ -129,7 +129,7 @@ class PolicyManager():
 		if self.args.reparam:
 			parameter_list = list(self.latent_policy.parameters()) + list(self.variational_policy.parameters())
 			if not(self.args.fix_subpolicy):
-				parameter_list = parameter_list + list(self.policy_network.parameter_list())
+				parameter_list = parameter_list + list(self.policy_network.parameters())
 			self.optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
 
 		else:
