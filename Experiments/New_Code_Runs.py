@@ -700,6 +700,34 @@ python cluster_run.py --partition=learnfair --name=M134 --cmd='python Master.py 
 
 python cluster_run.py --partition=learnfair --name=M135 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Eval
+python cluster_run.py --partition=learnfair --name=M130 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M130 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M130/saved_models/Model_epoch60 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M131 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M131 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M131/saved_models/Model_epoch41 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M132 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M132 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M132/saved_models/Model_epoch60 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M133 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M133 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M133/saved_models/Model_epoch60 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M134 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M134 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M134/saved_models/Model_epoch60 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M135 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch60 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Eval again
+python cluster_run.py --partition=learnfair --name=M130_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M130 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M130/saved_models/Model_epoch150 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M131_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M131 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M131/saved_models/Model_epoch100 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M132_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M132 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M132/saved_models/Model_epoch145 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M133_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M133 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M133/saved_models/Model_epoch160 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M134_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M134 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M134/saved_models/Model_epoch145 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M135_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch160 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+
+# with action scaling.
 python cluster_run.py --partition=learnfair --name=M136 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M136 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
 
 python cluster_run.py --partition=learnfair --name=M137 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M137 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
@@ -711,6 +739,19 @@ python cluster_run.py --partition=learnfair --name=M139 --cmd='python Master.py 
 python cluster_run.py --partition=learnfair --name=M140 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M140 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
 
 python cluster_run.py --partition=learnfair --name=M141 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M141 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+# Eval
+python cluster_run.py --partition=learnfair --name=M136 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M136 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M136/saved_models/Model_epoch165 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M137 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M137 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M137/saved_models/Model_epoch100 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M138 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M138 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M138/saved_models/Model_epoch160 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M139 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M139 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M139/saved_models/Model_epoch100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M140 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M140 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M140/saved_models/Model_epoch160 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M141 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M141 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M141/saved_models/Model_epoch100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
 
 ###############################################################
@@ -857,6 +898,12 @@ python cluster_run.py --name=J52 --cmd='python Master.py --train=1 --setting=lea
 
 # Debug the transformer joint training. 
 python Master.py --train=1 --setting=learntsub --name=Jdebug_transformer --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M50/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --transformer=1
+
+
+# Running J47 again with... no subpolicy. :P 
+python cluster_run.py --name=J53_nosub --cmd='python Master.py --train=1 --setting=learntsub --name=J35_loadM47_m0 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch0 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J53_nosub --cmd='python Master.py --train=1 --setting=learntsub --name=J53_loadM47_m0 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch0 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
 
 
 ########################################################
