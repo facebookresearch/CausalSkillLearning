@@ -210,6 +210,8 @@ class PolicyManager():
 
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 				unnorm_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
+			else:
+				unnorm_trajectory = trajectory
 
 			return self.visualizer.visualize_joint_trajectory(unnorm_trajectory, return_gif=True, segmentations=segmentations)
 		else:
