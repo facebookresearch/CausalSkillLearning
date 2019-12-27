@@ -196,7 +196,7 @@ class PolicyManager():
 
 	def visualize_trajectory(self, trajectory, segmentations=None):
 
-		if self.args.data=='MIME':
+		if self.args.data=='MIME' or self.args.data=='Roboturk': 
 
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 				unnorm_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
@@ -253,7 +253,7 @@ class PolicyManager():
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
 
-			if self.args.data=='MIME':
+			if self.args.data=='MIME' or if self.args.data=='Roboturk':
 				# Feeding as list of image because gif_summary.
 				self.tf_logger.gif_summary("GT Trajectory",[gt_trajectory_image],counter)
 				self.tf_logger.gif_summary("Variational Rollout",[variational_rollout_image],counter)
@@ -377,30 +377,32 @@ class PolicyManager():
 			else:
 				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj
 	
-		elif self.args.data=='MIME':
+		elif self.args.data=='MIME' or self.args.data=='Roboturk':
 
 			data_element = self.dataset[i]
 
-			if data_element['is_valid']:
+			if not(data_element['is_valid']):
+				return None, None, None, None
 				
-				self.conditional_information = np.zeros((self.args.condition_size))
+			self.conditional_information = np.zeros((self.args.condition_size))
+
+			if self.args.data=='MIME':
 				# Sample a trajectory length that's valid. 						
 				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-
-				# If normalization is set to some value.
-				if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-					trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
-
-				action_sequence = np.diff(trajectory,axis=0)
-
-				# Concatenate
-				concatenated_traj = self.concat_state_action(trajectory, action_sequence)
-				old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
-
-				return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
-
 			else:
-				return None, None, None, None
+				trajectory = data_element['demo']
+
+			# If normalization is set to some value.
+			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+				trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
+			action_sequence = np.diff(trajectory,axis=0)
+
+			# Concatenate
+			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
+			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
+
+			return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
 
 	def setup_eval_against_encoder(self):
 		# Creates a network, loads the network from pretraining model file. 
