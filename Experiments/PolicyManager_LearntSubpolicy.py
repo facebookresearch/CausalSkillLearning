@@ -39,12 +39,7 @@ class PolicyManager():
 		if self.args.data=='MIME':
 			self.state_size = 16	
 			self.state_dim = 16		
-			self.input_size = 2*self.state_size
-			# self.hidden_size = 64
-			self.hidden_size = self.args.hidden_size
-			self.output_size = self.state_size
-			# self.number_layers = 5
-			self.number_layers = self.args.number_layers
+			self.output_size = self.state_size			
 			self.traj_length = self.args.traj_length
 
 			# Create Baxter visualizer for MIME data
@@ -61,11 +56,10 @@ class PolicyManager():
 		elif self.args.data=='Roboturk':
 			self.state_size = 8	
 			self.state_dim = 8		
-			self.input_size = 2*self.state_size
-			self.hidden_size = 64
 			self.output_size = self.state_size
-			self.number_layers = 5
 			self.traj_length = self.args.traj_length
+
+			self.visualizer = SawyerVisualizer()
 
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 200
@@ -88,7 +82,6 @@ class PolicyManager():
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_counter)
-
 
 	def create_networks(self):
 		if self.args.discrete_z:
@@ -113,13 +106,10 @@ class PolicyManager():
 			# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).cuda()
 			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.args, self.number_layers).cuda()
 
-			if self.args.transformer:
-				self.variational_policy = TransformerVariationalNet(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
+			if self.args.b_prior:
+				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
 			else:
-				if self.args.b_prior:
-					self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
-				else:
-					self.variational_policy = ContinuousVariationalPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+				self.variational_policy = ContinuousVariationalPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
 
 	def create_training_ops(self):
 		self.negative_log_likelihood_loss_function = torch.nn.NLLLoss(reduction='none')
@@ -134,11 +124,11 @@ class PolicyManager():
 
 		else:
 			self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
-			# self.latent_policy_optimizer = torch.optim.Adam(self.latent_policy.parameters(), lr=self.learning_rate)
-			# self.variational_policy_optimizer = torch.optim.Adam(self.variational_policy.parameters(), lr=self.learning_rate)
+			self.latent_policy_optimizer = torch.optim.Adam(self.latent_policy.parameters(), lr=self.learning_rate)
+			self.variational_policy_optimizer = torch.optim.Adam(self.variational_policy.parameters(), lr=self.learning_rate)
 			# self.latent_policy_optimizer = torch.optim.SGD(self.latent_policy.parameters(), lr=self.learning_rate)
-			self.latent_policy_optimizer = torch.optim.SGD(self.latent_policy.parameters(), lr=self.learning_rate)
-			self.variational_policy_optimizer = torch.optim.SGD(self.variational_policy.parameters(), lr=self.learning_rate)
+			# self.latent_policy_optimizer = torch.optim.SGD(self.latent_policy.parameters(), lr=self.learning_rate)
+			# self.variational_policy_optimizer = torch.optim.SGD(self.variational_policy.parameters(), lr=self.learning_rate)
 
 	def setup(self):
 		self.create_networks()
