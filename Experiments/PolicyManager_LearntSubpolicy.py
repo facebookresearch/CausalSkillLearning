@@ -116,19 +116,10 @@ class PolicyManager():
 		
 		# If we are using reparameterization, use a global optimizer, and a global loss function. 
 		# This means gradients are being handled properly. 
-		if self.args.reparam:
-			parameter_list = list(self.latent_policy.parameters()) + list(self.variational_policy.parameters())
-			if not(self.args.fix_subpolicy):
-				parameter_list = parameter_list + list(self.policy_network.parameters())
-			self.optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
-
-		else:
-			self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
-			self.latent_policy_optimizer = torch.optim.Adam(self.latent_policy.parameters(), lr=self.learning_rate)
-			self.variational_policy_optimizer = torch.optim.Adam(self.variational_policy.parameters(), lr=self.learning_rate)
-			# self.latent_policy_optimizer = torch.optim.SGD(self.latent_policy.parameters(), lr=self.learning_rate)
-			# self.latent_policy_optimizer = torch.optim.SGD(self.latent_policy.parameters(), lr=self.learning_rate)
-			# self.variational_policy_optimizer = torch.optim.SGD(self.variational_policy.parameters(), lr=self.learning_rate)
+		parameter_list = list(self.latent_policy.parameters()) + list(self.variational_policy.parameters())
+		if not(self.args.fix_subpolicy):
+			parameter_list = parameter_list + list(self.policy_network.parameters())
+		self.optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
 
 	def setup(self):
 		self.create_networks()
@@ -821,15 +812,12 @@ class PolicyManager():
 	def train(self, model=None):
 
 		if model:
+			print("Loading model in training.")
 			self.load_all_models(model)
-
-			if not(self.args.reparam):
-				if self.args.fix_subpolicy:
-					for param in self.policy_network.parameters():
-						param.requires_grad = False
 
 		self.initialize_plots()
 		counter = 0
+
 		np.set_printoptions(suppress=True,precision=2)
 
 		# Fixing seeds.
@@ -840,6 +828,7 @@ class PolicyManager():
 		for e in range(self.number_epochs): 
 			
 			print("Starting Epoch: ",e)
+
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
 
@@ -853,6 +842,9 @@ class PolicyManager():
 				self.run_iteration(counter, index_list[i])				
 
 				counter = counter+1
+
+			if e%self.args.eval_freq==0:
+				self.automatic_evaluation(e)
 
 		self.write_and_close()
 
