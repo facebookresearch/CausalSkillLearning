@@ -11,6 +11,16 @@ class PolicyManager_BaseClass():
 	def __init__(self):
 		super(PolicyManager_BaseClass, self).__init__()
 
+	def setup(self):
+		self.create_networks()
+		self.create_training_ops()
+		# self.create_util_ops()
+		# self.initialize_gt_subpolicies()
+
+	def write_and_close(self):
+		self.writer.export_scalars_to_json("./all_scalars.json")
+		self.writer.close()
+
 	def train(self, model=None):
 
 		if model:
@@ -290,7 +300,6 @@ class PolicyManager_BaseClass():
 
 		return anim
 
-
 class PolicyManager_Prior(PolicyManager_BaseClass):
 
 	# Basic Training Algorithm: 
@@ -389,12 +398,6 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 		parameter_list = list(self.policy_network.parameters())
 		self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
 
-	def setup(self):
-		self.create_networks()
-		self.create_training_ops()
-		# self.create_util_ops()
-		# self.initialize_gt_subpolicies()
-
 	def save_all_models(self, suffix):
 
 		logdir = os.path.join(self.args.logdir, self.args.name)
@@ -473,10 +476,6 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 
 		if counter%self.args.display_freq==0:
 			self.writer.add_image("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
-	
-	def write_and_close(self):
-		self.writer.export_scalars_to_json("./all_scalars.json")
-		self.writer.close()
 
 	def concat_state_action(self, sample_traj, sample_action_seq):
 		# Add blank to start of action sequence and then concatenate. 
@@ -764,12 +763,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
 			self.encoder_optimizer = torch.optim.Adam(self.encoder_network.parameters(), lr=self.learning_rate)
 
-	def setup(self):
-		self.create_networks()
-		self.create_training_ops()
-		# self.create_util_ops()
-		# self.initialize_gt_subpolicies()
-
 	def save_all_models(self, suffix):
 
 		logdir = os.path.join(self.args.logdir, self.args.name)
@@ -847,10 +840,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if counter%self.args.display_freq==0:
 			self.writer.add_image("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
 	
-	def write_and_close(self):
-		self.writer.export_scalars_to_json("./all_scalars.json")
-		self.writer.close()
-
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq):
 
 		if self.args.discrete_z:
@@ -1392,7 +1381,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
 		super(PolicyManager_Joint, self).__init__()
-		
+
 		self.args = args
 		self.data = self.args.data
 		self.number_policies = number_policies
@@ -1495,10 +1484,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		if not(self.args.fix_subpolicy):
 			parameter_list = parameter_list + list(self.policy_network.parameters())
 		self.optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
-
-	def setup(self):
-		self.create_networks()
-		self.create_training_ops()
 
 	def save_all_models(self, suffix):
 
@@ -1630,9 +1615,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				self.tf_logger.image_summary("Variational Rollout",[variational_rollout_image],counter)
 				self.tf_logger.image_summary("Latent Rollout",[latent_rollout_image],counter)				
 
-	def write_and_close(self):
-		self.writer.export_scalars_to_json("./all_scalars.json")
-		self.writer.close()
 
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq, conditional_information=None):
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader
-import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub, Pretrain_PriorPolicy
-
+# import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub, Pretrain_PriorPolicy
+from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_Prior
 class Master():
 
 	def __init__(self, arguments):
@@ -35,11 +35,13 @@ class Master():
 			self.dataset = Roboturk_DataLoader.Roboturk_Dataset()
 
 		if self.args.setting=='learntsub':
-			self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+			# self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+			self.policy_manager = PolicyManager_Joint(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
-			self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+			# self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_prior':
-			self.policy_manager = Pretrain_PriorPolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
+			self.policy_manager = PolicyManager_Prior(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
