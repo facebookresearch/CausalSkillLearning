@@ -44,6 +44,8 @@ class PolicyManager_BaseClass():
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
 
+			self.automatic_evaluation(e)
+					
 			index_list = np.arange(0,len(self.dataset))
 			np.random.shuffle(index_list)
 
