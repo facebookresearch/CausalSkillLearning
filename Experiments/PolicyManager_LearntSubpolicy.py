@@ -39,6 +39,7 @@ class PolicyManager():
 		if self.args.data=='MIME':
 			self.state_size = 16	
 			self.state_dim = 16		
+			self.input_size = 2*self.state_size
 			self.output_size = self.state_size			
 			self.traj_length = self.args.traj_length
 
@@ -55,7 +56,8 @@ class PolicyManager():
 
 		elif self.args.data=='Roboturk':
 			self.state_size = 8	
-			self.state_dim = 8		
+			self.state_dim = 8	
+			self.input_size = 2*self.state_size
 			self.output_size = self.state_size
 			self.traj_length = self.args.traj_length
 
