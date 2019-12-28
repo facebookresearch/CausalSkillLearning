@@ -80,14 +80,47 @@ class PolicyManager_BaseClass():
 		cluster_command = 'python cluster_run.py --partition=learnfair --name={0}_Eval --cmd=\'{1}\''.format(self.args.name, base_command)				
 		subprocess.call([cluster_command],shell=True)
 
+	# def visualize_robot_data_variable(self):
+
+	# 	# Instead of setting N (number of primitives), set number of trajectories..
+	# 	self.number_trajectories = 50
+
+	# 	self.rollout_timesteps = self.args.traj_length
+	
+	# 	if self.args.data=='MIME':
+	# 		self.visualizer = BaxterVisualizer()
+	# 		# self.state_dim = 16
+	# 	elif self.args.data=='Roboturk':
+	# 		self.visualizer = SawyerVisualizer()
+
+	# 	# Instead of setting N, we're going to adopt a variable number of z's, trajectories, etc. 
+	# 	self.latent_z_set = []
+	# 	self.indices = []
+	# 	self.trajectory_set = []
+	# 	self.trajectory_rollout_set = []		
+
+	# 	model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+
+	# 	self.rollout_gif_list = []
+	# 	self.gt_gif_list = []
+
+	# 	# Create save directory:
+	# 	upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+	# 	if not(os.path.isdir(upper_dir_name)):
+	# 		os.mkdir(upper_dir_name)
+
+	# 	self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+	# 	if not(os.path.isdir(self.dir_name)):
+	# 		os.mkdir(self.dir_name)
+
+	# 	self.max_len = 0
+
 	def visualize_robot_data(self):
 
 		self.N = 100
 		self.rollout_timesteps = self.args.traj_length
-		
-
-		# self.visualizer = Visualizers.BaxterVisualizer()
-
+	
 		if self.args.data=='MIME':
 			self.visualizer = BaxterVisualizer()
 			# self.state_dim = 16
@@ -96,10 +129,8 @@ class PolicyManager_BaseClass():
 			# self.state_dim = 8
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
-		# self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
-		# self.trajectory_rollout_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		# These are lists because they're variable length individually.
 		self.indices = []
-
 		self.trajectory_set = []
 		self.trajectory_rollout_set = []		
 
@@ -794,10 +825,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		save_object['Encoder_Network'] = self.encoder_network.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-	def load_all_models(self, path):
-		load_object = torch.load(path)
+	def load_all_models(self, path, only_policy=False):
+		load_object = torch.load(path)		
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		self.encoder_network.load_state_dict(load_object['Encoder_Network'])
+		if not(only_policy):
+			self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
 	def initialize_plots(self):
 		if self.args.name is not None:
@@ -1637,7 +1669,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				self.tf_logger.image_summary("Variational Rollout",[variational_rollout_image],counter)
 				self.tf_logger.image_summary("Latent Rollout",[latent_rollout_image],counter)				
 
-
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq, conditional_information=None):
 
 		if self.args.discrete_z:
@@ -2186,7 +2217,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 					print("Encoder Loglikelihood:", eval_encoded_logprobs.detach().cpu().numpy())
 					print("Orig Encoder Loglikelihood:", eval_orig_encoder_logprobs.detach().cpu().numpy())
-				embed()			
+				if self.args.debug:
+					embed()			
 
 	def evaluate(self, model):
 
@@ -2194,6 +2226,16 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		if model:
 			self.load_all_models(model)
+
+		np.set_printoptions(suppress=True,precision=2)
+
+		# Visualize space if the subpolicy has been trained...
+		if (self.args.data=="MIME" or self.args.data=='Roboturk') and (self.args.fix_subpolicy==0):
+			print("Running Visualization on Robot Data.")	
+			self.pretrain_policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
+			self.pretrain_policy_manager.setup()
+			self.pretrain_policy_manager.load_all_models(model, only_policy=True)			
+			self.pretrain_policy_manager.visualize_robot_data()			
 
 		if self.args.subpolicy_model:
 			print("Loading encoder.")
@@ -2206,4 +2248,5 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		for i in range(60):
 			self.run_iteration(0, i)
 
-		embed()
+		if self.args.debug:
+			embed()
