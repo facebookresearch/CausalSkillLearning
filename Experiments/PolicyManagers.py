@@ -60,6 +60,26 @@ class PolicyManager_BaseClass():
 
 		self.write_and_close()
 
+	def automatic_evaluation(self, e):
+
+		# Writing new automatic evaluation that parses arguments and creates an identical command loading the appropriate model. 
+		# Note: If the initial command loads a model, ignore that. 
+
+		command_args = self.args._get_kwargs()
+		base_command = 'python Master.py --train=0 --model={0}'.format("Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
+
+		# For every argument in the command arguments, add it to the base command with the value used, unless it's train or model. 
+		for ar in command_args:
+			# Skip model and train, because we need to set these manually.
+			if ar[0]=='model' or ar[0]=='train':
+				pass
+			# Add the rest
+			else:				
+				base_command = base_command + ' --{0}={1}'.format(ar[0],ar[1])
+		
+		cluster_command = 'python cluster_run.py --partition=learnfair --name={0}_Eval --cmd=\'{1}\''.format(self.args.name, base_command)				
+		subprocess.call([cluster_command],shell=True)
+
 	def visualize_robot_data(self):
 
 		self.N = 100
@@ -1223,14 +1243,14 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		else: 
 			return None, None, None
 	
-	def automatic_evaluation(self, e):
+	# def automatic_evaluation(self, e):
 
-		# This should be a good template command. 
-		base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data={5} --kl_weight={1} --var_skill_length={2} --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e), self.args.data)
-		# base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data=MIME --kl_weight={1} --var_skill_length={2} --transformer=1 --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
-		# cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
-		cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd=\'{1}\''.format(self.args.name, base_command)				
-		subprocess.call([cluster_command],shell=True)
+	# 	# This should be a good template command. 
+	# 	base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data={5} --kl_weight={1} --var_skill_length={2} --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e), self.args.data)
+	# 	# base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data=MIME --kl_weight={1} --var_skill_length={2} --transformer=1 --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
+	# 	# cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
+	# 	cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd=\'{1}\''.format(self.args.name, base_command)				
+	# 	subprocess.call([cluster_command],shell=True)
 				
 	def evaluate(self, model):
 		if model:
