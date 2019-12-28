@@ -726,6 +726,19 @@ python cluster_run.py --partition=learnfair --name=M134_m100 --cmd='python Maste
 
 python cluster_run.py --partition=learnfair --name=M135_m100 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch160 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Eval again
+python cluster_run.py --partition=learnfair --name=M130_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M130 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M130/saved_models/Model_epoch199 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M131_m158 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M131 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M131/saved_models/Model_epoch158 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M132_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M132 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M132/saved_models/Model_epoch199 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M133_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M133 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M133/saved_models/Model_epoch199 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M134_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M134 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M134/saved_models/Model_epoch199 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M135_m199 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch199 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
 
 # with action scaling.
 python cluster_run.py --partition=learnfair --name=M136 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M136 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
@@ -753,6 +766,11 @@ python cluster_run.py --partition=learnfair --name=M140 --cmd='python Master.py 
 
 python cluster_run.py --partition=learnfair --name=M141 --cmd='python Master.py --train=0 --setting=pretrain_sub --name=M141 --data=MIME --number_layers=8 --hidden_size=128 --action_scale_factor=10 --model=Experiment_Logs/M141/saved_models/Model_epoch100 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Rerun to verify new implementation of policy manangers
+python Master.py --train=1 --setting=pretrain_sub --name=M142_rerun135 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64
+
+# Eval
+python Master.py --train=0 --setting=pretrain_sub --name=M142_rerun135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch199 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
@@ -904,6 +922,53 @@ python Master.py --train=1 --setting=learntsub --name=Jdebug_transformer --norma
 python cluster_run.py --name=J53_nosub --cmd='python Master.py --train=1 --setting=learntsub --name=J35_loadM47_m0 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch0 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
 
 python cluster_run.py --name=J53_nosub --cmd='python Master.py --train=1 --setting=learntsub --name=J53_loadM47_m0 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch0 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+##############
+# Debug
+python Master.py --train=1 --setting=learntsub --name=Jt --normalization=meanvar --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M130/saved_models/Model_epoch150 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128
+
+# Running Joint training with M47_m172, and M130,M131,M132,M135
+python cluster_run.py --name=J54 --cmd='python Master.py --train=1 --setting=learntsub --name=J54_loadM47_m172 --normalization=minmax --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J55 --cmd='python Master.py --train=1 --setting=learntsub --name=J55_loadM47_m172 --normalization=minmax --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+python cluster_run.py --name=J56 --cmd='python Master.py --train=1 --setting=learntsub --name=J56_loadM47_m172 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1'
+
+# Load M130 m150
+python cluster_run.py --name=J57 --cmd='python Master.py --train=1 --setting=learntsub --name=J57_loadM130_m150 --normalization=meanvar --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M130/saved_models/Model_epoch150 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J58 --cmd='python Master.py --train=1 --setting=learntsub --name=J58_loadM130_m150 --normalization=meanvar --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M130/saved_models/Model_epoch150 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J59 --cmd='python Master.py --train=1 --setting=learntsub --name=J59_loadM130_m150 --normalization=meanvar --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M130/saved_models/Model_epoch150 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+# Load M131 m100
+python cluster_run.py --name=J60 --cmd='python Master.py --train=1 --setting=learntsub --name=J60_loadM131_m100 --normalization=minmax --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M131/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J61 --cmd='python Master.py --train=1 --setting=learntsub --name=J61_loadM131_m100 --normalization=minmax --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M131/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J62 --cmd='python Master.py --train=1 --setting=learntsub --name=J62_loadM131_m100 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M131/saved_models/Model_epoch100 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+# Load M132 m145
+python cluster_run.py --name=J63 --cmd='python Master.py --train=1 --setting=learntsub --name=J63_loadM132_m145 --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M132/saved_models/Model_epoch145 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J64 --cmd='python Master.py --train=1 --setting=learntsub --name=J64_loadM132_m145 --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M132/saved_models/Model_epoch145 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J65 --cmd='python Master.py --train=1 --setting=learntsub --name=J65_loadM132_m145 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M132/saved_models/Model_epoch145 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+# Load M135 m160
+python cluster_run.py --name=J66 --cmd='python Master.py --train=1 --setting=learntsub --name=J66_loadM135_m160 --kl_weight=0.01 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M135/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J67 --cmd='python Master.py --train=1 --setting=learntsub --name=J67_loadM135_m160 --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M135/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --name=J68 --cmd='python Master.py --train=1 --setting=learntsub --name=J68_loadM135_m160 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M135/saved_models/Model_epoch160 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
+
+# Running J47 again with finetuning subpolicy.
+python cluster_run.py --name=J69 --cmd='python Master.py --train=1 --setting=learntsub --name=J69_loadJ47_m115 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --model=Experiment_Logs/J47_loadM47_m172/saved_models/Model_epoch115 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --fix_subpolicy=0'
+
+# Rerun J69 with M142_rerun135 for checking implementation.
+python Master.py --train=1 --setting=learntsub --name=Jrerun69_loadJ47_m115 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --model=Experiment_Logs/J47/saved_models/Model_epoch115 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --fix_subpolicy=0
+
+python Master.py --train=1 --setting=learntsub --name=Jrerun69_loadJ47_m115 --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1
 
 
 ########################################################
