@@ -118,8 +118,8 @@ def parse_arguments():
 	parser.add_argument('--pretrain_bias_sampling_prob',type=float,default=0.)
 	parser.add_argument('--action_scale_factor',type=float,default=1)
 
-	parser.add_argument('--z_ex_bias',dest='z_exploration_bias',type=float,default=0.)
-	parser.add_argument('--b_ex_bias',dest='b_exploration_bias',type=float,default=0.)
+	parser.add_argument('--z_exploration_bias',dest='z_exploration_bias',type=float,default=0.)
+	parser.add_argument('--b_exploration_bias',dest='b_exploration_bias',type=float,default=0.)
 	parser.add_argument('--lat_z_wt',dest='lat_z_wt',type=float,default=0.1)
 	parser.add_argument('--lat_b_wt',dest='lat_b_wt',type=float,default=1.)
 	parser.add_argument('--z_probability_factor',dest='z_probability_factor',type=float,default=0.1)
