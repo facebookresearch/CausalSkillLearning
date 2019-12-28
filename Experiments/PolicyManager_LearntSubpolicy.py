@@ -244,7 +244,7 @@ class PolicyManager():
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
 
-			if self.args.data=='MIME' or if self.args.data=='Roboturk':
+			if self.args.data=='MIME' or self.args.data=='Roboturk':
 				# Feeding as list of image because gif_summary.
 				self.tf_logger.gif_summary("GT Trajectory",[gt_trajectory_image],counter)
 				self.tf_logger.gif_summary("Variational Rollout",[variational_rollout_image],counter)
