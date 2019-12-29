@@ -1629,7 +1629,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('Prior LogLikelihood', torch.mean(prior_loglikelihood), counter)
 
 		# Compute distance metrics. 
-		embed()
 		var_dist, latent_dist = self.compute_evaluation_metrics(sample_traj, counter, i)
 		self.tf_logger.scalar_summary('Variational Trajectory Distance', var_dist, counter)
 		self.tf_logger.scalar_summary('Latent Trajectory Distance', latent_dist, counter)
