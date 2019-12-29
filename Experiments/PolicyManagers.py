@@ -941,13 +941,13 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			if not(data_element['is_valid']):
 				return None, None, None
 				
-			# if self.args.data=='MIME':
-			# 	# Sample a trajectory length that's valid. 			
-			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			# elif self.args.data=='Roboturk':
-			# 	trajectory = data_element['demo']
+			if self.args.data=='MIME':
+				# Sample a trajectory length that's valid. 			
+				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			elif self.args.data=='Roboturk':
+				trajectory = data_element['demo']
 
-			trajectory = data_element['demo']
+			# trajectory = data_element['demo']
 
 			# If allowing variable skill length, set length for this sample.				
 			if self.args.var_skill_length:
