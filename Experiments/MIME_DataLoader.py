@@ -53,8 +53,7 @@ class MIME_Dataset(Dataset):
 
 	def __len__(self):
 		# Return length of file list. 
-		# return len(self.filelist)
-		return 100
+		return len(self.filelist)
 
 	def __getitem__(self, index):
 		'''
@@ -126,8 +125,7 @@ class MIME_NewDataset(Dataset):
 	
 	def __len__(self):
 		# Return length of file list. 
-		# return self.dataset_length
-		return 100
+		return self.dataset_length
 
 	def __getitem__(self, index):
 		# Return n'th item of dataset.

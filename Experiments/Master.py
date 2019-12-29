@@ -30,10 +30,10 @@ class Master():
 		elif self.args.data=='Separable':
 			self.dataset = DataLoaders.SeparableDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
-			self.dataset = MIME_DataLoader.MIME_Dataset()
+			# self.dataset = MIME_DataLoader.MIME_Dataset()
 
 			# Now switch to using new dataset object. 
-			# self.dataset = MIME_DataLoader.MIME_NewDataset()
+			self.dataset = MIME_DataLoader.MIME_NewDataset()
 
 		elif self.args.data=='Roboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_Dataset()

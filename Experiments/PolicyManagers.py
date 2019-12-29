@@ -36,10 +36,8 @@ class PolicyManager_BaseClass():
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
 
-		t1 = time.time()
 		# For number of training epochs. 
-		# for e in range(self.number_epochs): 
-		for e in range(1):
+		for e in range(self.number_epochs): 
 			
 			print("Starting Epoch: ",e)
 
@@ -62,9 +60,6 @@ class PolicyManager_BaseClass():
 			if e%self.args.eval_freq==0:
 				self.automatic_evaluation(e)
 
-		t2 = time.time()
-
-		print("EXECUTION TIME:",t2-t1)
 		self.write_and_close()
 
 	def automatic_evaluation(self, e):
@@ -941,13 +936,12 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			if not(data_element['is_valid']):
 				return None, None, None
 				
-			if self.args.data=='MIME':
-				# Sample a trajectory length that's valid. 			
-				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			elif self.args.data=='Roboturk':
-				trajectory = data_element['demo']
-
-			# trajectory = data_element['demo']
+			# if self.args.data=='MIME':
+			# 	# Sample a trajectory length that's valid. 			
+			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			# elif self.args.data=='Roboturk':
+			# 	trajectory = data_element['demo']
+			trajectory = data_element['demo']
 
 			# If allowing variable skill length, set length for this sample.				
 			if self.args.var_skill_length:
@@ -1759,12 +1753,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				
 			self.conditional_information = np.zeros((self.args.condition_size))
 
-			if self.args.data=='MIME':
-				# Sample a trajectory length that's valid. 						
-				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			else:
-				trajectory = data_element['demo']
-			# trajectory = data_element['demo']
+			# if self.args.data=='MIME':
+			# 	# Sample a trajectory length that's valid. 						
+			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			# else:
+			# 	trajectory = data_element['demo']
+			trajectory = data_element['demo']
 
 			# If normalization is set to some value.
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
