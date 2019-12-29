@@ -2123,7 +2123,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, concatenated_selected_b)
 			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=latent_b.detach().cpu().numpy())	
 
-			return variational_rollout_image, latent_rollout_images
+			return variational_rollout_image, latent_rollout_image
 		else:
 			return None, None
 
