@@ -35,8 +35,6 @@ class MIME_Dataset(Dataset):
 		self.fulltext = osp.join(self.dataset_directory, 'MIME_jointangles/*/*/joint_angles.txt')
 		self.filelist = glob.glob(self.fulltext)
 
-		
-
 		with open(self.filelist[0], 'r') as file:
 			lines = file.readlines()
 			self.joint_names = sorted(eval(lines[0].rstrip('\n')).keys())
@@ -127,7 +125,8 @@ class MIME_NewDataset(Dataset):
 	
 	def __len__(self):
 		# Return length of file list. 
-		return self.dataset_length
+		# return self.dataset_length
+		return 100
 
 	def __getitem__(self, index):
 		# Return n'th item of dataset.

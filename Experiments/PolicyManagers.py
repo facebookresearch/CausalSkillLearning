@@ -37,7 +37,8 @@ class PolicyManager_BaseClass():
 		torch.manual_seed(0)
 
 		# For number of training epochs. 
-		for e in range(self.number_epochs): 
+		# for e in range(self.number_epochs): 
+		for e in range(1):
 			
 			print("Starting Epoch: ",e)
 
