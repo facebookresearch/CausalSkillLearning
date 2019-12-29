@@ -353,7 +353,7 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 		self.latent_z_dimensionality = self.args.z_dimensions
 		self.number_layers = 4
 		self.traj_length = 5
-		self.number_epochs = 200
+		self.number_epochs = 500
 
 		if self.args.data=='MIME':
 			self.state_size = 16			
@@ -363,7 +363,7 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 			self.latent_z_dimensionality = self.args.z_dimensions
 			self.number_layers = 5
 			self.traj_length = self.args.traj_length
-			self.number_epochs = 200
+			self.number_epochs = 500
 
 			if self.args.normalization=='meanvar':
 				self.norm_sub_value = np.load("MIME_Means.npy")
@@ -696,7 +696,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		self.latent_z_dimensionality = self.args.z_dimensions
 		self.number_layers = self.args.number_layers
 		self.traj_length = 5
-		self.number_epochs = 200
+		self.number_epochs = 500
 
 		if self.args.data=='MIME':
 			self.state_size = 16			
@@ -707,7 +707,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.latent_z_dimensionality = self.args.z_dimensions
 			self.number_layers = self.args.number_layers
 			self.traj_length = self.args.traj_length
-			self.number_epochs = 200
+			self.number_epochs = 500
 
 			if self.args.normalization=='meanvar':
 				self.norm_sub_value = np.load("MIME_Means.npy")
@@ -1446,7 +1446,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.visualizer = SawyerVisualizer()
 
 		self.training_phase_size = self.args.training_phase_size
-		self.number_epochs = 200
+		self.number_epochs = 500
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
 
