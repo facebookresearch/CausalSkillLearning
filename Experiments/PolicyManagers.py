@@ -87,42 +87,6 @@ class PolicyManager_BaseClass():
 		cluster_command = 'python cluster_run.py --partition=learnfair --name={0}_Eval --cmd=\'{1}\''.format(self.args.name, base_command)				
 		subprocess.call([cluster_command],shell=True)
 
-	# def visualize_robot_data_variable(self):
-
-	# 	# Instead of setting N (number of primitives), set number of trajectories..
-	# 	self.number_trajectories = 50
-
-	# 	self.rollout_timesteps = self.args.traj_length
-	
-	# 	if self.args.data=='MIME':
-	# 		self.visualizer = BaxterVisualizer()
-	# 		# self.state_dim = 16
-	# 	elif self.args.data=='Roboturk':
-	# 		self.visualizer = SawyerVisualizer()
-
-	# 	# Instead of setting N, we're going to adopt a variable number of z's, trajectories, etc. 
-	# 	self.latent_z_set = []
-	# 	self.indices = []
-	# 	self.trajectory_set = []
-	# 	self.trajectory_rollout_set = []		
-
-	# 	model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
-
-	# 	self.rollout_gif_list = []
-	# 	self.gt_gif_list = []
-
-	# 	# Create save directory:
-	# 	upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
-
-	# 	if not(os.path.isdir(upper_dir_name)):
-	# 		os.mkdir(upper_dir_name)
-
-	# 	self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
-	# 	if not(os.path.isdir(self.dir_name)):
-	# 		os.mkdir(self.dir_name)
-
-	# 	self.max_len = 0
-
 	def visualize_robot_data(self):
 
 		self.N = 100
@@ -1795,12 +1759,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				
 			self.conditional_information = np.zeros((self.args.condition_size))
 
-			# if self.args.data=='MIME':
-			# 	# Sample a trajectory length that's valid. 						
-			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			# else:
-			# 	trajectory = data_element['demo']
-			trajectory = data_element['demo']
+			if self.args.data=='MIME':
+				# Sample a trajectory length that's valid. 						
+				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			else:
+				trajectory = data_element['demo']
+			# trajectory = data_element['demo']
 
 			# If normalization is set to some value.
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
