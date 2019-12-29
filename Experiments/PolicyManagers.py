@@ -2161,29 +2161,33 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				print("#########################################")
 
 			else:
-				print("#############################################")			
-				print("Trajectory",i)
-				print("Predicted Z: \n", latent_z_indices.detach().cpu().numpy())
-				print("True Z     : \n", np.array(self.dataset.Y_array[i][:self.args.traj_length]))
-				print("Latent B   : \n", latent_b.detach().cpu().numpy())
-				# print("Variational Probs: \n", variational_z_probabilities.detach().cpu().numpy())
-				# print("Latent Probs     : \n", latent_z_probabilities.detach().cpu().numpy())
-				print("Latent B Probs   : \n", latent_b_probabilities.detach().cpu().numpy())
 
-				if self.args.subpolicy_model:
+				if self.args.data=='MIME' or self.args.data=='Roboturk':
+					pass
+				else:
+					print("#############################################")			
+					print("Trajectory",i)
+					print("Predicted Z: \n", latent_z_indices.detach().cpu().numpy())
+					print("True Z     : \n", np.array(self.dataset.Y_array[i][:self.args.traj_length]))
+					print("Latent B   : \n", latent_b.detach().cpu().numpy())
+					# print("Variational Probs: \n", variational_z_probabilities.detach().cpu().numpy())
+					# print("Latent Probs     : \n", latent_z_probabilities.detach().cpu().numpy())
+					print("Latent B Probs   : \n", latent_b_probabilities.detach().cpu().numpy())
 
-					eval_encoded_logprobs = torch.zeros((latent_z_indices.shape[0]))
-					eval_orig_encoder_logprobs = torch.zeros((latent_z_indices.shape[0]))
+					if self.args.subpolicy_model:
 
-					torch_concat_traj = torch.tensor(concatenated_traj).cuda().float()
+						eval_encoded_logprobs = torch.zeros((latent_z_indices.shape[0]))
+						eval_orig_encoder_logprobs = torch.zeros((latent_z_indices.shape[0]))
 
-					# For each timestep z in latent_z_indices, evaluate likelihood under pretrained encoder model. 
-					for t in range(latent_z_indices.shape[0]):
-						eval_encoded_logprobs[t] = self.encoder_network.forward(torch_concat_traj, z_sample_to_evaluate=latent_z_indices[t])					
-						_, eval_orig_encoder_logprobs[t], _, _ = self.encoder_network.forward(torch_concat_traj)
+						torch_concat_traj = torch.tensor(concatenated_traj).cuda().float()
 
-					print("Encoder Loglikelihood:", eval_encoded_logprobs.detach().cpu().numpy())
-					print("Orig Encoder Loglikelihood:", eval_orig_encoder_logprobs.detach().cpu().numpy())
+						# For each timestep z in latent_z_indices, evaluate likelihood under pretrained encoder model. 
+						for t in range(latent_z_indices.shape[0]):
+							eval_encoded_logprobs[t] = self.encoder_network.forward(torch_concat_traj, z_sample_to_evaluate=latent_z_indices[t])					
+							_, eval_orig_encoder_logprobs[t], _, _ = self.encoder_network.forward(torch_concat_traj)
+
+						print("Encoder Loglikelihood:", eval_encoded_logprobs.detach().cpu().numpy())
+						print("Orig Encoder Loglikelihood:", eval_orig_encoder_logprobs.detach().cpu().numpy())
 				
 				if self.args.debug:
 					embed()			
@@ -2212,9 +2216,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Evaluate NLL and (potentially Expected Value Difference) on Validation / Test Datasets. 		
 		self.epsilon = 0.
 
-		np.set_printoptions(suppress=True,precision=2)
-		for i in range(60):
-			self.run_iteration(0, i)
+		# np.set_printoptions(suppress=True,precision=2)
+		# for i in range(60):
+		# 	self.run_iteration(0, i)
 
 		if self.args.debug:
 			embed()
