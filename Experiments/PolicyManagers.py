@@ -1607,8 +1607,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.rollout_visuals(counter, i, get_image=False)
 
 		# Compute trajectory distance between:
-		var_rollout_distance = (self.variational_trajectory_rollout.detach().cpu().numpy()-sample_traj).mean()
-		latent_rollout_distance = (self.latent_trajectory_rollout.detach().cpu().numpy()-sample_traj).mean()
+		var_rollout_distance = (self.variational_trajectory_rollout-sample_traj).mean()
+		latent_rollout_distance = (self.latent_trajectory_rollout-sample_traj).mean()
 
 		return var_rollout_distance, latent_rollout_distance
 
