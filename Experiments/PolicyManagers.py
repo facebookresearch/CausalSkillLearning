@@ -36,6 +36,7 @@ class PolicyManager_BaseClass():
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
 
+		t1 = time.time()
 		# For number of training epochs. 
 		# for e in range(self.number_epochs): 
 		for e in range(1):
@@ -61,6 +62,9 @@ class PolicyManager_BaseClass():
 			if e%self.args.eval_freq==0:
 				self.automatic_evaluation(e)
 
+		t2 = time.time()
+
+		print("EXECUTION TIME:",t2-t1)
 		self.write_and_close()
 
 	def automatic_evaluation(self, e):
