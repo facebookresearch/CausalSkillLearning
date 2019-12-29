@@ -772,6 +772,20 @@ python Master.py --train=1 --setting=pretrain_sub --name=M142_rerun135 --data=MI
 # Eval
 python Master.py --train=0 --setting=pretrain_sub --name=M142_rerun135 --data=MIME --number_layers=8 --hidden_size=128 --model=Experiment_Logs/M135/saved_models/Model_epoch199 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64
 
+# Speedy gonzales reruns.
+python cluster_run.py --partition=learnfair --name=M143 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M143 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M144 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M144 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M145 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M145 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64'
+
+python cluster_run.py --partition=learnfair --name=M146 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M146 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=meanvar'
+
+python cluster_run.py --partition=learnfair --name=M147 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M147 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+python cluster_run.py --partition=learnfair --name=M148 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M148 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
+
+
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
 ###############################################################
