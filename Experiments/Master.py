@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader
-# import PolicyManager_LearntSubpolicy, Pretrain_Subpolicy, Old_Pretrain_Sub, Pretrain_PriorPolicy
 from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_Prior
 class Master():
 
@@ -9,14 +8,6 @@ class Master():
 		self.args = arguments 
 
 		# Define Data Loader. 
-		# if self.args.data=='Bigmaps':
-		# 	self.dataset = DataLoaders.GridWorldDataset(self.args.datadir)
-		# elif self.args.data=='Smallmaps':
-		# 	self.dataset = DataLoaders.SmallMapsDataset(self.args.datadir)
-		# elif self.args.data=='ToyData':
-		# 	self.dataset = DataLoaders.ToyDataset(self.args.datadir)
-		# elif self.args.data=='Continuous':
-		# 	self.dataset = DataLoaders.ContinuousToyDataset(self.args.datadir)
 		if self.args.data=='ContinuousNonZero':
 			self.dataset = DataLoaders.ContinuousNonZeroToyDataset(self.args.datadir)
 		elif self.args.data=='ContinuousDir':			
@@ -31,18 +22,15 @@ class Master():
 			self.dataset = DataLoaders.SeparableDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
 			# self.dataset = MIME_DataLoader.MIME_Dataset()
-
 			# Now switch to using new dataset object. 
 			self.dataset = MIME_DataLoader.MIME_NewDataset()
-
 		elif self.args.data=='Roboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_Dataset()
 
+		# Now define policy manager.
 		if self.args.setting=='learntsub':
-			# self.policy_manager = PolicyManager_LearntSubpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 			self.policy_manager = PolicyManager_Joint(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
-			# self.policy_manager = Pretrain_Subpolicy.PolicyManager(self.args.number_policies, self.dataset, self.args)
 			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_prior':
 			self.policy_manager = PolicyManager_Prior(self.args.number_policies, self.dataset, self.args)

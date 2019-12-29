@@ -1601,6 +1601,17 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		return image
 
+	def compute_evaluation_metrics(self, sample_traj, counter, i):
+
+		# Generate trajectory rollouts so we can calculate distance metric. 
+		self.rollout_visuals(counter, i, get_image=False)
+
+		# Compute trajectory distance between:
+		var_rollout_distance = (self.variational_trajectory_rollout.detach().cpu().numpy()-sample_traj).mean()
+		latent_rollout_distance = (self.latent_trajectory_rollout.detach().cpu().numpy()-sample_traj).mean()
+
+		return var_rollout_distance, latent_rollout_distance
+
 	def update_plots(self, counter, i, subpolicy_loglikelihood, latent_loglikelihood, subpolicy_entropy, sample_traj, latent_z_logprobability, latent_b_logprobability, kl_divergence, prior_loglikelihood):
 
 		self.tf_logger.scalar_summary('Latent Policy Loss', torch.mean(self.total_latent_loss), counter)
@@ -1616,6 +1627,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('Latent B LogProbability', latent_b_logprobability, counter)
 		self.tf_logger.scalar_summary('KL Divergence', torch.mean(kl_divergence), counter)
 		self.tf_logger.scalar_summary('Prior LogLikelihood', torch.mean(prior_loglikelihood), counter)
+
+		# Compute distance metrics. 
+		var_dist, latent_dist = self.compute_evaluation_metrics(sample_traj, counter, i)
+		self.tf_logger.scalar_summary('Variational Trajectory Distance', var_dist, counter)
+		self.tf_logger.scalar_summary('Latent Trajectory Distance', latent_dist, counter)
 
 		if counter%self.args.display_freq==0:
 			# Now adding visuals for MIME, so it doesn't depend what data we use.
@@ -1995,7 +2011,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# return new_subpolicy_input
 		return action_to_execute, new_state
 
-	def rollout_visuals(self, counter, i):
+	def rollout_visuals(self, counter, i, get_image=True):
 
 		# Rollout policy with 
 		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
@@ -2035,8 +2051,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			subpolicy_inputs[t+1,:self.input_size] = state_action_tuple
 		
 		# Get trajectory from this. 
-		variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
-		variational_rollout_image = self.visualize_trajectory(variational_trajectory_rollout, segmentations=latent_b.detach().cpu().numpy())
+		self.variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
+		
 
 		#####################################
 		##### (B) LATENT POLICY ROLLOUT. ####
@@ -2096,16 +2112,20 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			assembled_inputs[t+1, :self.input_size] = state_action_tuple
 			subpolicy_inputs[t+1, :self.input_size] = state_action_tuple
 
-		latent_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
+		self.latent_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
 
 		concatenated_selected_b = np.concatenate([selected_b.detach().cpu().numpy(),np.zeros((1))],axis=-1)
-
-		latent_rollout_image = self.visualize_trajectory(latent_trajectory_rollout, concatenated_selected_b)
 
 		# Clear these variables from memory.
 		del subpolicy_inputs, assembled_inputs
 
-		return variational_rollout_image, latent_rollout_image
+		if get_image==True:
+			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, concatenated_selected_b)
+			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=latent_b.detach().cpu().numpy())	
+
+			return variational_rollout_image, latent_rollout_images
+		else:
+			return None, None
 
 	def run_iteration(self, counter, i):
 
