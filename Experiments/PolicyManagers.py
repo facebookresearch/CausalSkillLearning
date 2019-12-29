@@ -1603,8 +1603,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def compute_evaluation_metrics(self, sample_traj, counter, i):
 
-		# Generate trajectory rollouts so we can calculate distance metric. 
-		self.rollout_visuals(counter, i, get_image=False)
+		# # Generate trajectory rollouts so we can calculate distance metric. 
+		# self.rollout_visuals(counter, i, get_image=False)
 
 		# Compute trajectory distance between:
 		var_rollout_distance = ((self.variational_trajectory_rollout-sample_traj)**2).mean()
@@ -1628,14 +1628,15 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('KL Divergence', torch.mean(kl_divergence), counter)
 		self.tf_logger.scalar_summary('Prior LogLikelihood', torch.mean(prior_loglikelihood), counter)
 
-		# Compute distance metrics. 
-		var_dist, latent_dist = self.compute_evaluation_metrics(sample_traj, counter, i)
-		self.tf_logger.scalar_summary('Variational Trajectory Distance', var_dist, counter)
-		self.tf_logger.scalar_summary('Latent Trajectory Distance', latent_dist, counter)
-
 		if counter%self.args.display_freq==0:
 			# Now adding visuals for MIME, so it doesn't depend what data we use.
 			variational_rollout_image, latent_rollout_image = self.rollout_visuals(counter, i)
+
+			# Compute distance metrics. 
+			var_dist, latent_dist = self.compute_evaluation_metrics(sample_traj, counter, i)
+			self.tf_logger.scalar_summary('Variational Trajectory Distance', var_dist, counter)
+			self.tf_logger.scalar_summary('Latent Trajectory Distance', latent_dist, counter)
+
 			gt_trajectory_image = np.array(self.visualize_trajectory(sample_traj))
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
