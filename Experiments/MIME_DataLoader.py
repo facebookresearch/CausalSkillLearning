@@ -18,12 +18,10 @@ def select_baxter_angles(trajectory, joint_names, arm='right'):
     inds = [joint_names.index(j) for j in select_joints]
     return trajectory[:, inds]
 
-
 def resample(original_trajectory, desired_number_timepoints):
 	original_traj_len = len(original_trajectory)
 	new_timepoints = np.linspace(0, original_traj_len-1, desired_number_timepoints, dtype=int)
 	return original_trajectory[new_timepoints]
-
 
 class MIME_Dataset(Dataset):
 	'''
@@ -102,7 +100,6 @@ class MIME_Dataset(Dataset):
 		# if elem['joint_angle_trajectory'].shape[0]>1:
 		elem['is_valid'] = int(np.linalg.norm(np.diff(elem['joint_angle_trajectory'],axis=0),axis=1).max() < 1.0)
 
-
 		return elem
 
 	def recreate_dictionary(self, arm, joint_angles):
@@ -116,3 +113,24 @@ class MIME_Dataset(Dataset):
 			offset = 0
 			width = len(self.joint_names)
 		return dict((self.joint_names[i],joint_angles[i-offset]) for i in range(offset,offset+width))
+
+
+class MIME_NewDataset(Dataset):
+
+	def __init__(self, split='all'):
+		self.dataset_directory = '/checkpoint/tanmayshankar/MIME/'
+
+		# Load the entire set of trajectories. 
+		self.data_list = np.load(os.path.join(self.dataset_directory, "Data_List.npy"),allow_pickle=True)
+
+		self.dataset_length = len(self.data_list)
+	
+	def __len__(self):
+		# Return length of file list. 
+		return self.dataset_length
+
+	def __getitem__(self, index):
+		# Return n'th item of dataset.
+		# This has already processed everything.
+
+		return self.data_list[index]

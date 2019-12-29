@@ -45,7 +45,7 @@ class PolicyManager_BaseClass():
 				self.save_all_models("epoch{0}".format(e))
 
 			# self.automatic_evaluation(e)
-					
+
 			index_list = np.arange(0,len(self.dataset))
 			np.random.shuffle(index_list)
 
@@ -561,46 +561,45 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 
 			return concatenated_traj, sample_action_seq, sample_traj
 		
-		elif self.args.data=='MIME':
+		elif self.args.data=='MIME' or self.args.data=='Roboturk':
 
 			data_element = self.dataset[i]
 
-			if data_element['is_valid']:
-				
-				# Sample a trajectory length that's valid. 			
-				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-
-				# If allowing variable skill length, set length for this sample.				
-				if self.args.var_skill_length:
-					# Choose length of 12-16 with certain probabilities. 
-					self.current_traj_len = np.random.choice([12,13,14,15,16],p=[0.1,0.2,0.4,0.2,0.1])
-				else:
-					self.current_traj_len = self.traj_length
-
-				# Sample random start point.
-				if trajectory.shape[0]>self.current_traj_len:
-					start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
-					end_timepoint = start_timepoint + self.current_traj_len
-
-					# Get trajectory segment and actions. 
-					trajectory = trajectory[start_timepoint:end_timepoint]				
-
-					# If normalization is set to some value.
-					if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-						trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
-
-				else:					
-					return None, None, None
-
-				action_sequence = np.diff(trajectory,axis=0)
-
-				# Concatenate
-				concatenated_traj = self.concat_state_action(trajectory, action_sequence)
-
-				return concatenated_traj, action_sequence, trajectory
-
-			else:
+			if not(data_element['is_valid']):
 				return None, None, None
+				
+			# # Sample a trajectory length that's valid. 			
+			# trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			trajectory = data_element['demo']
+
+			# If allowing variable skill length, set length for this sample.				
+			if self.args.var_skill_length:
+				# Choose length of 12-16 with certain probabilities. 
+				self.current_traj_len = np.random.choice([12,13,14,15,16],p=[0.1,0.2,0.4,0.2,0.1])
+			else:
+				self.current_traj_len = self.traj_length
+
+			# Sample random start point.
+			if trajectory.shape[0]>self.current_traj_len:
+				start_timepoint = np.random.randint(0,trajectory.shape[0]-self.current_traj_len)
+				end_timepoint = start_timepoint + self.current_traj_len
+
+				# Get trajectory segment and actions. 
+				trajectory = trajectory[start_timepoint:end_timepoint]				
+
+				# If normalization is set to some value.
+				if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+					trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
+			else:					
+				return None, None, None
+
+			action_sequence = np.diff(trajectory,axis=0)
+
+			# Concatenate
+			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
+
+			return concatenated_traj, action_sequence, trajectory
 
 	def get_test_trajectory_segment(self, i):
 		sample_traj = np.zeros((5,2))
@@ -973,11 +972,13 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			if not(data_element['is_valid']):
 				return None, None, None
 				
-			if self.args.data=='MIME':
-				# Sample a trajectory length that's valid. 			
-				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			elif self.args.data=='Roboturk':
-				trajectory = data_element['demo']
+			# if self.args.data=='MIME':
+			# 	# Sample a trajectory length that's valid. 			
+			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			# elif self.args.data=='Roboturk':
+			# 	trajectory = data_element['demo']
+
+			trajectory = data_element['demo']
 
 			# If allowing variable skill length, set length for this sample.				
 			if self.args.var_skill_length:
@@ -1789,11 +1790,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				
 			self.conditional_information = np.zeros((self.args.condition_size))
 
-			if self.args.data=='MIME':
-				# Sample a trajectory length that's valid. 						
-				trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			else:
-				trajectory = data_element['demo']
+			# if self.args.data=='MIME':
+			# 	# Sample a trajectory length that's valid. 						
+			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			# else:
+			# 	trajectory = data_element['demo']
+			trajectory = data_element['demo']
 
 			# If normalization is set to some value.
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -2219,6 +2221,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 					print("Encoder Loglikelihood:", eval_encoded_logprobs.detach().cpu().numpy())
 					print("Orig Encoder Loglikelihood:", eval_orig_encoder_logprobs.detach().cpu().numpy())
+				
 				if self.args.debug:
 					embed()			
 
