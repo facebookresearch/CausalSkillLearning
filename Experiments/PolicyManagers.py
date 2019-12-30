@@ -50,6 +50,7 @@ class PolicyManager_BaseClass():
 			np.random.shuffle(index_list)
 
 			if self.args.debug:
+				print("Embedding in Outer Train Function.")
 				embed()
 
 			# For every item in the epoch:
