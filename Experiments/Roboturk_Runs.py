@@ -79,9 +79,19 @@ python Master.py --train=1 --setting=pretrain_sub --name=R17_rerun13 --data=Robo
 # Eval
 python Master.py --train=0 --setting=pretrain_sub --name=R17_rerun13 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/R17_rerun13/saved_models/Model_epoch0
 
+# Rerun with speedy gonzales runs. 
+python cluster_run.py --partition=learnfair --name=R18 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R18 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
 
-# Joint training on roboturk
+python cluster_run.py --partition=learnfair --name=R19 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R19 --data=Roboturk --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+####################################################
+####################################################
+############ Joint training on roboturk ############
+####################################################
+####################################################
+
 python Master.py --train=1 --setting=learntsub --name=RJ1_loadR13 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R13/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128
+python Master.py --train=1 --setting=learntsub --name=RJtrial_deb --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R13/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128 --debug=1
 
 # Actually running joint training with roboturk.
 python cluster_run.py --partition=learnfair --name=RJ1 --cmd='python Master.py --train=1 --setting=learntsub --name=RJ1 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R13/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
