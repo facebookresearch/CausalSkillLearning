@@ -111,6 +111,12 @@ class Roboturk_Dataset(Dataset):
 		concatenated_demonstration = np.concatenate([joint_values,gripper_values.reshape((-1,1))],axis=1)
 		donwsampled_demonstration = resample(concatenated_demonstration, concatenated_demonstration.shape[0]//self.ds_freq)
 
+		# Performing another check that makes sure data element actually has states.
+		if donwsampled_demonstration.shape[0]==0:
+			data_element = {}
+			data_element['is_valid'] = False
+			return data_element
+
 		data_element = {}
 		data_element['demo'] = donwsampled_demonstration
 		# Trivially setting is valid to true until we come up wiuth a better strategy. 
