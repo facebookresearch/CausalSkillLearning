@@ -49,6 +49,9 @@ class PolicyManager_BaseClass():
 			index_list = np.arange(0,len(self.dataset))
 			np.random.shuffle(index_list)
 
+			if self.args.debug:
+				embed()
+
 			# For every item in the epoch:
 			for i in range(len(self.dataset)):
 
