@@ -2332,6 +2332,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			# Counter
 			counter +=1 
 
+		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(reward_trajectory)[::-1])[::-1])
 
