@@ -2306,6 +2306,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.reward_trajectory = []
 		self.state_trajectory = []
 		self.state_trajectory.append(state)
+		self.reward_trajectory.append(0.)
 		self.action_trajectory = []		
 
 		while not(terminal) and counter<self.max_timesteps:
