@@ -2308,7 +2308,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		if visualize:
 			self.image_trajectory = []
-			self.image_trajectory.append(self.environment.sim.render(600, 600, camera_name='frontview'))
+			self.image_trajectory.append(np.flipud(self.environment.sim.render(600, 600, camera_name='frontview')))
 
 		self.state_trajectory.append(state)
 		self.reward_trajectory.append(0.)		
@@ -2344,7 +2344,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 			# Append image. 
 			if visualize:
-				self.image_trajectory.append(self.environment.sim.render(600,600, camera_name='frontview'))
+				self.image_trajectory.append(np.flipud(self.environment.sim.render(600,600, camera_name='frontview')))
 
 		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
@@ -2401,6 +2401,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		if counter%self.args.display_freq==0:
 
 			embed()
+
 			# Rollout policy.
 			self.rollout(random=False, test=True, visualize=True)
 			self.tf_logger.gif_summary("Rollout Trajectory",self.image_trajectory,counter)
