@@ -2333,7 +2333,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			counter +=1 
 
 		# Now that the episode is done, compute cummulative rewards... 
-		self.cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
+		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(reward_trajectory)[::-1])[::-1])
 
 	def assemble_inputs(self):
 
