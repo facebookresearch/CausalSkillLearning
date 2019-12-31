@@ -1011,7 +1011,7 @@ class CriticNetwork(torch.nn.Module):
 		hidden = None
 		lstm_outputs, hidden = self.lstm(format_input)
 
-		# Predict critic value from last LSTM output. 
-		critic_value = self.output_layer(lstm_outputs[-1])		
+		# Predict critic value for each timestep. 
+		critic_value = self.output_layer(lstm_outputs)		
 
 		return critic_value
