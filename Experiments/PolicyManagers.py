@@ -2303,7 +2303,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		state = self.environment.reset()
 		terminal = False
 
-		reward_trajectory = []
+		self.reward_trajectory = []
 		self.state_trajectory = []
 		self.state_trajectory.append(state)
 		self.action_trajectory = []		
@@ -2324,7 +2324,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
-			reward_trajectory.append(onestep_reward)
+			self.reward_trajectory.append(onestep_reward)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2334,7 +2334,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
-		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(reward_trajectory)[::-1])[::-1])
+		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
 	def assemble_inputs(self):
 
@@ -2382,7 +2382,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		######################################
 
 	def update_plots(self, counter):
-		self.tf_logger.scalar_summary('Average Reward', torch.mean(self.targets), counter)
+		self.tf_logger.scalar_summary('Total Reward', self.cummulative_rewards[0], counter)
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss, counter)
 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss, counter)
 
