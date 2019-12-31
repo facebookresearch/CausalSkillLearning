@@ -106,4 +106,4 @@ python cluster_run.py --partition=learnfair --name=RJ4 --cmd='python Master.py -
 ############## Downstream RL Training ##############
 ####################################################
 
-python Master.py --train=1 --setting='downstreamRL' --name=RLdebug --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000
+python Master.py --train=1 --setting='downstreamRL' --name=RLdebug --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0

@@ -2278,9 +2278,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()
-		self.input_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
 		self.output_size = self.environment.action_spec[0].shape[0]
-
+		self.input_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0] + self.output_size
+		
 		# Create networks. 
 		self.create_networks()
 		self.create_training_ops()
@@ -2335,8 +2335,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
 
 	def assemble_inputs(self):
-
-		
 
 		# Assemble states.
 		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
