@@ -2316,6 +2316,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
+				
 				action = self.policy_network.reparamemetrized_get_actions(assemble_inputs)				
 
 			# Take a step in the environment. 
