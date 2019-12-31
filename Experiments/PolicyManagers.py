@@ -2318,6 +2318,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 				assembled_inputs = self.assemble_inputs()
 				action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float())
 
+				embed()
+				
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
 
