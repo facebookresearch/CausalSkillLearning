@@ -969,3 +969,32 @@ class ContinuousEncoderNetwork(PolicyNetwork_BaseClass):
 		else:
 			logprobability = dist.log_prob(z_sample_to_evaluate)
 			return logprobability
+
+class CriticNetwork(torch.nn.Module):
+
+	def __init__(self, input_size, hidden_size, output_size, args=None, number_layers=4):
+
+		super(CriticNetwork, self).__init__()
+
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.output_size = output_size
+		self.number_layers = number_layers
+		self.batch_size = 1
+
+		# Create LSTM Network. 
+		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers)		
+
+		self.output_layer = torch.nn.Linear(self.hidden_size,self.output_size)		
+
+	def forward(self, input):
+
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+
+		hidden = None
+		lstm_outputs, hidden = self.lstm(format_input)
+
+		# Predict critic value from last LSTM output. 
+		critic_value = self.output_layer(lstm_outputs[-1])		
+
+		return critic_value

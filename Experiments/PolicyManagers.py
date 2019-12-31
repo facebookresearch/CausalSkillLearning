@@ -4,7 +4,7 @@ from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, Continu
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
-import TFLogger 
+import TFLogger, RL_Utils
 
 class PolicyManager_BaseClass():
 
@@ -16,6 +16,19 @@ class PolicyManager_BaseClass():
 		self.create_training_ops()
 		# self.create_util_ops()
 		# self.initialize_gt_subpolicies()
+
+	def initialize_plots(self):
+		if self.args.name is not None:
+			logdir = os.path.join(self.args.logdir, self.args.name)
+			if not(os.path.isdir(logdir)):
+				os.mkdir(logdir)
+			logdir = os.path.join(logdir, "logs")
+			if not(os.path.isdir(logdir)):
+				os.mkdir(logdir)
+			# Create TF Logger. 
+			self.tf_logger = TFLogger.Logger(logdir)
+		else:
+			self.tf_logger = TFLogger.Logger()
 
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
@@ -1528,21 +1541,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.latent_policy.load_state_dict(load_object['Latent_Policy'])		
 			self.variational_policy.load_state_dict(load_object['Variational_Policy'])
 
-	def initialize_plots(self):
-		if self.args.name is not None:
-			logdir = os.path.join(self.args.logdir, self.args.name)
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			logdir = os.path.join(logdir, "logs")
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			# self.writer = tensorboardX.SummaryWriter(logdir)
-			# Create TF Logger. 
-			self.tf_logger = TFLogger.Logger(logdir)
-		else:
-			# self.writer = tensorboardX.SummaryWriter()
-			self.tf_logger = TFLogger.Logger()
-
 	def set_epoch(self, counter):
 		if self.args.train:
 			if counter<self.decay_counter:
@@ -2247,3 +2245,200 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		if self.args.debug:
 			embed()
+
+class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
+
+	def __init__(self, args):
+
+		# Create environment, setup things, etc. 
+		self.args = args		
+
+		self.initial_epsilon = self.args.epsilon_from
+		self.test_epsilon
+
+		self.initial_epsilon = self.args.epsilon_from
+		self.final_epsilon = self.args.epsilon_to
+		self.decay_episodes = self.args.epsilon_over
+
+		# Log-likelihood penalty.
+		self.lambda_likelihood_penalty = self.args.likelihood_penalty
+		self.baseline = None
+
+		# Per step decay. 
+		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
+
+	def create_networks(self):
+
+		# Create policy and critic. 		
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
+		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+
+	def set_params(self):
+
+		self.input_size = 
+		self.output_size = self.environment.action_spec[0].shape
+
+	def create_training_ops(self):
+
+		self.NLL_Loss = torch.nn.NLLLoss(reduction='none')
+		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
+		
+		# parameter_list = list(self.policy_network.parameters()) + list(self.critic_network.parameters())
+		self.policy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
+		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
+
+	def save_all_models(self, suffix):
+		logdir = os.path.join(self.args.logdir, self.args.name)
+		savedir = os.path.join(logdir,"saved_models")	
+		if not(os.path.isdir(savedir)):
+			os.mkdir(savedir)
+		
+		save_object = {}
+		save_object['Policy_Network'] = self.policy_network.state_dict()
+		save_object['Critic_Network'] = self.critic_network.state_dict()
+		
+		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+
+	def load_all_models(self, path):
+		load_object = torch.load(path)
+		self.policy_network.load_state_dict(load_object['Policy_Network'])
+		self.critic_network.load_state_dict(load_object['Critic_Network'])
+
+	def setup(self):
+		# Create Mujoco environment. 
+		self.environment = robosuite.make(self.args.env_name, has_renderer=False)
+		
+		# Get input and output sizes from these environments, etc. 
+		self.set_params()
+
+		# Create networks. 
+		self.create_networks()
+		self.create_training_ops()
+		
+		self.initialize_plots()
+
+	def set_parameters(self, episode_counter):
+		if self.args.train:
+			if episode_counter<self.decay_episodes:
+				self.epsilon = self.initial_epsilon-self.decay_rate*episode_counter
+			else:
+				self.epsilon = self.final_epsilon		
+		else:
+			self.epsilon = 0.
+
+	def rollout(self, random=False):
+	
+		counter = 0		
+		eps_reward = 0.
+		state = self.environment.reset()
+		terminal = False
+
+		transition_list = []
+		reward_trajectory = []
+
+		while not(terminal) and counter<self.max_timesteps:
+
+			if random:
+				action = self.environment.action_space.sample()
+			else:
+				# action = self.
+				pass
+
+			# Take a step in the environment. 
+			next_state, onestep_reward, terminal, success = self.environment.step(action)
+			# Copy reward. 
+			# eps_reward += copy.deepcopy(onestep_reward)
+			reward_trajectory.append(onestep_reward)
+
+			# Create transition object. 
+			new_transition = RL_Utils.Transition(copy.deepcopy(state), action, next_state, onestep_reward, terminal, success)
+			# Append to transiiton list. 
+			transition_list.append(new_transition)
+
+			# Copy next state into state. 
+			state = copy.deepcopy(next_state)
+
+			# Counter
+			counter +=1 
+
+		# Now that the episode is done, compute cummulative rewards... 
+		cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
+		# Now set them in the transition list.
+		for t, trans in enumerate(transition_list):
+			trans.cummulative_reward = cummulative_rewards[t]
+
+		# Return transition list. 
+		return transition_list
+
+	# def initialize_memory(self):
+
+	# 	# Number of initial transitions needs to be less than memory size. 
+	# 	self.initial_transitions = 5000        
+	# 	# transition must have: obs, action taken, terminal?, reward, success, next_state 
+
+	# 	self.max_timesteps = 50
+
+	# 	print("Starting Memory Burn In.")
+	# 	self.set_parameters(0)
+
+	# 	episode_counter = 0		
+
+	# 	while self.memory.memory_len < self.initial_transitions:
+
+	# 		# Get transition list from rollout. 
+	# 		transition_list = self.rollout(random=True)
+	# 		# Append this episode to memory.
+	# 		self.memory.append_list_to_memory(transition_list)
+
+	# 		episode_counter += 1 
+
+	def process_episode(self, transition_list):
+		# Assemble states, targets, actions. 
+
+		# Input to the policy should be states and actions. 
+		
+
+	def run_iteration(self, counter, index):
+
+		# This is really a run episode function. Ignore the index, just use the counter. 
+		# 1) 	Rollout trajectory. 
+		# 2) 	Collect stats / append to memory and stuff.
+		# 3) 	Update policies. 
+		self.set_parameters(counter)
+
+		# Maintain coujnter to keep track of updating the policy regularly. 			
+		transition_list = self.rollout(random=False)
+
+		if self.args.train:
+
+			# Instead of using memory, just assemble states and everything then update the policy. 
+			self.process_episode(transition_list)
+
+			# Now upate the policy and critic.
+			self.update_policies(counter)
+
+	def train(self, model):
+
+		# 1) Initialize memory maybe.
+		# 2) For number of iterations, RUN ITERATION:
+		# 3) 	Rollout trajectory. 
+		# 4) 	Collect stats. 
+		# 5) 	Update policies. 
+
+		if model:
+			print("Loading model in training.")
+			self.load_all_models(model)
+
+		print("Starting Main Training Procedure.")
+		self.set_parameters(episode_counter)
+
+		for e in range(self.number_episodes):
+
+			self.run_iteration(e)
+
+			print("Episode: ",episode_counter," Reward: ",eps_reward, " Counter:", counter, terminal)
+
+
+
+
+

@@ -34,6 +34,8 @@ class Master():
 			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_prior':
 			self.policy_manager = PolicyManager_Prior(self.args.number_policies, self.dataset, self.args)
+		elif self.args.setting=='downstreamRL':
+			self.policy_manager = PolicyManager_DownstreamRL(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
@@ -63,6 +65,13 @@ class Master():
 			else:
 				# self.policy_manager.train(self.args.model)
 				self.policy_manager.evaluate(self.args.model)
+
+		elif self.args.setting=='downstreamRL':
+			if self.args.train:
+				if self.args.model:
+					self.policy_manager.train(self.args.model)
+				else:
+				self.policy_manager.train()			
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
