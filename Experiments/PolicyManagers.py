@@ -2336,7 +2336,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 	def assemble_inputs(self):
 
-		embed()
+		
 
 		# Assemble states.
 		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
@@ -2347,7 +2347,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		else:
 			action_sequence = np.zeros((1,8))
 
-		return np.concatenate([state_sequence, action_sequence],axis=1)
+		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
+		embed()
+		return inputs
 
 	def process_episode(self):
 		# Assemble states, actions, targets.
