@@ -2432,5 +2432,5 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 			print("Episode: ",e)
 
-			if e%self.args.eval_freq==0:
-				self.automatic_evaluation(e)
+			# if e%self.args.eval_freq==0:
+			# 	self.automatic_evaluation(e)
