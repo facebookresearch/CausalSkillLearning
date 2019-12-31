@@ -2386,7 +2386,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			# Now upate the policy and critic.
 			self.update_policies(counter)
 
-	def train(self, model):
+	def train(self, model=None):
 
 		# 1) Initialize memory maybe.
 		# 2) For number of iterations, RUN ITERATION:
