@@ -195,7 +195,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		noise = torch.randn_like(variance_outputs)
 
 		if greedy: 
-			actions = mean_outputs
+			action = mean_outputs
 		else:
 			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
 			action = mean_outputs + variance_outputs * noise
