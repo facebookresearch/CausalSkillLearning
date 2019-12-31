@@ -4,7 +4,7 @@ from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, Continu
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
-import TFLogger, RL_Utils
+import TFLogger
 
 class PolicyManager_BaseClass():
 
