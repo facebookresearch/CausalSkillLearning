@@ -2296,7 +2296,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		else:
 			self.epsilon = 0.
 
-	def rollout(self, random=False):
+	def rollout(self, test=False, visualize=False):
 	
 		counter = 0		
 		eps_reward = 0.	
@@ -2305,8 +2305,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		self.reward_trajectory = []
 		self.state_trajectory = []
+
+		if visualize:
+			self.image_trajectory = []
+			self.image_trajectory.append(self.environment.sim.render(600, 600, camera_name='frontview'))
+
 		self.state_trajectory.append(state)
-		self.reward_trajectory.append(0.)
+		self.reward_trajectory.append(0.)		
 		self.action_trajectory = []		
 
 		while not(terminal) and counter<self.max_timesteps:
@@ -2317,8 +2322,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
-				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float())
-				action = predicted_action[-1].squeeze(0).detach().cpu().numpy()				
+
+				if test:
+					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
+				else:
+					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float())
+
+				action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
@@ -2332,6 +2342,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 			# Counter
 			counter +=1 
+
+			# Append image. 
+			if visualize:
+				self.image_trajectory.append(self.environment.sim.render(600,600, camera_name='frontview'))
 
 		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
@@ -2385,6 +2399,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss, counter)
 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss, counter)
 
+		if counter%self.args.display_freq==0:
+
+			# Rollout policy.
+			self.rollout(test=True, visualize=True)
+			self.tf_logger.gif_summary("Rollout Trajectory",self.image_trajectory,counter)
+
 	def run_iteration(self, counter):
 
 		# This is really a run episode function. Ignore the index, just use the counter. 
@@ -2394,7 +2414,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.set_parameters(counter)
 
 		# Maintain coujnter to keep track of updating the policy regularly. 			
-		self.rollout(random=False)
+		self.rollout()
 
 		if self.args.train:
 
