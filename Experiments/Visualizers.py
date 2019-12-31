@@ -77,7 +77,6 @@ class SawyerVisualizer():
         else:
             imageio.mimsave(os.path.join(gif_path,gif_name), image_list)            
 
-
 class BaxterVisualizer():
 
     def __init__(self, has_display=False):
