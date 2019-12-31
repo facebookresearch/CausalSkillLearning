@@ -2233,9 +2233,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.decay_episodes = self.args.epsilon_over
 		self.baseline = None
 		self.learning_rate = 1e-4
+		self.max_timesteps = 100
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
+
+		self.number_episodes = 5000
 
 	def create_networks(self):
 
@@ -2310,13 +2313,14 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			if random:
 				action = self.environment.action_space.sample()
 			else:
-				# action = self.
+
+				# Assemble states. 
+				assembled_inputs = self.assemble_inputs()
+				action = self.policy_network.get_actions()
 				pass
 
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
-			# Copy reward. 
-			# eps_reward += copy.deepcopy(onestep_reward)
 
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
@@ -2331,20 +2335,25 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
 
-	def process_episode(self):
-		
-		# Assemble states, actions, targets.
-
-		# Targets are basically just cummulative rewards. Make torch tensors out of them.
-		self.targets = torch.tensor(self.cummulative_rewards).cuda().float()
-
+	def assemble_inputs(self):
+		# Assemble states.
 		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)		
 		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(action_trajectory))],axis=0)
 		# Appending 0 action to start of sequence.
 		action_sequence = np.concatenate([np.zeros((1,8)),action_sequence],axis=0)
 
+		return np.concatenate([state_sequence, action_sequence],axis=1)
+
+	def process_episode(self):
+		# Assemble states, actions, targets.
+
+		# Targets are basically just cummulative rewards. Make torch tensors out of them.
+		self.targets = torch.tensor(self.cummulative_rewards).cuda().float()
+
+		assembled_inputs = self.assemble_inputs()
+
 		# Input to the policy should be states and actions. 
-		self.policy_inputs = torch.tensor(np.concatenate([state_sequence, action_sequence],axis=1)).cuda().float()	
+		self.policy_inputs = torch.tensor(assembled_inputs).cuda().float()	
 
 	def update_policies(self, counter):
 	
@@ -2367,7 +2376,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss, counter)
 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss, counter)
 
-	def run_iteration(self, counter, index):
+	def run_iteration(self, counter):
 
 		# This is really a run episode function. Ignore the index, just use the counter. 
 		# 1) 	Rollout trajectory. 
