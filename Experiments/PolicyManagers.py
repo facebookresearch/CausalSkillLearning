@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
+from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
 from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger

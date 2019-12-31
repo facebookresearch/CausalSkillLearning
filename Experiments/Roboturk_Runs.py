@@ -102,3 +102,8 @@ python cluster_run.py --partition=learnfair --name=RJ3 --cmd='python Master.py -
 
 python cluster_run.py --partition=learnfair --name=RJ4 --cmd='python Master.py --train=1 --setting=learntsub --name=RJ4 --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R14/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
 
+####################################################
+############## Downstream RL Training ##############
+####################################################
+
+python Master.py --train=1 --setting='downstreamRL' --name=RLdebug --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift
