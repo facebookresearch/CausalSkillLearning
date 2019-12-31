@@ -71,7 +71,7 @@ class Master():
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
 				else:
-				self.policy_manager.train()			
+					self.policy_manager.train()			
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
