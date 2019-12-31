@@ -2366,6 +2366,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 	
 		######################################
 		# Compute losses for actor.
+
+		embed()
 		self.policy_optimizer.zero_grad()
 		self.policy_loss = - self.critic_network.forward(self.policy_inputs).mean()
 		self.policy_loss.backward()
