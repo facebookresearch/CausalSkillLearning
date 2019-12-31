@@ -2296,7 +2296,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		else:
 			self.epsilon = 0.
 
-	def rollout(self, test=False, visualize=False):
+	def rollout(self, random=False, test=False, visualize=False):
 	
 		counter = 0		
 		eps_reward = 0.	
@@ -2319,7 +2319,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			if random:
 				action = self.environment.action_space.sample()
 			else:
-
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
 
@@ -2402,7 +2401,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		if counter%self.args.display_freq==0:
 
 			# Rollout policy.
-			self.rollout(test=True, visualize=True)
+			self.rollout(random=False, test=True, visualize=True)
 			self.tf_logger.gif_summary("Rollout Trajectory",self.image_trajectory,counter)
 
 	def run_iteration(self, counter):
@@ -2414,7 +2413,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.set_parameters(counter)
 
 		# Maintain coujnter to keep track of updating the policy regularly. 			
-		self.rollout()
+		self.rollout(random=False)
 
 		if self.args.train:
 
