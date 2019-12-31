@@ -2232,6 +2232,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.final_epsilon = self.args.epsilon_to
 		self.decay_episodes = self.args.epsilon_over
 		self.baseline = None
+		self.learning_rate = 1e-4
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
