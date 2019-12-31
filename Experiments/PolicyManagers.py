@@ -2402,11 +2402,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		if counter%self.args.display_freq==0:
 
+			print("Embedding in Update Plots.")
 			embed()
 
 			# Rollout policy.
 			self.rollout(random=False, test=True, visualize=True)
-			self.tf_logger.gif_summary("Rollout Trajectory",self.image_trajectory,counter)
+			self.tf_logger.gif_summary("Rollout Trajectory", self.image_trajectory, counter)
 
 	def run_iteration(self, counter):
 
