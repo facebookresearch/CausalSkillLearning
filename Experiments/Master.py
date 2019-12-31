@@ -36,7 +36,7 @@ class Master():
 		elif self.args.setting=='pretrain_prior':
 			self.policy_manager = PolicyManager_Prior(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='downstreamRL':
-			self.policy_manager = PolicyManager_DownstreamRL(self.args.number_policies, self.dataset, self.args)
+			self.policy_manager = PolicyManager_DownstreamRL(self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
