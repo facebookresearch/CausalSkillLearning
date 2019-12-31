@@ -2359,9 +2359,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		if len(self.action_trajectory)>0:
 			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
 			# Appending 0 action to start of sequence.
-			action_sequence = np.concatenate([np.zeros((1,8)),action_sequence],axis=0)
+			action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
 		else:
-			action_sequence = np.zeros((1,8))
+			action_sequence = np.zeros((1,self.output_size))
 
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 		
@@ -2402,7 +2402,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		if counter%self.args.display_freq==0:
 
-			print("Embedding in Update Plots.")
+			# print("Embedding in Update Plots.")
 			
 			# Rollout policy.
 			self.rollout(random=False, test=True, visualize=True)
