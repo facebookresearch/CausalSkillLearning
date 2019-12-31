@@ -2299,7 +2299,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 	def rollout(self, random=False):
 	
 		counter = 0		
-		eps_reward = 0.
+		eps_reward = 0.	
 		state = self.environment.reset()
 		terminal = False
 
@@ -2336,11 +2336,17 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
 
 	def assemble_inputs(self):
+
+		embed()
+
 		# Assemble states.
 		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)		
-		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
-		# Appending 0 action to start of sequence.
-		action_sequence = np.concatenate([np.zeros((1,8)),action_sequence],axis=0)
+		if len(self.action_trajectory)>0:
+			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
+			# Appending 0 action to start of sequence.
+			action_sequence = np.concatenate([np.zeros((1,8)),action_sequence],axis=0)
+		else:
+			action_sequence = np.zeros((1,8))
 
 		return np.concatenate([state_sequence, action_sequence],axis=1)
 
