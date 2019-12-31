@@ -450,18 +450,6 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 		# self.policy_network.load_state_dict(load_object['Policy_Network'])
 		# self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
-	def initialize_plots(self):
-		if self.args.name is not None:
-			logdir = os.path.join(self.args.logdir, self.args.name)
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			logdir = os.path.join(logdir, "logs")
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			self.writer = tensorboardX.SummaryWriter(logdir)
-		else:
-			self.writer = tensorboardX.SummaryWriter()		
-
 	def set_epoch(self, counter):
 		if self.args.train:
 			if counter<self.decay_counter:
@@ -813,18 +801,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if not(only_policy):
 			self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
-	def initialize_plots(self):
-		if self.args.name is not None:
-			logdir = os.path.join(self.args.logdir, self.args.name)
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			logdir = os.path.join(logdir, "logs")
-			if not(os.path.isdir(logdir)):
-				os.mkdir(logdir)
-			self.writer = tensorboardX.SummaryWriter(logdir)
-		else:
-			self.writer = tensorboardX.SummaryWriter()		
-
 	def set_epoch(self, counter):
 		if self.args.train:
 			if counter<self.decay_counter:
@@ -852,7 +828,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		return image
 
-	# def update_plots(self, counter, sample_map, loglikelihood):
 	def update_plots(self, counter, loglikelihood, sample_traj):		
 		
 		self.writer.add_scalar('Subpolicy Likelihood', loglikelihood.mean(), counter)
@@ -2254,14 +2229,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.args = args		
 
 		self.initial_epsilon = self.args.epsilon_from
-		self.test_epsilon
-
-		self.initial_epsilon = self.args.epsilon_from
 		self.final_epsilon = self.args.epsilon_to
 		self.decay_episodes = self.args.epsilon_over
-
-		# Log-likelihood penalty.
-		self.lambda_likelihood_penalty = self.args.likelihood_penalty
 		self.baseline = None
 
 		# Per step decay. 
@@ -2272,11 +2241,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Create policy and critic. 		
 		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
 		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
-
-	def set_params(self):
-
-		self.input_size = 
-		self.output_size = self.environment.action_spec[0].shape
 
 	def create_training_ops(self):
 
@@ -2309,7 +2273,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.environment = robosuite.make(self.args.env_name, has_renderer=False)
 		
 		# Get input and output sizes from these environments, etc. 
-		self.set_params()
+		self.obs = self.environment.reset()
+		self.input_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		self.output_size = self.environment.action_spec[0].shape[0]
 
 		# Create networks. 
 		self.create_networks()
@@ -2333,8 +2299,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		state = self.environment.reset()
 		terminal = False
 
-		transition_list = []
 		reward_trajectory = []
+		self.state_trajectory = []
+		self.state_trajectory.append(state)
+		self.action_trajectory = []		
 
 		while not(terminal) and counter<self.max_timesteps:
 
@@ -2348,12 +2316,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
 			# Copy reward. 
 			# eps_reward += copy.deepcopy(onestep_reward)
-			reward_trajectory.append(onestep_reward)
 
-			# Create transition object. 
-			new_transition = RL_Utils.Transition(copy.deepcopy(state), action, next_state, onestep_reward, terminal, success)
-			# Append to transiiton list. 
-			transition_list.append(new_transition)
+			self.state_trajectory.append(next_state)
+			self.action_trajectory.append(action)
+			reward_trajectory.append(onestep_reward)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2362,41 +2328,43 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			counter +=1 
 
 		# Now that the episode is done, compute cummulative rewards... 
-		cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
-		# Now set them in the transition list.
-		for t, trans in enumerate(transition_list):
-			trans.cummulative_reward = cummulative_rewards[t]
+		self.cummulative_rewards = np.cumsum(np.array(reward_trajectory)[::-1])[::-1]
 
-		# Return transition list. 
-		return transition_list
+	def process_episode(self):
+		
+		# Assemble states, actions, targets.
 
-	# def initialize_memory(self):
+		# Targets are basically just cummulative rewards. Make torch tensors out of them.
+		self.targets = torch.tensor(self.cummulative_rewards).cuda().float()
 
-	# 	# Number of initial transitions needs to be less than memory size. 
-	# 	self.initial_transitions = 5000        
-	# 	# transition must have: obs, action taken, terminal?, reward, success, next_state 
-
-	# 	self.max_timesteps = 50
-
-	# 	print("Starting Memory Burn In.")
-	# 	self.set_parameters(0)
-
-	# 	episode_counter = 0		
-
-	# 	while self.memory.memory_len < self.initial_transitions:
-
-	# 		# Get transition list from rollout. 
-	# 		transition_list = self.rollout(random=True)
-	# 		# Append this episode to memory.
-	# 		self.memory.append_list_to_memory(transition_list)
-
-	# 		episode_counter += 1 
-
-	def process_episode(self, transition_list):
-		# Assemble states, targets, actions. 
+		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)		
+		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(action_trajectory))],axis=0)
+		# Appending 0 action to start of sequence.
+		action_sequence = np.concatenate([np.zeros((1,8)),action_sequence],axis=0)
 
 		# Input to the policy should be states and actions. 
-		
+		self.policy_inputs = torch.tensor(np.concatenate([state_sequence, action_sequence],axis=1)).cuda().float()	
+
+	def update_policies(self, counter):
+	
+		######################################
+		# Compute losses for actor.
+		self.policy_optimizer.zero_grad()
+		self.policy_loss = - self.critic_network.forward(self.policy_inputs).mean()
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
+
+		# Zero gradients, then backprop into critic.
+		self.critic_optimizer.zero_grad()
+		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.targets).mean()
+		self.critic_loss.backward()
+		self.critic_optimizer.step()
+		######################################
+
+	def update_plots(self, counter):
+		self.tf_logger.scalar_summary('Average Reward', torch.mean(self.targets), counter)
+		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss, counter)
+		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss, counter)
 
 	def run_iteration(self, counter, index):
 
@@ -2407,12 +2375,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.set_parameters(counter)
 
 		# Maintain coujnter to keep track of updating the policy regularly. 			
-		transition_list = self.rollout(random=False)
+		self.rollout(random=False)
 
 		if self.args.train:
 
 			# Instead of using memory, just assemble states and everything then update the policy. 
-			self.process_episode(transition_list)
+			self.process_episode()
 
 			# Now upate the policy and critic.
 			self.update_policies(counter)
@@ -2432,13 +2400,21 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		print("Starting Main Training Procedure.")
 		self.set_parameters(episode_counter)
 
+		counter = 0
+		np.set_printoptions(suppress=True,precision=2)
+
+		# Fixing seeds.
+		np.random.seed(seed=0)
+		torch.manual_seed(0)
+
 		for e in range(self.number_episodes):
+
+			if e%self.args.save_freq==0:
+				self.save_all_models("epoch{0}".format(e))
 
 			self.run_iteration(e)
 
 			print("Episode: ",episode_counter," Reward: ",eps_reward, " Counter:", counter, terminal)
 
-
-
-
-
+			if e%self.args.eval_freq==0:
+				self.automatic_evaluation(e)
