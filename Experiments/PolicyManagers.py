@@ -2399,9 +2399,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			self.load_all_models(model)
 
 		print("Starting Main Training Procedure.")
-		self.set_parameters(episode_counter)
+		self.set_parameters(0)
 
-		counter = 0
 		np.set_printoptions(suppress=True,precision=2)
 
 		# Fixing seeds.
@@ -2415,7 +2414,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 			self.run_iteration(e)
 
-			print("Episode: ",episode_counter," Reward: ",eps_reward, " Counter:", counter, terminal)
+			print("Episode: ",e)
 
 			if e%self.args.eval_freq==0:
 				self.automatic_evaluation(e)
