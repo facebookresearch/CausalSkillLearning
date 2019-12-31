@@ -2316,8 +2316,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
-				action = self.policy_network.get_actions()
-				pass
+				action = self.policy_network.reparamemetrized_get_actions(assemble_inputs)				
 
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
@@ -2340,7 +2339,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		embed()
 
 		# Assemble states.
-		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)		
+		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
 		if len(self.action_trajectory)>0:
 			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
 			# Appending 0 action to start of sequence.
