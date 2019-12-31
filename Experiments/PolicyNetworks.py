@@ -983,7 +983,7 @@ class CriticNetwork(torch.nn.Module):
 		self.batch_size = 1
 
 		# Create LSTM Network. 
-		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers)		
+		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.number_layers)		
 
 		self.output_layer = torch.nn.Linear(self.hidden_size,self.output_size)		
 
