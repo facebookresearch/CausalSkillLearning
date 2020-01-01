@@ -109,3 +109,18 @@ python cluster_run.py --partition=learnfair --name=RJ4 --cmd='python Master.py -
 python Master.py --train=1 --setting='downstreamRL' --name=RLdebug --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0
 
 python Master.py --train=1 --setting='downstreamRL' --name=RLdebug_2 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50
+
+python Master.py --train=1 --setting='downstreamRL' --name=RLdebug_3 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50
+
+# Actual roboturk runs. 
+python cluster_run.py --partition=learnfair --name=R1 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL1 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+python cluster_run.py --partition=learnfair --name=R2 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL2 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerStack --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+python cluster_run.py --partition=learnfair --name=R3 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL3 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerPickPlace --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+python cluster_run.py --partition=learnfair --name=R4 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL4 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerNutAssembly --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+python cluster_run.py --partition=learnfair --name=R5 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL5 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+python cluster_run.py --partition=learnfair --name=R6 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL6 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterPegInHole --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
