@@ -2238,7 +2238,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
 
-		self.number_episodes = 500000
+		self.number_episodes = 5000000
 
 	def create_networks(self):
 

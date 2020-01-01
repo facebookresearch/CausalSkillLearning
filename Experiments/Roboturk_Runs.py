@@ -124,3 +124,5 @@ python cluster_run.py --partition=learnfair --name=R4 --cmd='python Master.py --
 python cluster_run.py --partition=learnfair --name=R5 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL5 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
 
 python cluster_run.py --partition=learnfair --name=R6 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL6 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterPegInHole --epsilon_over=1000 --z_dimensions=0 --display_freq=50'
+
+# Run with increased number of episodes.
