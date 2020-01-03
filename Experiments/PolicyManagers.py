@@ -548,24 +548,24 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 	# def update_plots(self, counter, sample_map, loglikelihood):
 	def update_plots(self, counter, loglikelihood, sample_traj):		
 		
-		self.writer.add_scalar('PriorPolicy Likelihood', loglikelihood.mean(), counter)
-		self.writer.add_scalar('Total Loss', self.total_loss.mean(), counter)
-		# self.writer.add_scalar('Encoder KL', self.encoder_KL.mean(), counter)
+		self.tf_logger.scalar_summary('PriorPolicy Likelihood', loglikelihood.mean(), counter)
+		self.tf_logger.scalar_summary('Total Loss', self.total_loss.mean(), counter)
+		# self.tf_logger.scalar_summary('Encoder KL', self.encoder_KL.mean(), counter)
 
 		if not(self.args.reparam):
-			self.writer.add_scalar('Baseline', self.baseline.sum(), counter)
-			self.writer.add_scalar('Encoder Loss', self.encoder_loss.sum(), counter)
-			self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
-			self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
+			self.tf_logger.scalar_summary('Baseline', self.baseline.sum(), counter)
+			self.tf_logger.scalar_summary('Encoder Loss', self.encoder_loss.sum(), counter)
+			self.tf_logger.scalar_summary('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
+			self.tf_logger.scalar_summary('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
 		# if self.args.regularize_pretraining:
-		# 	self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
+		# 	self.tf_logger.scalar_summary('Regularization Loss', torch.mean(self.regularization_loss), counter)
 
 		if self.args.entropy:
-			self.writer.add_scalar('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
+			self.tf_logger.scalar_summary('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
 
 		if counter%self.args.display_freq==0:
-			self.writer.add_image("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
+			self.tf_logger.image_summary("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
 
 	def concat_state_action(self, sample_traj, sample_action_seq):
 		# Add blank to start of action sequence and then concatenate. 
@@ -899,24 +899,24 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 	def update_plots(self, counter, loglikelihood, sample_traj):		
 		
-		self.writer.add_scalar('Subpolicy Likelihood', loglikelihood.mean(), counter)
-		self.writer.add_scalar('Total Loss', self.total_loss.mean(), counter)
-		self.writer.add_scalar('Encoder KL', self.encoder_KL.mean(), counter)
+		self.tf_logger.scalar_summary('Subpolicy Likelihood', loglikelihood.mean(), counter)
+		self.tf_logger.scalar_summary('Total Loss', self.total_loss.mean(), counter)
+		self.tf_logger.scalar_summary('Encoder KL', self.encoder_KL.mean(), counter)
 
 		if not(self.args.reparam):
-			self.writer.add_scalar('Baseline', self.baseline.sum(), counter)
-			self.writer.add_scalar('Encoder Loss', self.encoder_loss.sum(), counter)
-			self.writer.add_scalar('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
-			self.writer.add_scalar('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
+			self.tf_logger.scalar_summary('Baseline', self.baseline.sum(), counter)
+			self.tf_logger.scalar_summary('Encoder Loss', self.encoder_loss.sum(), counter)
+			self.tf_logger.scalar_summary('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
+			self.tf_logger.scalar_summary('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
 		# if self.args.regularize_pretraining:
-		# 	self.writer.add_scalar('Regularization Loss', torch.mean(self.regularization_loss), counter)
+		# 	self.tf_logger.scalar_summary('Regularization Loss', torch.mean(self.regularization_loss), counter)
 
 		if self.args.entropy:
-			self.writer.add_scalar('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
+			self.tf_logger.scalar_summary('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
 
 		if counter%self.args.display_freq==0:
-			self.writer.add_image("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
+			self.tf_logger.image_summary("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
 	
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq):
 
