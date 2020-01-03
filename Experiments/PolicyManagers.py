@@ -1317,11 +1317,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			index = i + len(self.dataset)-self.test_set_size
 			
 			# Get latent z. 					
-			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, self.index_list[index], return_z=True)
+			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
 
 			if sample_traj is not None:
 				# Feed latent z to the rollout.
-				rollout_trajectory = self.rollout_visuals(self.index_list[index], latent_z=latent_z, return_traj=True)
+				rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
 
 				distances[i] = ((sample_traj-self.rollout_trajectory)**2).mean()	
 
