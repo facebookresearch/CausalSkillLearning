@@ -102,6 +102,8 @@ class PolicyManager_BaseClass():
 
 			action_sequence = np.diff(trajectory,axis=0)
 
+			self.current_traj_len = len(trajectory)
+			
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
