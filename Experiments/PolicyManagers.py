@@ -23,6 +23,7 @@ class PolicyManager_BaseClass():
 		np.set_printoptions(suppress=True,precision=2)
 
 		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)	
+		self.initialize_plots()
 
 	def initialize_plots(self):
 		if self.args.name is not None:
@@ -103,7 +104,7 @@ class PolicyManager_BaseClass():
 			action_sequence = np.diff(trajectory,axis=0)
 
 			self.current_traj_len = len(trajectory)
-			
+
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
@@ -114,9 +115,7 @@ class PolicyManager_BaseClass():
 
 		if model:
 			print("Loading model in training.")
-			self.load_all_models(model)
-
-		self.initialize_plots()
+			self.load_all_models(model)		
 		counter = 0
 
 		# For number of training epochs. 
