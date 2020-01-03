@@ -1309,7 +1309,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		
 	def evaluate_metrics(self):
 
-		distances = -np.ones((self.test_set_size))
+		self.distances = -np.ones((self.test_set_size))
 
 		# Get test set elements as last (self.test_set_size) number of elements of dataset.
 		for i in range(self.test_set_size):
@@ -1329,9 +1329,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.mean_distance = distances[distances>0].mean()
 
-		np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),distances)
-		np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
-
 	def evaluate(self, model):
 		if model:
 			self.load_all_models(model)
@@ -1345,6 +1342,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			print("Running Visualization on Robot Data.")	
 			self.visualize_robot_data()
+
+			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
+			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
 		else:
 			print("Running Eval on Dummy Trajectories!")
