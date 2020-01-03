@@ -1321,7 +1321,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			if sample_traj is not None:
 				# Feed latent z to the rollout.
-				rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
+				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
+				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z)
 
 				distances[i] = ((sample_traj-self.rollout_trajectory)**2).mean()	
 
