@@ -22,8 +22,7 @@ class PolicyManager_BaseClass():
 		torch.manual_seed(0)
 		np.set_printoptions(suppress=True,precision=2)
 
-		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)
-		
+		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)	
 
 	def initialize_plots(self):
 		if self.args.name is not None:
@@ -1247,8 +1246,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			if self.args.traj_segments:			
 				trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
 			else:
+				sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
 				# Calling it trajectory segment, but it's not actually a trajectory segment here.
-				trajectory_segment, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
+				trajectory_segment = concatenated_traj
 		else:
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
 
