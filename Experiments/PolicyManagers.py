@@ -1325,9 +1325,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				self.rollout_timesteps = len(sample_traj)
 				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z)
 
-				distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
+				self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
 
-		self.mean_distance = distances[distances>0].mean()
+		self.mean_distance = self.distances[self.distances>0].mean()
 
 	def evaluate(self, model):
 		if model:
