@@ -17,6 +17,14 @@ class PolicyManager_BaseClass():
 		# self.create_util_ops()
 		# self.initialize_gt_subpolicies()
 
+		# Fixing seeds.
+		np.random.seed(seed=0)
+		torch.manual_seed(0)
+		np.set_printoptions(suppress=True,precision=2)
+
+		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)
+		
+
 	def initialize_plots(self):
 		if self.args.name is not None:
 			logdir = os.path.join(self.args.logdir, self.args.name)
@@ -34,6 +42,73 @@ class PolicyManager_BaseClass():
 		self.writer.export_scalars_to_json("./all_scalars.json")
 		self.writer.close()
 
+	def collect_inputs(self, i, get_latents=False):
+
+		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
+
+			sample_traj, sample_action_seq = self.dataset[i]
+			latent_b_seq, latent_z_seq = self.dataset.get_latent_variables(i)
+
+			start = 0
+
+			if self.args.traj_length>0:
+				sample_action_seq = sample_action_seq[start:self.args.traj_length-1]
+				latent_b_seq = latent_b_seq[start:self.args.traj_length-1]
+				latent_z_seq = latent_z_seq[start:self.args.traj_length-1]
+				sample_traj = sample_traj[start:self.args.traj_length]	
+			else:
+				# Traj length is going to be -1 here. 
+				# Don't need to modify action sequence because it does have to be one step less than traj_length anyway.
+				sample_action_seq = sample_action_seq[start:]
+				sample_traj = sample_traj[start:]
+				latent_b_seq = latent_b_seq[start:]
+				latent_z_seq = latent_z_seq[start:]
+
+			# The trajectory is going to be one step longer than the action sequence, because action sequences are constructed from state differences. Instead, truncate trajectory to length of action sequence. 		
+			# Now manage concatenated trajectory differently - {{s0,_},{s1,a0},{s2,a1},...,{sn,an-1}}.
+			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
+			old_concatenated_traj = self.old_concat_state_action(sample_traj, sample_action_seq)
+		
+			if self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
+
+				self.conditional_information = np.zeros((self.args.condition_size))
+				self.conditional_information[self.dataset.get_goal(i)] = 1
+			else:
+				self.conditional_information = np.zeros((self.args.condition_size))
+
+			if get_latents:
+				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj, latent_b_seq, latent_z_seq
+			else:
+				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj
+	
+		elif self.args.data=='MIME' or self.args.data=='Roboturk':
+
+			data_element = self.dataset[i]
+
+			if not(data_element['is_valid']):
+				return None, None, None, None
+				
+			self.conditional_information = np.zeros((self.args.condition_size))
+
+			# if self.args.data=='MIME':
+			# 	# Sample a trajectory length that's valid. 						
+			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
+			# else:
+			# 	trajectory = data_element['demo']
+			trajectory = data_element['demo']
+
+			# If normalization is set to some value.
+			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
+				trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
+
+			action_sequence = np.diff(trajectory,axis=0)
+
+			# Concatenate
+			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
+			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
+
+			return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
+
 	def train(self, model=None):
 
 		if model:
@@ -42,12 +117,6 @@ class PolicyManager_BaseClass():
 
 		self.initialize_plots()
 		counter = 0
-
-		np.set_printoptions(suppress=True,precision=2)
-
-		# Fixing seeds.
-		np.random.seed(seed=0)
-		torch.manual_seed(0)
 
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 
@@ -58,19 +127,17 @@ class PolicyManager_BaseClass():
 				self.save_all_models("epoch{0}".format(e))
 
 			# self.automatic_evaluation(e)
-
-			index_list = np.arange(0,len(self.dataset))
-			np.random.shuffle(index_list)
+			np.random.shuffle(self.index_list)
 
 			if self.args.debug:
 				print("Embedding in Outer Train Function.")
 				embed()
 
 			# For every item in the epoch:
-			for i in range(len(self.dataset)):
+			for i in range(len(self.dataset)-self.test_set_size):
 
 				print("Epoch: ",e," Image:",i)
-				self.run_iteration(counter, index_list[i])				
+				self.run_iteration(counter, self.index_list[i])				
 
 				counter = counter+1
 
@@ -235,6 +302,7 @@ class PolicyManager_BaseClass():
 			html_file.write('<html>')
 			html_file.write('<body>')
 			html_file.write('<p> Model: {0}</p>'.format(self.args.name))
+			html_file.write('<p> Average Trajectory Distance: {0}</p>'.format(self.mean_distance))
 
 			for i in range(self.N):
 				
@@ -702,6 +770,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		self.number_layers = self.args.number_layers
 		self.traj_length = 5
 		self.number_epochs = 500
+		self.test_set_size = 500
 
 		if self.args.data=='MIME':
 			self.state_size = 16			
@@ -1173,8 +1242,13 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		############# (0) #############
 		# Sample trajectory segment from dataset. 			
-		if self.args.train or not(self.args.discrete_z):			
-			trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
+		if self.args.train or not(self.args.discrete_z):
+
+			if self.args.traj_segments:			
+				trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
+			else:
+				# Calling it trajectory segment, but it's not actually a trajectory segment here.
+				trajectory_segment, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
 		else:
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
 
@@ -1218,7 +1292,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				self.update_plots(counter, loglikelihood, trajectory_segment)
 			else:
 
-
 				if return_z: 
 					return latent_z, sample_traj, sample_action_seq
 				else:
@@ -1232,16 +1305,30 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			print("#########################################")	
 		else: 
 			return None, None, None
-	
-	# def automatic_evaluation(self, e):
+		
+	def evaluate_metrics(self):
 
-	# 	# This should be a good template command. 
-	# 	base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data={5} --kl_weight={1} --var_skill_length={2} --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e), self.args.data)
-	# 	# base_command = 'python Master.py --train=0 --setting=pretrain_sub --name={0} --data=MIME --kl_weight={1} --var_skill_length={2} --transformer=1 --z_dimensions=64 --normalization={3} --model={4}'.format(self.args.name, self.args.kl_weight, self.args.var_skill_length, self.args.normalization, "Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
-	# 	# cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd="'"{1}"'"'.format(self.args.name, base_command)		
-	# 	cluster_command = 'python cluster_run.py --partition=learnfair --name={0} --cmd=\'{1}\''.format(self.args.name, base_command)				
-	# 	subprocess.call([cluster_command],shell=True)
-				
+		distances = -np.ones((self.test_set_size))
+
+		# Get test set elements as last (self.test_set_size) number of elements of dataset.
+		for i in range(self.test_set_size):
+
+			index = i + len(self.dataset)-self.test_set_size
+			
+			# Get latent z. 					
+			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, self.index_list[index], return_z=True)
+
+			if sample_traj is not None:
+				# Feed latent z to the rollout.
+				rollout_trajectory = self.rollout_visuals(self.index_list[index], latent_z=latent_z, return_traj=True)
+
+				distances[i] = ((sample_traj-self.rollout_trajectory)**2).mean()	
+
+		self.mean_distance = distances[distances>0].mean()
+
+		np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),distances)
+		np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+
 	def evaluate(self, model):
 		if model:
 			self.load_all_models(model)
@@ -1249,8 +1336,12 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		np.set_printoptions(suppress=True,precision=2)
 
 		if self.args.data=="MIME" or self.args.data=='Roboturk':
+
+			print("Running Evaluation of State Distances on small test set.")
+			self.evaluate_metrics()
+
 			print("Running Visualization on Robot Data.")	
-			self.visualize_robot_data()			
+			self.visualize_robot_data()
 
 		else:
 			print("Running Eval on Dummy Trajectories!")
@@ -1698,73 +1789,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Add blank to the END of action sequence and then concatenate.
 		sample_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 		return np.concatenate([sample_traj, sample_action_seq],axis=-1)
-
-	def collect_inputs(self, i, get_latents=False):
-
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
-
-			sample_traj, sample_action_seq = self.dataset[i]
-			latent_b_seq, latent_z_seq = self.dataset.get_latent_variables(i)
-
-			start = 0
-
-			if self.args.traj_length>0:
-				sample_action_seq = sample_action_seq[start:self.args.traj_length-1]
-				latent_b_seq = latent_b_seq[start:self.args.traj_length-1]
-				latent_z_seq = latent_z_seq[start:self.args.traj_length-1]
-				sample_traj = sample_traj[start:self.args.traj_length]	
-			else:
-				# Traj length is going to be -1 here. 
-				# Don't need to modify action sequence because it does have to be one step less than traj_length anyway.
-				sample_action_seq = sample_action_seq[start:]
-				sample_traj = sample_traj[start:]
-				latent_b_seq = latent_b_seq[start:]
-				latent_z_seq = latent_z_seq[start:]
-
-			# The trajectory is going to be one step longer than the action sequence, because action sequences are constructed from state differences. Instead, truncate trajectory to length of action sequence. 		
-			# Now manage concatenated trajectory differently - {{s0,_},{s1,a0},{s2,a1},...,{sn,an-1}}.
-			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
-			old_concatenated_traj = self.old_concat_state_action(sample_traj, sample_action_seq)
-		
-			if self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
-
-				self.conditional_information = np.zeros((self.args.condition_size))
-				self.conditional_information[self.dataset.get_goal(i)] = 1
-			else:
-				self.conditional_information = np.zeros((self.args.condition_size))
-
-			if get_latents:
-				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj, latent_b_seq, latent_z_seq
-			else:
-				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj
-	
-		elif self.args.data=='MIME' or self.args.data=='Roboturk':
-
-			data_element = self.dataset[i]
-
-			if not(data_element['is_valid']):
-				return None, None, None, None
-				
-			self.conditional_information = np.zeros((self.args.condition_size))
-
-			# if self.args.data=='MIME':
-			# 	# Sample a trajectory length that's valid. 						
-			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			# else:
-			# 	trajectory = data_element['demo']
-			trajectory = data_element['demo']
-
-			# If normalization is set to some value.
-			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-				trajectory = (trajectory-self.norm_sub_value)/self.norm_denom_value
-
-			action_sequence = np.diff(trajectory,axis=0)
-
-			# Concatenate
-			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
-			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
-
-			return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
 
 	def setup_eval_against_encoder(self):
 		# Creates a network, loads the network from pretraining model file. 
@@ -2237,7 +2261,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
-
 		self.number_episodes = 5000000
 
 	def create_networks(self):
