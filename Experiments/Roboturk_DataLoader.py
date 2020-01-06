@@ -127,3 +127,21 @@ class Roboturk_Dataset(Dataset):
 	def close(self):
 		for file in self.files:
 			file.close()
+
+class Roboturk_Dataloader_Tester(unittest.TestCase):
+	
+	def test_Roboturkdataloader(self):
+
+		self.dataset = Roboturk_Dataset()
+
+		# Check the first index of the dataset.
+		data_element = self.dataset[0]
+
+		validity = data_element['is_valid']
+		check_demo_data = (data_element['demo']==np.load("Test_Data/Roboturk_Dataloader_DE.npy")).all()
+
+		self.assertTrue(validity and check_demo_data)
+
+if __name__ == '__main__':
+	# Run all tests defined for the dataloader.
+    unittest.main()
