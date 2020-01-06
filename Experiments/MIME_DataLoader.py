@@ -142,7 +142,7 @@ class MIME_Dataloader_Tester(unittest.TestCase):
 		data_element = self.dataset[0]
 
 		validity = data_element['is_valid']==1
-		check_demo_data = (data_element['demo']==np.load("Test_Data/MIME_DataLoader_DE.npy")).all()
+		check_demo_data = (data_element['demo']==np.load("Test_Data/MIME_Dataloader_DE.npy")).all()
 
 		self.assertTrue(validity and check_demo_data)
 
