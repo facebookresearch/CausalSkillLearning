@@ -136,7 +136,7 @@ class MIME_Dataloader_Tester(unittest.TestCase):
 	
 	def test_MIMEdataloader(self):
 
-		self.dataset = MIME_DataLoader.MIME_NewDataset()
+		self.dataset = MIME_NewDataset()
 
 		# Check the first index of the dataset.
 		data_element = self.dataset[0]
