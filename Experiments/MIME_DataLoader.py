@@ -112,7 +112,6 @@ class MIME_Dataset(Dataset):
 			width = len(self.joint_names)
 		return dict((self.joint_names[i],joint_angles[i-offset]) for i in range(offset,offset+width))
 
-
 class MIME_NewDataset(Dataset):
 
 	def __init__(self, split='all'):
@@ -132,3 +131,21 @@ class MIME_NewDataset(Dataset):
 		# This has already processed everything.
 
 		return self.data_list[index]
+
+class MIME_Dataloader_Tester(unittest.TestCase):
+	
+	def test_MIMEdataloader(self):
+
+		self.dataset = MIME_DataLoader.MIME_NewDataset()
+
+		# Check the first index of the dataset.
+		data_element = self.dataset[0]
+
+		validity = data_element['is_valid']==1
+		check_demo_data = (data_element['demo']==np.load("Test_Data/MIME_DataLoader_DE.npy")).all()
+
+		self.assertTrue(validity and check_demo_data)
+
+if __name__ == '__main__':
+	# Run all tests defined for the dataloader.
+    unittest.main()
