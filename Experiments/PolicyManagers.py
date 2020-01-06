@@ -2,7 +2,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
-from Transformer import TransformerVariationalNet, TransformerEncoder
+# from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger
 
@@ -832,10 +832,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		else:
 			# self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality).cuda()
 
-			if self.args.transformer:
-				self.encoder_network = TransformerEncoder(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
-			else:
-				self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()		
+			# if self.args.transformer:
+			# 	self.encoder_network = TransformerEncoder(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
+			# else:
+			self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()		
 
 	def create_training_ops(self):
 		# self.negative_log_likelihood_loss_function = torch.nn.NLLLoss()
