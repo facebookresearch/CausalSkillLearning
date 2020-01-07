@@ -80,7 +80,6 @@ class Master():
 			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
 			unittest.main(__name__, argv=['main'], exit=False)
 			
-
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
 
