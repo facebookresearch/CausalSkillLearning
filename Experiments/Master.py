@@ -78,8 +78,6 @@ class Master():
 		elif self.args.setting=='test':
 
 			self.tester = TestClass.MetaTestClass()
-			self.tester
-
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
