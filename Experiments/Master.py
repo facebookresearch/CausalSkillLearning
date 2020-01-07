@@ -77,12 +77,11 @@ class Master():
 
 	def test(self):
 		if self.args.test_code:
-			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)	
+			self.tester = TestClass.MetaTestClass()
+			self.tester.setup(self.args, self.policy_manager, self.dataset)
 
 			loader = unittest.TestLoader()
 			suite = loader.discover("../Experiments",pattern="Test*.py")
-
-			embed()
 
 			runner = unittest.TextTestRunner()
 			runner.run(suite)
