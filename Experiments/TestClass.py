@@ -9,6 +9,8 @@ class MetaTestClass(unittest.TestCase):
 		self.policy_manager = policy_manager
 		self.dataset = dataset
 
+		embed()
+
 	# def setup(self, args, policy_manager, dataset):
 	# 	self.args = args
 	# 	self.policy_manager = policy_manager
