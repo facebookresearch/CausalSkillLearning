@@ -87,11 +87,18 @@ class Master():
 		# 	runner.run(suite)
 		# 	# unittest.main(__name__, argv=['main'], exit=False)
 
-		if self.args.test_code:
+		# if self.args.test_code:
 
+		# 	suite = unittest.TestSuite()
+		# 	suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
+		# 	unittest.TextTestRunner(verbosity=2).run(suite)
+
+		if self.args.test_code:
+			loader = unittest.TestLoader()
 			suite = unittest.TestSuite()
 			suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
 			unittest.TextTestRunner(verbosity=2).run(suite)
+
 
 
 def parse_arguments():
