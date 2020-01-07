@@ -56,7 +56,17 @@ class MetaTestClass(unittest.TestCase):
 	def test_subpolicy(self):
 
 		# Assume the subpolicy is an instance of ContinuousPolicyNetwork class.
-		pass
+
+		inputs = torch.ones((15,self.policy_manager.policy_network.input_size)).cuda().float()
+		actions = np.ones((15,self.policy_manager.policy_network.output_size)).cuda().float()
+
+		expected_outputs = np.load("{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
+		pred_outputs = self.policy_manager.policy_network.forward(inputs, actions)
+
+		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).cpu().numpy()
+		threshold = 0.01
+
+		self.assertTrue(error < threshold)
 
 	def test_latent_policy(self):
 
