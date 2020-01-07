@@ -65,19 +65,20 @@ class MetaTestClass(unittest.TestCase):
 
 	def test_variational_policy(self):
 
-		# Assume the variational policy is an instance of ContinuousVariationalPolicyNetwork_BPrior class.
-		
-		inputs = torch.ones((40,self.policy_manager.test_variational_policy.input_size)).cuda().float()
+		if self.args.setting=='learntsub':
+			# Assume the variational policy is an instance of ContinuousVariationalPolicyNetwork_BPrior class.		
+			inputs = torch.ones((40,self.policy_manager.test_variational_policy.input_size)).cuda().float()
 
-		# expected_outputs = np.load("Test_Data/{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
-		pred_outputs = self.policy_manager.policy_network.forward(inputs)
-		embed()
-		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).detach().cpu().numpy()
+			# expected_outputs = np.load("Test_Data/{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
+			pred_outputs = self.policy_manager.policy_network.forward(inputs)
+			embed()
+			error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).detach().cpu().numpy()
 
-		threshold = 0.01
+			threshold = 0.01
 
-		self.assertTrue(error < threshold)
-
+			self.assertTrue(error < threshold)
+		else:
+			pass
 
 	def test_subpolicy(self):
 
