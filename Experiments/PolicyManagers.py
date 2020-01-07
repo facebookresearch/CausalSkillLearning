@@ -1535,6 +1535,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 500
+		self.test_set_size = 500
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
 
