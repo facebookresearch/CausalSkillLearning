@@ -59,8 +59,6 @@ class MetaTestClass(unittest.TestCase):
 
 	def check_MIMEdataloader(self):
 
-		self.dataset = MIME_NewDataset()
-
 		# Check the first index of the dataset.
 		data_element = self.dataset[0]
 
