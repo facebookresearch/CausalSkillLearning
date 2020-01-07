@@ -813,6 +813,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		self.lambda_likelihood_penalty = self.args.likelihood_penalty
 		self.baseline = None
 
+
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_counter)
 
