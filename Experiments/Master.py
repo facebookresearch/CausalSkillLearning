@@ -80,7 +80,14 @@ class Master():
 			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
 	
 			embed()			
-			unittest.main(__name__, argv=['main'], exit=False)
+
+			loader = unittest.TestLoader()
+			start_dir = os.path.curdir
+			suite = loader.discover(start_dir)
+
+			runner = unittest.TextTestRunner()
+			runner.run(suite)
+			# unittest.main(__name__, argv=['main'], exit=False)
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
