@@ -75,8 +75,8 @@ class Master():
 				else:
 					self.policy_manager.train()			
 
-		elif self.args.setting=='test':
-
+	def test(self):
+		if self.args.test_code:
 			self.tester = TestClass.MetaTestClass()
 
 def parse_arguments():
@@ -93,6 +93,7 @@ def parse_arguments():
 	parser.add_argument('--training_phase_size',dest='training_phase_size',type=int,default=500000)
 	parser.add_argument('--data',dest='data',type=str,default='Continuous')
 	parser.add_argument('--setting',dest='setting',type=str,default='gtsub')
+	parser.add_argument('--test_code',dest='test_code',type=int,default=0)
 	parser.add_argument('--model',dest='model',type=str)	
 	parser.add_argument('--logdir',dest='logdir',type=str,default='Experiment_Logs/')
 
@@ -157,7 +158,11 @@ def main(args):
 
 	args = parse_arguments()
 	master = Master(args)
-	master.run()
+
+	if args.test_code:
+		master.test()
+	else:
+		master.run()
 
 if __name__=='__main__':
 	main(sys.argv)
