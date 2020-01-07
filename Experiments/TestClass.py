@@ -36,20 +36,6 @@ class MetaTestClass(unittest.TestCase):
 		self.args = self.policy_manager.args
 		self.dataset = self.policy_manager.dataset
 
-	# def setup(self, args, policy_manager, dataset):
-	# 	self.args = args
-	# 	self.policy_manager = policy_manager
-	# 	self.dataset = dataset
-
-		# self.subpolicy = subpolicy
-		# if latent_policy is not None: 
-		# 	self.latent_policy = latent_policy
-		# if variational_policy is not None: 
-		# 	self.variational_policy = variational_policy
-	
-	# def runTest(self):
-	# 	pass
-
 	def test_dataloader(self):
 
 		if self.args.data=='Roboturk':
