@@ -19,18 +19,18 @@ class TestLoaderWithKwargs(unittest.TestLoader):
         # Modification here: parse keyword arguments to testCaseClass.
         test_cases = []
 
-        embed()
+        # embed()
         for test_case_name in testCaseNames:
-            test_cases.append(testCaseClass(policy_manager))
-            # test_cases.append(testCaseClass(test_case_name, policy_manager))
+            # test_cases.append(testCaseClass(policy_manager))
+            test_cases.append(testCaseClass(test_case_name, policy_manager))
         loaded_suite = self.suiteClass(test_cases)
 
         return loaded_suite 
 
 class MetaTestClass(unittest.TestCase):
 
-	def __init__(self, policy_manager):		
-		super(MetaTestClass, self).__init__()
+	def __init__(self, test_name, policy_manager):		
+		super(MetaTestClass, self).__init__(test_name)
 		
 		self.policy_manager = policy_manager
 		self.args = self.policy_manager.args
