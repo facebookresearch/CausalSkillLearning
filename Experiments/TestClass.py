@@ -19,7 +19,8 @@ class TestLoaderWithKwargs(unittest.TestLoader):
         # Modification here: parse keyword arguments to testCaseClass.
         test_cases = []
         for test_case_name in testCaseNames:
-            test_cases.append(testCaseClass(test_case_name, policy_manager))
+            test_cases.append(testCaseClass(policy_manager))
+            # test_cases.append(testCaseClass(test_case_name, policy_manager))
         loaded_suite = self.suiteClass(test_cases)
 
         return loaded_suite 
