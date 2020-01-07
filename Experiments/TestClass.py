@@ -17,8 +17,6 @@ class MetaTestClass(unittest.TestCase):
 		# if variational_policy is not None: 
 		# 	self.variational_policy = variational_policy
 
-		embed()
-
 	def test_dataloader(self):
 
 		if self.args.data=='Roboturk':
