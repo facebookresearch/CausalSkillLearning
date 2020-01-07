@@ -70,7 +70,7 @@ class MetaTestClass(unittest.TestCase):
 			inputs = torch.ones((40,self.policy_manager.variational_policy.input_size)).cuda().float()
 
 			# expected_outputs = np.load("Test_Data/{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
-			pred_outputs = self.policy_manager.variational_policy.forward(inputs)
+			pred_outputs = self.policy_manager.variational_policy.forward(inputs, epsilon=0.)
 			embed()
 			error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).detach().cpu().numpy()
 
