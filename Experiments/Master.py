@@ -120,8 +120,6 @@ class Master():
 
 		if self.args.test_code:
 
-			embed()
-
 			loader = TestClass.TestLoaderWithKwargs()
 			suite = loader.loadTestsFromTestCase(TestClass.MetaTestClass, policy_manager=self.policy_manager)
 			unittest.TextTestRunner().run(suite)
