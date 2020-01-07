@@ -76,16 +76,23 @@ class Master():
 					self.policy_manager.train()			
 
 	def test(self):
+		# if self.args.test_code:
+		# 	self.tester = TestClass.MetaTestClass()
+		# 	self.tester.setup(self.args, self.policy_manager, self.dataset)
+
+		# 	loader = unittest.TestLoader()
+		# 	suite = loader.discover("../Experiments",pattern="Test*.py")
+
+		# 	runner = unittest.TextTestRunner()
+		# 	runner.run(suite)
+		# 	# unittest.main(__name__, argv=['main'], exit=False)
+
 		if self.args.test_code:
-			self.tester = TestClass.MetaTestClass()
-			self.tester.setup(self.args, self.policy_manager, self.dataset)
 
-			loader = unittest.TestLoader()
-			suite = loader.discover("../Experiments",pattern="Test*.py")
+			suite = unittest.TestSuite()
+			suite.addTest(MetaTestClass(self.args, self.policy_manager, self.dataset))			
+			unittest.TextTestRunner(verbosity=2).run(suite)
 
-			runner = unittest.TextTestRunner()
-			runner.run(suite)
-			# unittest.main(__name__, argv=['main'], exit=False)
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')

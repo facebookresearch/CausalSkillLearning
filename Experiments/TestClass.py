@@ -3,13 +3,16 @@ from headers import *
 
 class MetaTestClass(unittest.TestCase):
 
-	# def __init__(self, args, policy_manager, dataset):		
-	# 	super(MetaTestClass, self).__init__()
-
-	def setup(self, args, policy_manager, dataset):
+	def __init__(self, args, policy_manager, dataset):		
+		super(MetaTestClass, self).__init__()
 		self.args = args
 		self.policy_manager = policy_manager
 		self.dataset = dataset
+
+	# def setup(self, args, policy_manager, dataset):
+	# 	self.args = args
+	# 	self.policy_manager = policy_manager
+	# 	self.dataset = dataset
 
 		# self.subpolicy = subpolicy
 		# if latent_policy is not None: 
