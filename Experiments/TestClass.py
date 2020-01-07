@@ -75,7 +75,7 @@ class MetaTestClass(unittest.TestCase):
 		inputs = torch.ones((15,self.policy_manager.policy_network.input_size)).cuda().float()
 		actions = np.ones((15,self.policy_manager.policy_network.output_size))
 
-		expected_outputs = np.load("{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
+		expected_outputs = np.load("Test_Data/{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
 		pred_outputs = self.policy_manager.policy_network.forward(inputs, actions)
 
 		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).cpu().numpy()
