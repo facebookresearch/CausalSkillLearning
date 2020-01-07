@@ -3,7 +3,7 @@ from headers import *
 
 class MetaTestClass(unittest.TestCase):
 
-	def __init__(self, args, policy_manager, dataset, subpolicy, latent_policy=None, variational_policy=None):
+	def __init__(self, args, policy_manager, dataset):
 		
 		super(MetaTestClass, self).__init__()
 
@@ -11,12 +11,11 @@ class MetaTestClass(unittest.TestCase):
 		self.policy_manager = policy_manager
 		self.dataset = dataset
 
-		self.subpolicy = subpolicy
-
-		if latent_policy is not None: 
-			self.latent_policy = latent_policy
-		if variational_policy is not None: 
-			self.variational_policy = variational_policy
+		# self.subpolicy = subpolicy
+		# if latent_policy is not None: 
+		# 	self.latent_policy = latent_policy
+		# if variational_policy is not None: 
+		# 	self.variational_policy = variational_policy
 
 		embed()
 
