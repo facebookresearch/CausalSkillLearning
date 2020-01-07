@@ -77,7 +77,7 @@ class Master():
 
 	def test(self):
 		# if self.args.test_code:
-		# 	self.tester = TestClass.MetaTestClass()
+			# self.tester = TestClass.MetaTestClass()
 		# 	self.tester.setup(self.args, self.policy_manager, self.dataset)
 
 		# 	loader = unittest.TestLoader()
@@ -99,10 +99,22 @@ class Master():
 		# 	suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
 		# 	unittest.TextTestRunner(verbosity=2).run(suite)
 
+		# if self.args.test_code:
+
+		# 	# self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
+
+		# 	# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
+		# 	suite = unittest.TestLoader().loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
+		# 	unittest.TextTestRunner().run(suite)
+
 		if self.args.test_code:
+
+			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
+			embed()
 			# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-			suite = unittest.TestLoader().loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
+			suite = unittest.TestLoader().loadTestsFromTestCase(self.tester)
 			unittest.TextTestRunner().run(suite)
+
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
