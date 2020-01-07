@@ -90,7 +90,7 @@ class Master():
 		if self.args.test_code:
 
 			suite = unittest.TestSuite()
-			suite.addTest(MetaTestClass(self.args, self.policy_manager, self.dataset))			
+			suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
 			unittest.TextTestRunner(verbosity=2).run(suite)
 
 
