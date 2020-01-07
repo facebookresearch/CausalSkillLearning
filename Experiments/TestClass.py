@@ -73,7 +73,7 @@ class MetaTestClass(unittest.TestCase):
 		# Assume the subpolicy is an instance of ContinuousPolicyNetwork class.
 
 		inputs = torch.ones((15,self.policy_manager.policy_network.input_size)).cuda().float()
-		actions = np.ones((15,self.policy_manager.policy_network.output_size)).cuda().float()
+		actions = np.ones((15,self.policy_manager.policy_network.output_size))
 
 		expected_outputs = np.load("{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
 		pred_outputs = self.policy_manager.policy_network.forward(inputs, actions)
