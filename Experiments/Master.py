@@ -80,7 +80,7 @@ class Master():
 			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)	
 
 			loader = unittest.TestLoader()
-			suite = loader.discover(os.path.curdir,)
+			suite = loader.discover("../Experiments",)
 
 			embed()
 
