@@ -20,8 +20,8 @@ class MetaTestClass(unittest.TestCase):
 		# if variational_policy is not None: 
 		# 	self.variational_policy = variational_policy
 	
-	def runTest(self):
-		pass
+	# def runTest(self):
+	# 	pass
 
 	def test_dataloader(self):
 
