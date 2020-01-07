@@ -99,6 +99,9 @@ class Master():
 		# 	suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
 		# 	unittest.TextTestRunner(verbosity=2).run(suite)
 
+		# THESE TWO ARE FAILING BECAUSE WE'RE PASSING AN INSTANCE OF A CLASS. 
+		# 
+
 		# if self.args.test_code:
 
 		# 	# self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
