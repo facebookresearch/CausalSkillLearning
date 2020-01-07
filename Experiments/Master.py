@@ -110,14 +110,18 @@ class Master():
 		# 	suite = unittest.TestLoader().loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
 		# 	unittest.TextTestRunner().run(suite)
 
+		# if self.args.test_code:
+
+		# 	self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
+		# 	embed()
+		# 	# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
+		# 	suite = unittest.TestLoader().loadTestsFromTestCase(self.tester)
+		# 	unittest.TextTestRunner().run(suite)
+
 		if self.args.test_code:
-
-			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
-			embed()
-			# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-			suite = unittest.TestLoader().loadTestsFromTestCase(self.tester)
+			loader = TestClass.TestLoaderWithKwargs()
+			suite = loader.loadTestsFromTestCase(TestClass.MetaTestClass, args=self.args, policy_manager=self.policy_manager, datset=self.dataset)
 			unittest.TextTestRunner().run(suite)
-
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')

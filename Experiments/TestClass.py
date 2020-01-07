@@ -1,10 +1,32 @@
 #!/usr/bin/env python
 from headers import *
 
+class TestLoaderWithKwargs(unittest.TestLoader):
+    """A test loader which allows to parse keyword arguments to the
+       test case class."""
+    def loadTestsFromTestCase(self, testCaseClass, **kwargs):
+        """Return a suite of all tests cases contained in 
+           testCaseClass."""
+        if issubclass(testCaseClass, suite.TestSuite):
+            raise TypeError("Test cases should not be derived from "\
+                            "TestSuite. Maybe you meant to derive from"\ 
+                            " TestCase?")
+        testCaseNames = self.getTestCaseNames(testCaseClass)
+        if not testCaseNames and hasattr(testCaseClass, 'runTest'):
+            testCaseNames = ['runTest']
+
+        # Modification here: parse keyword arguments to testCaseClass.
+        test_cases = []
+        for test_case_name in testCaseNames:
+            test_cases.append(testCaseClass(test_case_name, **kwargs))
+        loaded_suite = self.suiteClass(test_cases)
+
+        return loaded_suite 
+
 class MetaTestClass(unittest.TestCase):
 
 	def __init__(self, args, policy_manager, dataset):		
-		super(MetaTestClass, self).__init__("*")
+		super(MetaTestClass, self).__init__()
 		self.args = args
 		self.policy_manager = policy_manager
 		self.dataset = dataset
