@@ -4,7 +4,8 @@ from headers import *
 class TestLoaderWithKwargs(unittest.TestLoader):
     """A test loader which allows to parse keyword arguments to the
        test case class."""
-    def loadTestsFromTestCase(self, testCaseClass, **kwargs):
+    # def loadTestsFromTestCase(self, testCaseClass, **kwargs):
+    def loadTestsFromTestCase(self, testCaseClass, policy_manager):
         """Return a suite of all tests cases contained in 
            testCaseClass."""
         if issubclass(testCaseClass, unittest.suite.TestSuite):
@@ -18,7 +19,7 @@ class TestLoaderWithKwargs(unittest.TestLoader):
         # Modification here: parse keyword arguments to testCaseClass.
         test_cases = []
         for test_case_name in testCaseNames:
-            test_cases.append(testCaseClass(test_case_name, **kwargs))
+            test_cases.append(testCaseClass(test_case_name, policy_manager))
         loaded_suite = self.suiteClass(test_cases)
 
         return loaded_suite 
