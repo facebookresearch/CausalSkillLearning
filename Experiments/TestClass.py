@@ -79,7 +79,7 @@ class MetaTestClass(unittest.TestCase):
 		pred_outputs = self.policy_manager.policy_network.forward(inputs, actions)
 
 		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).detach().cpu().numpy()
-		embed()
+
 		threshold = 0.01
 
 		self.assertTrue(error < threshold)
