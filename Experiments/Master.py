@@ -77,14 +77,14 @@ class Master():
 
 	def test(self):
 		if self.args.test_code:
-			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
-	
-			embed()			
+			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)	
 
 			loader = unittest.TestLoader()
 			start_dir = os.path.curdir
 			suite = loader.discover(start_dir)
 
+			embed()
+			
 			runner = unittest.TextTestRunner()
 			runner.run(suite)
 			# unittest.main(__name__, argv=['main'], exit=False)
