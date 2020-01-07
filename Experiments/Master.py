@@ -76,50 +76,7 @@ class Master():
 					self.policy_manager.train()			
 
 	def test(self):
-		# if self.args.test_code:
-			# self.tester = TestClass.MetaTestClass()
-		# 	self.tester.setup(self.args, self.policy_manager, self.dataset)
-
-		# 	loader = unittest.TestLoader()
-		# 	suite = loader.discover("../Experiments",pattern="Test*.py")
-
-		# 	runner = unittest.TextTestRunner()
-		# 	runner.run(suite)
-		# 	# unittest.main(__name__, argv=['main'], exit=False)
-
-		# if self.args.test_code:
-
-		# 	suite = unittest.TestSuite()
-		# 	suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
-		# 	unittest.TextTestRunner(verbosity=2).run(suite)
-
-		# if self.args.test_code:
-		# 	loader = unittest.TestLoader()
-		# 	suite = unittest.TestSuite()
-		# 	suite.addTest(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))			
-		# 	unittest.TextTestRunner(verbosity=2).run(suite)
-
-		# THESE TWO ARE FAILING BECAUSE WE'RE PASSING AN INSTANCE OF A CLASS. 
-		# 
-
-		# if self.args.test_code:
-
-		# 	# self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
-
-		# 	# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-		# 	suite = unittest.TestLoader().loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-		# 	unittest.TextTestRunner().run(suite)
-
-		# if self.args.test_code:
-
-		# 	self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
-		# 	embed()
-		# 	# suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-		# 	suite = unittest.TestLoader().loadTestsFromTestCase(self.tester)
-		# 	unittest.TextTestRunner().run(suite)
-
 		if self.args.test_code:
-
 			loader = TestClass.TestLoaderWithKwargs()
 			suite = loader.loadTestsFromTestCase(TestClass.MetaTestClass, policy_manager=self.policy_manager)
 			unittest.TextTestRunner().run(suite)
