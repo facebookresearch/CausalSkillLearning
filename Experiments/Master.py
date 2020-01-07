@@ -100,8 +100,8 @@ class Master():
 		# 	unittest.TextTestRunner(verbosity=2).run(suite)
 
 		if self.args.test_code:
-    		suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
-    		unittest.TextTestRunner().run(suite)
+			suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset))
+			unittest.TextTestRunner().run(suite)
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
