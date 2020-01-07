@@ -7,7 +7,7 @@ class TestLoaderWithKwargs(unittest.TestLoader):
     def loadTestsFromTestCase(self, testCaseClass, **kwargs):
         """Return a suite of all tests cases contained in 
            testCaseClass."""
-        if issubclass(testCaseClass, suite.TestSuite):
+        if issubclass(testCaseClass, unittest.suite.TestSuite):
             raise TypeError("Test cases should not be derived from "\
                             "TestSuite. Maybe you meant to derive from"\
                             " TestCase?")
