@@ -2,6 +2,7 @@
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader
 from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_Prior, PolicyManager_DownstreamRL
+import TestClass
 
 class Master():
 
@@ -73,6 +74,12 @@ class Master():
 					self.policy_manager.train(self.args.model)
 				else:
 					self.policy_manager.train()			
+
+		elif self.args.setting=='test':
+
+			self.tester = TestClass.MetaTestClass()
+			self.tester
+
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
