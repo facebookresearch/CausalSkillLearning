@@ -4,7 +4,7 @@ from headers import *
 class MetaTestClass(unittest.TestCase):
 
 	def __init__(self, args, policy_manager, dataset):		
-		super(MetaTestClass, self).__init__('blah')
+		super(MetaTestClass, self).__init__("*")
 		self.args = args
 		self.policy_manager = policy_manager
 		self.dataset = dataset
