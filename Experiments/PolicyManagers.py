@@ -12,15 +12,16 @@ class PolicyManager_BaseClass():
 		super(PolicyManager_BaseClass, self).__init__()
 
 	def setup(self):
-		self.create_networks()
-		self.create_training_ops()
-		# self.create_util_ops()
-		# self.initialize_gt_subpolicies()
 
 		# Fixing seeds.
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
 		np.set_printoptions(suppress=True,precision=2)
+
+		self.create_networks()
+		self.create_training_ops()
+		# self.create_util_ops()
+		# self.initialize_gt_subpolicies()
 
 		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)	
 		self.initialize_plots()
