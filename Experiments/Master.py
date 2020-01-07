@@ -120,7 +120,7 @@ class Master():
 
 		if self.args.test_code:
 			loader = TestClass.TestLoaderWithKwargs()
-			suite = loader.loadTestsFromTestCase(TestClass.MetaTestClass, args=self.args, policy_manager=self.policy_manager, datset=self.dataset)
+			suite = loader.loadTestsFromTestCase(TestClass.MetaTestClass, policy_manager=self.policy_manager)
 			unittest.TextTestRunner().run(suite)
 
 def parse_arguments():
