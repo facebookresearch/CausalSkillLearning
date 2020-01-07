@@ -78,7 +78,7 @@ class MetaTestClass(unittest.TestCase):
 		expected_outputs = np.load("Test_Data/{0}_Subpolicy_Res.npy".format(self.args.data),allow_pickle=True)
 		pred_outputs = self.policy_manager.policy_network.forward(inputs, actions)
 
-		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).cpu().numpy()
+		error = (((expected_outputs[0]-pred_outputs[0])**2).mean()).detach().cpu().numpy()
 		threshold = 0.01
 
 		self.assertTrue(error < threshold)
