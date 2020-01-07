@@ -19,7 +19,7 @@ class MetaTestClass(unittest.TestCase):
 			self.variational_policy = variational_policy
 
 		embed()
-		
+
 	def test_dataloader(self):
 
 		if self.args.data=='Roboturk':
@@ -52,15 +52,19 @@ class MetaTestClass(unittest.TestCase):
 	def test_variational_policy(self):
 
 		# Assume the variational policy is an instance of ContinuousVariationalPolicyNetwork_BPrior class.
+		pass
 
 	def test_subpolicy(self):
 
 		# Assume the subpolicy is an instance of ContinuousPolicyNetwork class.
+		pass
 
 	def test_latent_policy(self):
 
 		# Assume the latent policy is a ContinuousLatentPolicyNetwork class.
+		pass
 
 	def test_encoder_policy(self):
 
 		# Assume is instance of ContinuousEncoderNetwork class.
+		pass
