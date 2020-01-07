@@ -9,7 +9,7 @@ class TestLoaderWithKwargs(unittest.TestLoader):
            testCaseClass."""
         if issubclass(testCaseClass, suite.TestSuite):
             raise TypeError("Test cases should not be derived from "\
-                            "TestSuite. Maybe you meant to derive from"\ 
+                            "TestSuite. Maybe you meant to derive from"\
                             " TestCase?")
         testCaseNames = self.getTestCaseNames(testCaseClass)
         if not testCaseNames and hasattr(testCaseClass, 'runTest'):
