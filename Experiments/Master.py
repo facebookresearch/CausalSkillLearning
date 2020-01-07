@@ -78,8 +78,8 @@ class Master():
 	def test(self):
 		if self.args.test_code:
 			self.tester = TestClass.MetaTestClass(self.args, self.policy_manager, self.dataset)
-
-			unittest.main()
+			unittest.main(__name__, argv=['main'], exit=False)
+			
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
