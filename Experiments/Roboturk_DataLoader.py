@@ -128,7 +128,7 @@ class Roboturk_Dataset(Dataset):
 		for file in self.files:
 			file.close()
 
-def Roboturk_SegmentedDataset(Roboturk_Dataset):
+class Roboturk_SegmentedDataset(Roboturk_Dataset):
 
 	def __init__(self):
 
