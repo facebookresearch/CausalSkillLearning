@@ -250,12 +250,15 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 				print("Preprocessing task index: ", task_index, " Demo Index: ", i, " of: ", self.num_demos[task_index])
 			
 				# Create list of datapoints for this demonstrations. 
-				datapoint_list = {}
+				datapoint = {}
 				robot_state_list = []
 				object_state_list = []
 
 				# Get SEQUENCE of flattened states.
 				flattened_state_sequence = self.files[task_index]['data/demo_{0}/states'.format(i)].value
+				number_timesteps = flattened_state_sequence.shape[0]
+				robot_state_array = np.zeros((number_timesteps, robot_state_size))
+				object_state_array = np.zeros((number_timesteps, object_state_size))
 
 				# For every element in sequence, set environment state. 
 				for t in range(flattened_state_sequence.shape[0]):
@@ -266,16 +269,15 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 					observation = self.env._get_observation()
 
 					# Robot and Object state appended to datapoint dictionary. 
-					robot_state_list.append(observation['robot-state'])
-					object_state_list.append(observation['object-state'])
+					robot_state_array[t] = observation['robot-state']
+					object_state_array[t] = observation['object-state']
 
-				embed()
 				# Put both lists in a dictionary. 
-				datapoint_list['robot_state_list'] = np.concatenate(robot_state_list,axis=0)
-				datapoint_list['object_state_list'] = np.concatenate(object_state_list,axis=0)
+				datapoint['robot_state_list'] = robot_state_array
+				datapoint['object_state_list'] = object_state_array
 
 				# Add this dictionary to the file_demo_list. 
-				task_demo_list.append(datapoint_list)
+				task_demo_list.append(datapoint)
 
 			# Create array.
 			task_demo_array = np.array(task_demo_list)
