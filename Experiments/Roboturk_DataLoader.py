@@ -213,6 +213,22 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 					robot_state_array = np.zeros((number_timesteps, robot_state_size))
 					object_state_array = np.zeros((number_timesteps, object_state_size))
 
+					# Get joint angle values from 
+					joint_values = flattened_state_sequence[:,self.joint_angle_indices]
+					# Get gripper values from state sequence. 
+					gripper_finger_values = flattened_state_sequence[:,self.gripper_indices]
+
+					# Normalize gripper values. 
+
+					# 1 is right finger. 0 is left finger. 
+					# 1-0 is right-left. 
+		
+					gripper_values = gripper_finger_values[:,1]-gripper_finger_values[:,0]
+					gripper_values = (gripper_values-gripper_values.min()) / (gripper_values.max()-gripper_values.min())
+					gripper_values = 2*gripper_values-1
+
+					concatenated_demonstration = np.concatenate([joint_values,gripper_values.reshape((-1,1))],axis=1)
+
 					# For every element in sequence, set environment state. 
 					for t in range(flattened_state_sequence.shape[0]):
 
@@ -228,11 +244,12 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 				except: 
 
 					datapoint['robot_state_array'] = np.zeros((1, robot_state_size))
-					datapoint['object_state_array'] = np.zeros((1, object_state_size))
-					
+					datapoint['object_state_array'] = np.zeros((1, object_state_size))				
+
 				# Put both lists in a dictionary. 
-				datapoint['robot_state_array'] = robot_state_array
-				datapoint['object_state_array'] = object_state_array
+				datapoint['robot-state'] = robot_state_array
+				datapoint['object-state'] = object_state_array
+				datapoint['demo'] = concatenated_demonstration
 
 				# Add this dictionary to the file_demo_list. 
 				task_demo_list.append(datapoint)
