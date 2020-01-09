@@ -54,9 +54,9 @@ class Roboturk_Dataset(Dataset):
 		# self.r_gripper_l_finger_joint = np.array([-0.020833, 0.0135])
 
 		# [l,r]
-        # gripper_open = [0.0115, -0.0115]
-        # gripper_closed = [-0.020833, 0.020833]
-        
+		# gripper_open = [0.0115, -0.0115]
+		# gripper_closed = [-0.020833, 0.020833]
+		
 
 	def __len__(self):
 
@@ -172,8 +172,8 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 		# self.r_gripper_l_finger_joint = np.array([-0.020833, 0.0135])
 
 		# [l,r]
-        # gripper_open = [0.0115, -0.0115]
-        # gripper_closed = [-0.020833, 0.020833]
+		# gripper_open = [0.0115, -0.0115]
+		# gripper_closed = [-0.020833, 0.020833]
 
 class Roboturk_PreprocessDataset(Roboturk_Dataset):
 
@@ -218,10 +218,13 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 		# self.r_gripper_l_finger_joint = np.array([-0.020833, 0.0135])
 
 		# [l,r]
-        # gripper_open = [0.0115, -0.0115]
-        # gripper_closed = [-0.020833, 0.020833]
+		# gripper_open = [0.0115, -0.0115]
+		# gripper_closed = [-0.020833, 0.020833]
 
-        embed()
+	def preprocess_dataset(self):
+
+		pass
+		embed()
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
@@ -239,4 +242,4 @@ class Roboturk_Dataloader_Tester(unittest.TestCase):
 
 if __name__ == '__main__':
 	# Run all tests defined for the dataloader.
-    unittest.main()
+	unittest.main()
