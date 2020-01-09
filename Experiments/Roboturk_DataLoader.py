@@ -254,7 +254,7 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 				# For every element in sequence, set environment state. 
 				for t in range(flattened_state_sequence.shape[0]):
 
-					self.env.set_states_from_flattened(flattened_state_sequence[t])
+					self.env.sim.set_states_from_flattened(flattened_state_sequence[t])
 
 					# Now get observation. 
 					observation = self.env._get_observation()
