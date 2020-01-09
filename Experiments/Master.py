@@ -27,7 +27,7 @@ class Master():
 			# Now switch to using new dataset object. 
 			self.dataset = MIME_DataLoader.MIME_NewDataset()
 		elif self.args.data=='Roboturk':
-			self.dataset = Roboturk_DataLoader.Roboturk_SegmentedDataset()
+			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset()
 
 		# Now define policy manager.
 		if self.args.setting=='learntsub':
