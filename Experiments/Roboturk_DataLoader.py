@@ -61,6 +61,7 @@ class Roboturk_Dataset(Dataset):
 	def __len__(self):
 
 	def __len__(self):
+		
 		return self.total_length
 
 	def __getitem__(self, index):
