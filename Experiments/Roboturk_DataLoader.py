@@ -207,6 +207,8 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 				# Get SEQUENCE of flattened states.
 				try:
 					flattened_state_sequence = self.files[task_index]['data/demo_{0}/states'.format(i)].value
+					flattened_state_sequence = resample(flattened_state_sequence, flattened_state_sequence.shape[0]//self.ds_freq)
+
 					number_timesteps = flattened_state_sequence.shape[0]
 					robot_state_array = np.zeros((number_timesteps, robot_state_size))
 					object_state_array = np.zeros((number_timesteps, object_state_size))
@@ -224,7 +226,7 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 						object_state_array[t] = observation['object-state']
 
 				except: 
-					
+
 					datapoint['robot_state_array'] = np.zeros((1, robot_state_size))
 					datapoint['object_state_array'] = np.zeros((1, object_state_size))
 					
