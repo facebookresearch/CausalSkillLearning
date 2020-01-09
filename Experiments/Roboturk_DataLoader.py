@@ -269,6 +269,7 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 					robot_state_list.append(observation['robot-state'])
 					object_state_list.append(observation['object-state'])
 
+				embed()
 				# Put both lists in a dictionary. 
 				datapoint_list['robot_state_list'] = np.concatenate(robot_state_list,axis=0)
 				datapoint_list['object_state_list'] = np.concatenate(object_state_list,axis=0)
