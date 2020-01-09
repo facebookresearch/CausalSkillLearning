@@ -223,8 +223,58 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 
 	def preprocess_dataset(self):
 
-		pass
-		embed()
+		# for task_index in range(len(self.task_list)):
+		for task_index in range(1):
+
+			# Get the name of environment.
+			environment_name = self.files[task_index]['data'].attrs['env']
+			# Create an actual robo-suite environment. 
+			self.env = robosuite.make(environment_name)
+
+			# Get sizes. 
+			obs = self.env._get_observation()
+			robot_state_size = obs['robot-state'].shape[0]
+			object_state_size = obs['object-state'].shape[0]	
+
+			# Create list of files for this task. 
+			task_demo_list = []
+
+			# For every element in the filelist of the element,
+			# for i in range(1,self.num_demos[task_index]+1):
+			for i in range(1,2):
+			
+				# Create list of datapoints for this demonstrations. 
+				datapoint_list = {}
+				robot_state_list = []
+				object_state_list = []
+
+				# Get SEQUENCE of flattened states.
+				flattened_state_sequence = self.files[task_index]['data/demo_{0}/states'.format(i)].value
+
+				# For every element in sequence, set environment state. 
+				for t in range(flattened_state_sequence.shape[0]):
+
+					self.env.set_states_from_flattened(flattened_state_sequence[t])
+
+					# Now get observation. 
+					observation = self.env._get_observation()
+
+					# Robot and Object state appended to datapoint dictionary. 
+					robot_state_list.append(observation['robot-state'])
+					object_state_list.append(observation['object-state'])
+
+				# Put both lists in a dictionary. 
+				datapoint_list['robot_state_list'] = robot_state_list
+				datapoint_list['object_state_list'] = object_state_list
+
+				# Add this dictionary to the file_demo_list. 
+				task_demo_list.append(datapoint_list)
+
+			# Create array.
+			task_demo_array = np.array(task_demo_list)
+
+			# Now save this file_demo_list. 
+			np.save(os.path.join(self.dataset_directory,self.task_list[task_index],"Task_Demo_Array.npy"),task_demo_array)
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
