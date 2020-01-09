@@ -259,11 +259,11 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 			# Now save this file_demo_list. 
 			np.save(os.path.join(self.dataset_directory,self.task_list[task_index],"Task_Demo_Array.npy"),task_demo_array)
 
-class Roboturk_NewSegmentedDataset(Roboturk_Dataset):
+class Roboturk_NewSegmentedDataset(Dataset):
 
 	def __init__(self):
 
-		super(Roboturk_SegmentedDataset, self).__init__()
+		super(Roboturk_NewSegmentedDataset, self).__init__()
 		
 		self.dataset_directory = '/checkpoint/tanmayshankar/Roboturk/RoboTurkPilot'
 
