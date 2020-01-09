@@ -226,6 +226,10 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 		# for task_index in range(len(self.task_list)):
 		for task_index in range(1):
 
+			print("#######################################")
+			print("Preprocessing task index: ", task_index)
+			print("#######################################")
+
 			# Get the name of environment.
 			environment_name = self.files[task_index]['data'].attrs['env']
 			# Create an actual robo-suite environment. 
@@ -242,6 +246,8 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 			# For every element in the filelist of the element,
 			# for i in range(1,self.num_demos[task_index]+1):
 			for i in range(1,2):
+
+				print("Preprocessing task index: ", task_index, " Demo Index: ", i, " of: ", self.num_demos[task_index])
 			
 				# Create list of datapoints for this demonstrations. 
 				datapoint_list = {}
@@ -264,8 +270,8 @@ class Roboturk_PreprocessDataset(Roboturk_Dataset):
 					object_state_list.append(observation['object-state'])
 
 				# Put both lists in a dictionary. 
-				datapoint_list['robot_state_list'] = robot_state_list
-				datapoint_list['object_state_list'] = object_state_list
+				datapoint_list['robot_state_list'] = np.concatenate(robot_state_list,axis=0)
+				datapoint_list['object_state_list'] = np.concatenate(object_state_list,axis=0)
 
 				# Add this dictionary to the file_demo_list. 
 				task_demo_list.append(datapoint_list)
