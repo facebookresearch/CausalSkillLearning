@@ -739,13 +739,6 @@ class PolicyManager_Prior(PolicyManager_BaseClass):
 			return None, None, None
 
 class PolicyManager_Pretrain(PolicyManager_BaseClass):
-	# Basic Training Algorithm: 
-	# For E epochs:
-	# 	# For all trajectories:
-	#		# Sample trajectory segment from dataset. 
-	# 		# Encode trajectory segment into latent z. 
-	# 		# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
-	# 		# Update parameters. 
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
@@ -1316,6 +1309,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Get test set elements as last (self.test_set_size) number of elements of dataset.
 		for i in range(self.test_set_size):
 
+			embed()
 			index = i + len(self.dataset)-self.test_set_size
 			
 			# Get latent z. 					
