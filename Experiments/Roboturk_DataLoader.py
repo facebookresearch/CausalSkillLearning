@@ -310,6 +310,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 	def __getitem__(self, index):
 
+
 		if index>=self.total_length:
 			print("Out of bounds of dataset.")
 			return None
@@ -324,6 +325,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# Subtract number of demonstrations in cumsum until then, and then 				
 		new_index = index-self.cummulative_num_demos[max(task_index,0)]
 
+		embed()
 		data_element = self.files[task_index][new_index]
 
 		if data_element['demo'].shape[0]<=1:
