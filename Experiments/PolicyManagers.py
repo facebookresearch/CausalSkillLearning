@@ -91,12 +91,8 @@ class PolicyManager_BaseClass():
 				
 			self.conditional_information = np.zeros((self.args.condition_size))
 
-			# if self.args.data=='MIME':
-			# 	# Sample a trajectory length that's valid. 						
-			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
-			# else:
-			# 	trajectory = data_element['demo']
 			trajectory = data_element['demo']
+
 
 			# If normalization is set to some value.
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -892,7 +888,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		return image
 
-	def update_plots(self, counter, loglikelihood, sample_traj):		
+	def update_plots(self, counter, loglikelihood, sample_traj):
 		
 		self.tf_logger.scalar_summary('Subpolicy Likelihood', loglikelihood.mean(), counter)
 		self.tf_logger.scalar_summary('Total Loss', self.total_loss.mean(), counter)
@@ -1745,12 +1741,13 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		else:
 
 			if self.training_phase>1:
+				# Prevents gradients being propagated through this..
 				latent_z_copy = torch.tensor(latent_z_indices).cuda()
 			else:
 				latent_z_copy = latent_z_indices
 
 			if conditional_information is None:
-				conditional_information = torch.zeros((self.args.condition_size)).cuda().float()			
+				conditional_information = torch.zeros((self.args.condition_size)).cuda().float()
 
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 			
 			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.args.condition_size)).cuda()
@@ -1772,6 +1769,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# padded_action_seq = np.concatenate([np.zeros((1,self.output_size)),sample_action_seq],axis=0)
 			# This is the right method of concatenation, because it evaluates likelihood 			
 			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
+
+			embed()
 
 			return assembled_inputs, subpolicy_inputs, padded_action_seq
 
