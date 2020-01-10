@@ -1309,9 +1309,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Get test set elements as last (self.test_set_size) number of elements of dataset.
 		for i in range(self.test_set_size):
 
-			embed()
 			index = i + len(self.dataset)-self.test_set_size
-			
+			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
 			# Get latent z. 					
 			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
 
