@@ -318,10 +318,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# Get bucket that index falls into based on num_demos array. 
 		task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
 		
-		if index==self.total_length-1:
-			task_index-=1
-			embed()
-
 		# Decide task ID, and new index modulo num_demos.
 		# Subtract number of demonstrations in cumsum until then, and then 				
 		new_index = index-self.cummulative_num_demos[max(task_index,0)]
