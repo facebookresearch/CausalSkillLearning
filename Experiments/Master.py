@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader
-from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, PolicyManager_FlatDMPBaseline, PolicyManager_DMPBaselines
+from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, PolicyManager_DMPBaselines
 import TestClass
 
 class Master():
@@ -36,7 +36,7 @@ class Master():
 			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='downstreamRL':
 			self.policy_manager = PolicyManager_DownstreamRL(self.args)
-		elif self.args.setting=='FlatDMP':
+		elif self.args.setting=='DMP':
 			# self.policy_manager = PolicyManager_FlatDMPBaseline(self.args.number_policies, self.dataset, self.args)
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 
@@ -76,7 +76,7 @@ class Master():
 				else:
 					self.policy_manager.train()			
 
-		elif self.args.setting=='FlatDMP':
+		elif self.args.setting=='DMP':
 			self.policy_manager.evaluate_across_testset()
 
 	def test(self):

@@ -2172,43 +2172,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			# if e%self.args.eval_freq==0:
 			# 	self.automatic_evaluation(e)
 
-class PolicyManager_FlatDMPBaseline(PolicyManager_Joint):
-
-	def __init__(self, number_policies=4, dataset=None, args=None):
-		super(PolicyManager_FlatDMPBaseline, self).__init__(number_policies, dataset, args)
-
-	def evaluate_across_testset(self):
-
-		# Create array for distances. 
-		self.distances = -np.ones((self.test_set_size))
-
-		for i in range(self.test_set_size):
-
-			# Set actual index. 
-			index = i + len(self.dataset) - self.test_set_size
-
-			if i%100==0:
-				print("Evaluating Datapoint ", i)
-
-			# Get trajectory. 
-			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
-
-			if sample_traj is not None: 
-				# Reinitialize DMP Class. 
-				self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
-
-				# Learn DMP for particular trajectory. 
-				self.dmp.learn_DMP(sample_traj)
-
-				# Get rollout. 
-				trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
-
-				# Evaluate distance. 
-				self.distances[i] = ((sample_traj-trajectory_rollout)**2).mean()
-
-		self.mean_distance = self.distances[self.distances>0].mean()		
-		print("Average Distance: ", self.mean_distance)
-
 class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
@@ -2273,8 +2236,6 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			# Copy segment rollout into full rollout. 
 			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
 
-		
-
 		return trajectory_rollout
 
 	def evaluate_AccelerationChangepoint_iteration(self, index, sample_traj):
@@ -2295,8 +2256,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			# Set actual index. 
 			index = i + len(self.dataset) - self.test_set_size
 
-			# if i%100==0:
-			print("Evaluating Datapoint ", i)
+			if i%100==0:
+				print("Evaluating Datapoint ", i)
 
 			# Get trajectory. 
 			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
