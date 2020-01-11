@@ -2253,6 +2253,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
 		trajectory_rollout = np.zeros_like(sample_traj)
+		
+		embed()
 
 		# For every segment.
 		for i in range(len(segmentation)-1):
@@ -2265,7 +2267,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			# Copy segment rollout into full rollout. 
 			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
 
-		embed()
+		
 
 		return trajectory_rollout
 
