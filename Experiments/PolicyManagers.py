@@ -2246,15 +2246,21 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
 
 		# Find peaks with minimum length = 8.
-		peaks = find_peaks(acceleration_norm, distance=8)[0]
+		window = 8
+		peaks = find_peaks(acceleration_norm, distance=window)[0]
 		
 		# Add start and end to peaks. 
-		segmentation = np.insert(peaks, 0, 0)
-		segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
+		if segmentation[0]<window:
+			segmentation[0] = 0
+		else:
+			segmentation = np.insert(peaks, 0, 0)
+		# If end segmentation is within WINDOW of end, change segment to end. 
+		if (len(sample_traj) - segmentation[-1])<window:
+			segmentation[-1] = len(sample_traj)
+		else:
+			segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
-		trajectory_rollout = np.zeros_like(sample_traj)
-		
-		embed()
+		trajectory_rollout = np.zeros_like(sample_traj)		
 
 		# For every segment.
 		for i in range(len(segmentation)-1):
