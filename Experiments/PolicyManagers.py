@@ -2179,6 +2179,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 		self.number_kernels = 30
 		self.window = 8
+		self.kernel_bandwidth = 2.
 
 	def get_MSE(self, sample_traj, trajectory_rollout):
 		# Evaluate MSE between reconstruction and sample trajectory. 
@@ -2186,7 +2187,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 	def get_FlatDMP_rollout(self, sample_traj, velocities=None):
 		# Reinitialize DMP Class. 
-		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
+		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=self.kernel_bandwidth, alphaz=5., time_basis=True)
 
 		# Learn DMP for particular trajectory.
 		self.dmp.learn_DMP(sample_traj)
