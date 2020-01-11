@@ -2247,7 +2247,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 		# Find peaks with minimum length = 8.
 		window = 8
-		peaks = find_peaks(acceleration_norm, distance=window)[0]
+		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
 		# Add start and end to peaks. 
 		if segmentation[0]<window:
