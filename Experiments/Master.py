@@ -37,7 +37,8 @@ class Master():
 		elif self.args.setting=='downstreamRL':
 			self.policy_manager = PolicyManager_DownstreamRL(self.args)
 		elif self.args.setting=='FlatDMP':
-			self.policy_manager = PolicyManager_FlatDMPBaseline(self.args.number_policies, self.dataset, self.args)
+			# self.policy_manager = PolicyManager_FlatDMPBaseline(self.args.number_policies, self.dataset, self.args)
+			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
 		self.policy_manager.setup()
