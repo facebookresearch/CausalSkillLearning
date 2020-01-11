@@ -30,3 +30,7 @@ import h5py
 import time
 import robosuite
 import unittest
+
+from scipy import stats, signal
+from scipy.interpolate import interp1d
+from scipy.ndimage.filters import gaussian_filter1d
