@@ -2250,6 +2250,10 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		trajectory_rollout = self.get_AccelerationChangepoint_rollout(sample_traj)
 		self.AccChangepointDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
 
+	def evaluate_MeanRegression_iteration(self, index, sample_traj):
+		mean = sample_traj.mean(axis=0)
+		self.MeanRegression_distances[index] = ((sample_traj-mean)**2).mean()
+
 	def get_GreedyDMP_rollout(self, sample_traj):
 		pass		
 
@@ -2258,6 +2262,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		# Create array for distances. 
 		self.FlatDMP_distances = -np.ones((self.test_set_size))
 		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
+		self.MeanRegression_distances = -np.ones((self.test_set_size))
 
 		for i in range(self.test_set_size):
 
@@ -2280,8 +2285,12 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 				# Eval AccChange DMP Baseline.
 				self.evaluate_AccelerationChangepoint_iteration(i, sample_traj)
 
+				# Evaluate Mean regression Basleine. 
+				self.evaluate_MeanRegression_iteration(i, sample_traj)
+
 		# self.mean_distance = self.distances[self.distances>0].mean()		
 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
 		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
+		print("Average Distance of Flat DMP Baseline: ", self.MeanRegression_distances[self.Mean_Trajectory_Distance_>0].mean())
 
 		embed()
