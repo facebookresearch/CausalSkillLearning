@@ -2177,13 +2177,16 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def __init__(self, number_policies=4, dataset=None, args=None):
 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
+		self.number_kernels = 15
+		self.window = 8
+
 	def get_MSE(self, sample_traj, trajectory_rollout):
 		# Evaluate MSE between reconstruction and sample trajectory. 
 		return ((sample_traj-trajectory_rollout)**2).mean()
 
 	def get_FlatDMP_rollout(self, sample_traj, velocities=None):
 		# Reinitialize DMP Class. 
-		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
+		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
 
 		# Learn DMP for particular trajectory. 
 		self.dmp.learn_DMP(sample_traj)
@@ -2209,7 +2212,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
 
 		# Find peaks with minimum length = 8.
-		window = 15
+		window = self.window
 		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
 		# Add start and end to peaks. 
@@ -2264,8 +2267,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 			if sample_traj is not None: 
 
-				embed()
-				
+				# embed()
+
 				# Eval Flat DMP.
 				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
 
