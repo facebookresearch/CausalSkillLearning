@@ -75,6 +75,9 @@ class Master():
 				else:
 					self.policy_manager.train()			
 
+		elif self.args.setting=='FlatDMP':
+			self.policy_manager.evaluate_across_testset()
+
 	def test(self):
 		if self.args.test_code:
 			loader = TestClass.TestLoaderWithKwargs()
