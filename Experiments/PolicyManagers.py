@@ -2296,10 +2296,10 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			if sample_traj is not None: 
 
 				# Eval Flat DMP.
-				self.evaluate_FlatDMPBaseline_iteration(index, sample_traj)
+				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
 
 				# Eval AccChange DMP Baseline.
-				self.evaluate_AccelerationChangepoint_iteration(index, sample_traj)
+				self.evaluate_AccelerationChangepoint_iteration(i, sample_traj)
 
 		# self.mean_distance = self.distances[self.distances>0].mean()
 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
