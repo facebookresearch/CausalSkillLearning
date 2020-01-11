@@ -2177,7 +2177,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def __init__(self, number_policies=4, dataset=None, args=None):
 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
-		self.number_kernels = 20
+		self.number_kernels = 30
 		self.window = 8
 
 	def get_MSE(self, sample_traj, trajectory_rollout):
@@ -2188,7 +2188,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		# Reinitialize DMP Class. 
 		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
 
-		# Learn DMP for particular trajectory. 
+		# Learn DMP for particular trajectory.
 		self.dmp.learn_DMP(sample_traj)
 
 		# Get rollout. 
