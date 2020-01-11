@@ -158,6 +158,11 @@ def parse_arguments():
 	parser.add_argument('--epsilon_to',dest='epsilon_to',type=float,default=0.05)
 	parser.add_argument('--epsilon_over',dest='epsilon_over',type=int,default=30)
 
+	# Baseline parameters. 
+	parser.add_argument('--baseline_kernels',dest='baseline_kernels',type=int,default=15)
+	parser.add_argument('--baseline_window',dest='baseline_window',type=int,default=15)
+	parser.add_argument('--baseline_kernel_bandwidth',dest='baseline_kernel_bandwidth',type=float,default=3.5)
+
 	return parser.parse_args()
 
 def main(args):

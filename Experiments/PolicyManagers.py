@@ -2181,6 +2181,10 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		self.window = 8
 		self.kernel_bandwidth = 1.5
 
+		self.number_kernels = self.args.baseline_kernels
+		self.window = self.args.baseline_window
+		self.kernel_bandwidth = self.args.baseline_kernel_bandwidth
+
 	def get_MSE(self, sample_traj, trajectory_rollout):
 		# Evaluate MSE between reconstruction and sample trajectory. 
 		return ((sample_traj-trajectory_rollout)**2).mean()
@@ -2276,6 +2280,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 				# Eval AccChange DMP Baseline.
 				self.evaluate_AccelerationChangepoint_iteration(i, sample_traj)
 
-		# self.mean_distance = self.distances[self.distances>0].mean()
+		# self.mean_distance = self.distances[self.distances>0].mean()		
 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
 		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
+
+		embed()
