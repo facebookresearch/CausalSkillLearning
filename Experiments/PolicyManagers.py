@@ -2287,8 +2287,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			# Set actual index. 
 			index = i + len(self.dataset) - self.test_set_size
 
-			if i%100==0:
-				print("Evaluating Datapoint ", i)
+			# if i%100==0:
+			print("Evaluating Datapoint ", i)
 
 			# Get trajectory. 
 			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
