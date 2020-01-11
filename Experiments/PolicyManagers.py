@@ -2265,7 +2265,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			# Copy segment rollout into full rollout. 
 			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
 
-		embed()
+		# embed()
 
 		return trajectory_rollout
 
