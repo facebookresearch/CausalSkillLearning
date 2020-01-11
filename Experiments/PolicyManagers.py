@@ -1165,7 +1165,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_Joint, self).__init__()
+		super(PolicyManager_Joint, self).__init__(number_policies, dataset, args)
 
 		self.args = args
 		self.data = self.args.data
