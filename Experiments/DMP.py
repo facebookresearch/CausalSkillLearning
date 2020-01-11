@@ -1,5 +1,5 @@
 #!/usr/bin/env python2
-from .headers import *
+from headers import *
 
 class DMP():
 	
