@@ -2209,7 +2209,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
 
 		# Find peaks with minimum length = 8.
-		window = 8
+		window = 15
 		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
 		# Add start and end to peaks. 
