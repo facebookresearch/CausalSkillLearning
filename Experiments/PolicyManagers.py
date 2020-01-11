@@ -2195,7 +2195,7 @@ class PolicyManager_FlatDMPBaseline(PolicyManager_Joint):
 
 			if sample_traj is not None: 
 				# Reinitialize DMP Class. 
-				self.dmp = DMP.DMP(time_steps=40, num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
+				self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
 
 				# Learn DMP for particular trajectory. 
 				self.dmp.learn_DMP(sample_traj)
