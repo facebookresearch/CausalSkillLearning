@@ -2240,19 +2240,19 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def get_AccelerationChangepoint_rollout(self, sample_traj):
 
 		# Get magnitudes of acceleration across time.
-        acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
+		acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
 
-        # Get velocities. 
+		# Get velocities. 
 		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
 
-        # Find peaks with minimum length = 8.
-        peaks = find_peaks(acceleration_norm, distance=8)[0]
-        
-        # Add start and end to peaks. 
-        segmentation = np.insert(peaks, 0, 0)
-        segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
+		# Find peaks with minimum length = 8.
+		peaks = find_peaks(acceleration_norm, distance=8)[0]
+		
+		# Add start and end to peaks. 
+		segmentation = np.insert(peaks, 0, 0)
+		segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
-        trajectory_rollout = np.zeros_like(sample_traj)
+		trajectory_rollout = np.zeros_like(sample_traj)
 
 		# For every segment.
 		for i in range(len(segmentation)-1):
