@@ -2174,7 +2174,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 
 class PolicyManager_FlatDMPBaseline(PolicyManager_Joint):
 
-	def __init__(self):
+	def __init__(self, number_policies=4, dataset=None, args=None):
 		super(PolicyManager_FlatDMPBaseline, self).__init__()
 
 	def evaluate_across_testset(self):
