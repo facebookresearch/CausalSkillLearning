@@ -2253,7 +2253,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		if segmentation[0]<window:
 			segmentation[0] = 0
 		else:
-			segmentation = np.insert(peaks, 0, 0)
+			segmentation = np.insert(segmentation, 0, 0)
 		# If end segmentation is within WINDOW of end, change segment to end. 
 		if (len(sample_traj) - segmentation[-1])<window:
 			segmentation[-1] = len(sample_traj)
