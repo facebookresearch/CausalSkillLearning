@@ -2179,7 +2179,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 		self.number_kernels = 30
 		self.window = 8
-		self.kernel_bandwidth = 2.
+		self.kernel_bandwidth = 1.5
 
 	def get_MSE(self, sample_traj, trajectory_rollout):
 		# Evaluate MSE between reconstruction and sample trajectory. 
