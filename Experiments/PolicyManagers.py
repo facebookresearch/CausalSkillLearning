@@ -2271,7 +2271,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 	def evaluate_AccelerationChangepoint_iteration(self, index, sample_traj):
 		trajectory_rollout = self.get_AccelerationChangepoint_rollout(sample_traj)
-		self.AccChangepointDMP_distances[i] = self.get_MSE(sample_traj, trajectory_rollout)
+		self.AccChangepointDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
 
 	def get_GreedyDMP_rollout(self, sample_traj):
 		pass		
