@@ -2263,6 +2263,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		self.FlatDMP_distances = -np.ones((self.test_set_size))
 		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
 		self.MeanRegression_distances = -np.ones((self.test_set_size))
+		self.lengths = -np.ones((self.test_set_size))
 
 		for i in range(self.test_set_size):
 
@@ -2278,6 +2279,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 			if sample_traj is not None: 
 
 				# embed()
+				self.lengths[i] = len(sample_traj)
 
 				# Eval Flat DMP.
 				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
@@ -2291,6 +2293,6 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		# self.mean_distance = self.distances[self.distances>0].mean()		
 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
 		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
-		print("Average Distance of Flat DMP Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
+		print("Average Distance of Mean Regression Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
 
 		embed()
