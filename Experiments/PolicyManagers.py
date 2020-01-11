@@ -2291,6 +2291,6 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		# self.mean_distance = self.distances[self.distances>0].mean()		
 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
 		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
-		print("Average Distance of Flat DMP Baseline: ", self.MeanRegression_distances[self.Mean_Trajectory_Distance_>0].mean())
+		print("Average Distance of Flat DMP Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
 
 		embed()
