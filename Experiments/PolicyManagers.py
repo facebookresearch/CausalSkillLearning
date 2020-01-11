@@ -2208,3 +2208,68 @@ class PolicyManager_FlatDMPBaseline(PolicyManager_Joint):
 
 		self.mean_distance = self.distances[self.distances>0].mean()		
 		print("Average Distance: ", self.mean_distance)
+
+class PolicyManager_DMPBaselines(PolicyManager_Joint):
+
+	def __init__(self, number_policies=4, dataset=None, args=None):
+		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
+
+	def get_MSE(self, sample_traj, trajectory_rollout):
+		# Evaluate MSE between reconstruction and sample trajectory. 
+		return ((sample_traj-trajectory_rollout)**2).mean()
+
+	def get_FlatDMP_rollout(self, sample_traj):
+		# Reinitialize DMP Class. 
+		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
+
+		# Learn DMP for particular trajectory. 
+		self.dmp.learn_DMP(sample_traj)
+
+		# Get rollout. 
+		trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
+
+		return trajectory_rollout
+
+	def get_AccelerationChangepoint_rollout(self, sample_traj):
+
+		# Get magnitudes of acceleration across time.
+        acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
+        
+        # Find peaks with minimum length = 8.
+        peaks = find_peaks(acceleration_norm, distance=8)[0]
+        
+        # Add start and end to peaks. 
+        segmentation = np.insert(peaks, 0, 0)
+        segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
+
+		
+
+	def get_GreedyDMP_rollout(self, sample_traj):
+		pass		
+
+	def evaluate_across_testset(self):
+
+		# Create array for distances. 
+		self.distances = -np.ones((self.test_set_size))
+
+		for i in range(self.test_set_size):
+
+			# Set actual index. 
+			index = i + len(self.dataset) - self.test_set_size
+
+			if i%100==0:
+				print("Evaluating Datapoint ", i)
+
+			# Get trajectory. 
+			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+
+			if sample_traj is not None: 
+
+				# Get rollout from flat baseline.
+				trajectory_rollout = self.get_FlatDMP_rollout(sample_traj)
+
+				# Evaluate distance. 
+				self.distances[i] = self.get_MSE(sample_traj, trajectory_rollout)
+
+		self.mean_distance = self.distances[self.distances>0].mean()		
+		print("Average Distance: ", self.mean_distance)
