@@ -2177,7 +2177,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def __init__(self, number_policies=4, dataset=None, args=None):
 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
-		self.number_kernels = 20
+		self.number_kernels = 15
 		self.window = 15
 
 	def get_MSE(self, sample_traj, trajectory_rollout):
