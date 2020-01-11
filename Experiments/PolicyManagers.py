@@ -2218,7 +2218,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		# Evaluate MSE between reconstruction and sample trajectory. 
 		return ((sample_traj-trajectory_rollout)**2).mean()
 
-	def get_FlatDMP_rollout(self, sample_traj):
+	def get_FlatDMP_rollout(self, sample_traj, velocities=None):
 		# Reinitialize DMP Class. 
 		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
 
@@ -2226,15 +2226,25 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		self.dmp.learn_DMP(sample_traj)
 
 		# Get rollout. 
-		trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
+		if velocities is not None: 
+			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],velocities)
+		else:
+			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
 
 		return trajectory_rollout
+
+	def evaluate_FlatDMPBaseline_iteration(self, index, sample_traj):
+		trajectory_rollout = self.get_FlatDMP_rollout(sample_traj)
+		self.FlatDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
 
 	def get_AccelerationChangepoint_rollout(self, sample_traj):
 
 		# Get magnitudes of acceleration across time.
         acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
-        
+
+        # Get velocities. 
+		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
+
         # Find peaks with minimum length = 8.
         peaks = find_peaks(acceleration_norm, distance=8)[0]
         
@@ -2242,7 +2252,26 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
         segmentation = np.insert(peaks, 0, 0)
         segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
-		
+        trajectory_rollout = np.zeros_like(sample_traj)
+
+		# For every segment.
+		for i in range(len(segmentation)-1):
+			# Get trajectory segment. 
+			trajectory_segment = sample_traj[segmentation[i]:segmentation[i+1]]
+
+			# Get rollout. # Feed velocities into rollout. # First velocity is 0. 
+			segment_rollout = self.get_FlatDMP_rollout(trajectory_segment, velocities[segmentation[i]])
+
+			# Copy segment rollout into full rollout. 
+			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
+
+		embed()
+
+		return trajectory_rollout
+
+	def evaluate_AccelerationChangepoint_iteration(self, index, sample_traj):
+		trajectory_rollout = self.get_AccelerationChangepoint_rollout(sample_traj)
+		self.AccChangepointDMP_distances[i] = self.get_MSE(sample_traj, trajectory_rollout)
 
 	def get_GreedyDMP_rollout(self, sample_traj):
 		pass		
@@ -2250,7 +2279,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def evaluate_across_testset(self):
 
 		# Create array for distances. 
-		self.distances = -np.ones((self.test_set_size))
+		self.FlatDMP_distances = -np.ones((self.test_set_size))
+		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
 
 		for i in range(self.test_set_size):
 
@@ -2265,11 +2295,12 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 			if sample_traj is not None: 
 
-				# Get rollout from flat baseline.
-				trajectory_rollout = self.get_FlatDMP_rollout(sample_traj)
+				# Eval Flat DMP.
+				self.evaluate_FlatDMPBaseline_iteration(index, sample_traj)
 
-				# Evaluate distance. 
-				self.distances[i] = self.get_MSE(sample_traj, trajectory_rollout)
+				# Eval AccChange DMP Baseline.
+				self.evaluate_AccelerationChangepoint_iteration(index, sample_traj)
 
-		self.mean_distance = self.distances[self.distances>0].mean()		
-		print("Average Distance: ", self.mean_distance)
+		# self.mean_distance = self.distances[self.distances>0].mean()
+		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
+		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
