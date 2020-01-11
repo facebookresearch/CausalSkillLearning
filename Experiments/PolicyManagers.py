@@ -5,6 +5,7 @@ from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoder
 # from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger
+import DMP
 
 class PolicyManager_BaseClass():
 
@@ -2176,5 +2177,34 @@ class PolicyManager_FlatDMPBaseline(PolicyManager_Joint):
 	def __init__(self):
 		super(PolicyManager_FlatDMPBaseline, self).__init__()
 
+	def evaluate_across_testset(self):
 
+		# Create array for distances. 
+		self.distances = -np.ones((self.test_set_size))
 
+		for i in range(self.test_set_size):
+
+			# Set actual index. 
+			index = i + len(self.dataset) - self.test_set_size
+
+			if i%100==0:
+				print("Evaluating Datapoint ", i)
+
+			# Get trajectory. 
+			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+
+			if sample_traj is not None: 
+				# Reinitialize DMP Class. 
+				self.dmp = DMP(time_steps=40, num_ker=15, dimensions=self.state_size, kernel_bandwidth=3.5, alphaz=5., time_basis=True)
+
+				# Learn DMP for particular trajectory. 
+				self.dmp.learn_DMP(sample_traj)
+
+				# Get rollout. 
+				trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
+
+				# Evaluate distance. 
+				self.distances[i] = ((sample_traj-trajectory_rollout)**2).mean()
+
+		self.mean_distance = self.distances[self.distances>0].mean()		
+		print("Average Distance: ", self.mean_distance)
