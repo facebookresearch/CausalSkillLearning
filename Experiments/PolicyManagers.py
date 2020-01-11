@@ -2264,6 +2264,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 			if sample_traj is not None: 
 
+				embed()
+				
 				# Eval Flat DMP.
 				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
 
