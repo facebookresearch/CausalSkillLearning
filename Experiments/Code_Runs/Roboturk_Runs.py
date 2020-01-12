@@ -84,6 +84,15 @@ python cluster_run.py --partition=learnfair --name=R18 --cmd='python Master.py -
 
 python cluster_run.py --partition=learnfair --name=R19 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R19 --data=Roboturk --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
 
+# Rerun with new dataloader / dataset. 
+python cluster_run.py --partition=learnfair --name=R20 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R20 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --partition=learnfair --name=R21 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R21 --data=Roboturk --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+# Eval and debug.
+python Master.py --train=0 --setting=pretrain_sub --name=Rdebug --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/R20/saved_models/Model_epoch0
+
+
 ####################################################
 ####################################################
 ############ Joint training on roboturk ############

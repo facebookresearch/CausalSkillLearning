@@ -785,6 +785,8 @@ python cluster_run.py --partition=learnfair --name=M147 --cmd='python Master.py 
 
 python cluster_run.py --partition=learnfair --name=M148 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M148 --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64'
 
+# Debug. 
+python Master.py --train=1 --setting=pretrain_sub --name=Tdebug_test --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --test_code=1
 
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
@@ -1012,6 +1014,8 @@ python cluster_run.py --name=J78 --cmd='python Master.py --train=1 --setting=lea
 python cluster_run.py --name=J79 --cmd='python Master.py --train=1 --setting=learntsub --name=J79 --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M135/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/J68_loadM135_m160/saved_models/Model_epoch121 --fix_subpolicy=0'
 
 
+# Devbug
+python Master.py --train=1 --setting=learntsub --name=Jdebug_cond --normalization=minmax --kl_weight=0.0001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=MIME --subpolicy_model=Experiment_Logs/M47/saved_models/Model_epoch172 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1
 ########################################################
 # Pretraining prior for experiments on diversity
 
