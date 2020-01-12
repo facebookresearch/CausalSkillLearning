@@ -2283,8 +2283,8 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 					sample_traj = sample_traj[:,:-2]
 					self.state_size = 14
 				if self.args.data=='Roboturk':				
-					# sample_traj = sample_traj[:,:-1]
-					# self.state_size = 7
+					sample_traj = sample_traj[:,:-1]
+					self.state_size = 7
 					sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
 					
 				self.lengths[i] = len(sample_traj)
