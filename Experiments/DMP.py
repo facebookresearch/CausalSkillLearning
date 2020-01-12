@@ -73,7 +73,7 @@ class DMP():
 
 	def smooth_interpolate(self, pos):
 		# Filter the posiiton input by Gaussian smoothing. 
-		smooth_pos = gaussian_filter1d(pos,3.5,axis=0,mode='nearest')		
+		smooth_pos = gaussian_filter1d(pos,3.5,axis=0,mode='nearest')
 
 		time_range = np.linspace(0, pos.shape[0]-1, pos.shape[0])
 		new_time_range = np.linspace(0,pos.shape[0]-1,self.time_steps+2)
