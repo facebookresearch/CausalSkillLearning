@@ -329,6 +329,10 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
+			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
+			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
+			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
+
 		return data_element
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
