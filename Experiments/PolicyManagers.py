@@ -1468,7 +1468,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality+1] = latent_b[:-1].float()	
 			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
-			embed()
 			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
 			assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
@@ -1708,7 +1707,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def set_env_conditional_info(self):
 		obs = self.environment._get_observation()
-		self.conditional_information = np.concatenate([obs['robot-state'],obs['object-state']])		
+		self.conditional_information = np.zeros((self.conditional_info_size))
+		cond_state = np.concatenate([obs['robot-state'],obs['object-state']])
+		self.conditional_information[:,-self.conditional_info_size:-self.conditional_info_size+cond_state.shape[-1]] = cond_state
 
 	def take_rollout_step(self, subpolicy_input, t):
 
