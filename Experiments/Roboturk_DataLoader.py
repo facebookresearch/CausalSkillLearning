@@ -248,7 +248,7 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 				# Put both lists in a dictionary. 
 				datapoint['robot-state'] = robot_state_array
 				datapoint['object-state'] = object_state_array
-				datapoint['demo'] = concatenated_demonstration
+				datapoint['demo'] = concatenated_demonstration				
 
 				# Add this dictionary to the file_demo_list. 
 				task_demo_list.append(datapoint)
@@ -272,6 +272,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# We shouldn't need the environment for .. training though, should we? 
 
 		self.task_list = ["bins-Bread", "bins-Can", "bins-Cereal", "bins-Milk", "pegs-RoundNut", "pegs-SquareNut"]
+		self.environment_names = ["SawyerPickPlaceBread","SawyerPickPlaceCan","SawyerPickPlaceCereal","SawyerPickPlaceMilk","SawyerNutAssemblyRound","SawyerNutAssemblySquare"]
 		self.num_demos = np.array([1069, 1069, 1069, 1069, 1144, 1145])
 		self.cummulative_num_demos = self.num_demos.cumsum()
 		self.cummulative_num_demos = np.insert(self.cummulative_num_demos,0,0)
@@ -332,6 +333,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
 			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
 			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
+			data_element['environment-name'] = self.environment_names[task_index]
 
 		return data_element
 
