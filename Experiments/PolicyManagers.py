@@ -1711,7 +1711,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		cond_state = np.concatenate([obs['robot-state'],obs['object-state']])
 		self.conditional_information[:cond_state.shape[-1]] = cond_state
 
-	def take_rollout_step(self, subpolicy_input, t):
+	def take_rollout_step(self, subpolicy_input, t, use_env=False):
 
 		# Feed subpolicy input into the policy. 
 		actions = self.policy_network.get_actions(subpolicy_input,greedy=True)
@@ -1719,7 +1719,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Select last action to execute. 
 		action_to_execute = actions[-1].squeeze(1)
 
-		if self.conditional_viz_env:
+		if use_env==True:
 			# Take a step in the environment. 
 			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
 			# Get state. 
@@ -1830,7 +1830,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				subpolicy_inputs[t, self.input_size:] = selected_z[-1]
 
 			# Now pass subpolicy net forward and get action and next state. 
-			action_to_execute, new_state = self.take_rollout_step(subpolicy_inputs[:(t+1)].view((t+1,-1)), t)
+			action_to_execute, new_state = self.take_rollout_step(subpolicy_inputs[:(t+1)].view((t+1,-1)), t, use_env=self.conditional_viz_env)
 			state_action_tuple = torch.cat([new_state, action_to_execute],dim=1)
 
 			# Now update assembled input. 
