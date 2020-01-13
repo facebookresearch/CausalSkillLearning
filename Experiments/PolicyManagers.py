@@ -1719,13 +1719,14 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# return new_subpolicy_input
 		return action_to_execute, new_state
 
-	def create_RL_environment_for_rollout(self):
-		
-		
+	def create_RL_environment_for_rollout(self, environment_name):
+
+		self.environment = robosuite.make(environment_name)
+
 	def rollout_visuals(self, counter, i, get_image=True):
 
 		if self.args.data=='Roboturk':
-
+			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'])
 
 		# Rollout policy with 
 		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
@@ -1765,8 +1766,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			subpolicy_inputs[t+1,:self.input_size] = state_action_tuple
 		
 		# Get trajectory from this. 
-		self.variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
-		
+		self.variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())		
 
 		#####################################
 		##### (B) LATENT POLICY ROLLOUT. ####

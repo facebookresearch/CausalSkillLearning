@@ -245,7 +245,8 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 					datapoint['robot_state_array'] = np.zeros((1, robot_state_size))
 					datapoint['object_state_array'] = np.zeros((1, object_state_size))				
 
-				# Put both lists in a dictionary. 
+				# Put both lists in a dictionary.
+				datapoint['flat-state'] = flattened_state_sequence
 				datapoint['robot-state'] = robot_state_array
 				datapoint['object-state'] = object_state_array
 				datapoint['demo'] = concatenated_demonstration				
@@ -257,7 +258,7 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 			task_demo_array = np.array(task_demo_list)
 
 			# Now save this file_demo_list. 
-			np.save(os.path.join(self.dataset_directory,self.task_list[task_index],"Task_Demo_Array.npy"),task_demo_array)
+			np.save(os.path.join(self.dataset_directory,self.task_list[task_index],"New_Task_Demo_Array.npy"),task_demo_array)
 
 class Roboturk_NewSegmentedDataset(Dataset):
 
