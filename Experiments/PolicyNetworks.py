@@ -332,7 +332,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 
 		self.args = args
 		# Input size is actually input_size + number_subpolicies +1 
-		self.input_size = input_size+self.args.z_dimensions+1+self.args.condition_size
+		self.input_size = input_size+self.args.z_dimensions+1
 		self.offset_for_z = input_size+1
 		self.hidden_size = hidden_size
 		# self.number_subpolicies = number_subpolicies

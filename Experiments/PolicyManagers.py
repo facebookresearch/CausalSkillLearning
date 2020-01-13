@@ -1263,7 +1263,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			# Create latent policy, whose action space = self.number_policies. 
 			# This policy network automatically manages input size. 
-			self.latent_policy = LatentPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).cuda()
+
+			# Also add conditional_info_size to this. 
+			self.latent_policy = LatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).cuda()
 
 			# Create variational network. 
 			# self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, number_layers=self.number_layers, z_exploration_bias=self.args.z_exploration_bias, b_exploration_bias=self.args.b_exploration_bias).cuda()
