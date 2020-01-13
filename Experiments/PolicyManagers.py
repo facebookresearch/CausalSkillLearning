@@ -1719,6 +1719,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Select last action to execute. 
 		action_to_execute = actions[-1].squeeze(1)
 
+		embed()
+		
 		if use_env==True:
 			# Take a step in the environment. 
 			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
