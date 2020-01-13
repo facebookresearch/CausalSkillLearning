@@ -1740,7 +1740,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Concatenate joint and gripper state. 			
 			new_state_numpy = np.concatenate([observation['joint_pos'], np.array(gripper_value).reshape((1,))])
 			new_state = torch.tensor(new_state_numpy).cuda().float().view((1,-1))
-			embed()
 
 			self.set_env_conditional_info()
 			
