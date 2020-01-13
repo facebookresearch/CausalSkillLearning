@@ -1717,10 +1717,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		actions = self.policy_network.get_actions(subpolicy_input,greedy=True)
 		
 		# Select last action to execute. 
-		action_to_execute = actions[-1].squeeze(1)
+		action_to_execute = actions[-1].squeeze(-2)
 
-		embed()
-		
 		if use_env==True:
 			# Take a step in the environment. 
 			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
