@@ -1723,7 +1723,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Take a step in the environment. 
 			step_res = self.environment.step(action_to_execute.squeeze(0).detach().cpu().numpy())
 			# Get state. 
-			new_state = step_res[0]
+			observation = step_res[0]
 			# Now update conditional information... 
 			# self.conditional_information = np.concatenate([new_state['robot-state'],new_state['object-state']])
 
@@ -1737,9 +1737,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			finger_diff = gripper_values[1]-gripper_values[0]
 			gripper_value = 2*finger_diff-1
 
-			# Concatenate joint and gripper state. 
+			# Concatenate joint and gripper state. 			
+			new_state_numpy = np.concatenate([observation['joint_pos'], np.array(gripper_value).reshape((1,))])
+			new_state = torch.tensor(new_state_numpy).cuda().float()
 			embed()
-			np.concatenate([new_state, gripper_value])
 
 			self.set_env_conditional_info()
 			
