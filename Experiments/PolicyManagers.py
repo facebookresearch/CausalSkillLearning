@@ -1468,6 +1468,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality+1] = latent_b[:-1].float()	
 			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
+			embed()
 			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
 			assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
