@@ -1717,15 +1717,30 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		actions = self.policy_network.get_actions(subpolicy_input,greedy=True)
 		
 		# Select last action to execute. 
-		action_to_execute = actions[-1].squeeze(0)
+		action_to_execute = actions[-1].squeeze(1)
 
 		if use_env==True:
 			# Take a step in the environment. 
-			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
+			step_res = self.environment.step(action_to_execute.squeeze(0).detach().cpu().numpy())
 			# Get state. 
 			new_state = step_res[0]
 			# Now update conditional information... 
 			# self.conditional_information = np.concatenate([new_state['robot-state'],new_state['object-state']])
+
+			gripper_open = np.array([0.0115, -0.0115])
+			gripper_closed = np.array([-0.020833, 0.020833])
+
+			# The state that we want is ... joint state?
+			gripper_finger_values = step_res[0]['gripper_qpos']
+			gripper_values = (gripper_finger_values - gripper_open)/(gripper_closed - gripper_open)			
+
+			finger_diff = gripper_values[1]-gripper_values[0]
+			gripper_value = 2*finger_diff-1
+
+			# Concatenate joint and gripper state. 
+			embed()
+			np.concatenate([new_state, gripper_value])
+
 			self.set_env_conditional_info()
 			
 		else:
