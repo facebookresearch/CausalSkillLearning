@@ -103,8 +103,8 @@ class PolicyManager_BaseClass():
 			self.current_traj_len = len(trajectory)
 
 			if self.args.data=='Roboturk':
-				robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
-				object_states = data_element['object-state'][start_timepoint:end_timepoint]
+				robot_states = data_element['robot-state']
+				object_states = data_element['object-state']
 
 				self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 				self.conditional_information[:,:self.cond_robot_state_size] = robot_states
