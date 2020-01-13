@@ -292,7 +292,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# Load data from all tasks. 			
 		self.files = []
 		for i in range(len(self.task_list)):
-			self.files.append( np.load("{0}/{1}/Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
+			self.files.append( np.load("{0}/{1}/New_Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
 
 		# # Seems to follow joint angles order:
 		# # ('time','right_j0', 'head_pan', 'right_j1', 'right_j2', 'right_j3', 'right_j4', 'right_j5', 'right_j6', 'r_gripper_l_finger_joint', 'r_gripper_r_finger_joint', 'Milk0', 'Bread0', 'Cereal0', 'Can0').
@@ -334,6 +334,9 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
 			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
 			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
+
+			data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],3.5,axis=0,mode='nearest')
+
 			data_element['environment-name'] = self.environment_names[task_index]
 
 		return data_element
