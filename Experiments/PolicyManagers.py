@@ -1731,6 +1731,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		else:
 			# Compute next state by adding action to state. 
 			new_state = subpolicy_input[t,:self.state_dim]+action_to_execute
+		
+		embed()
 
 		# return new_subpolicy_input
 		return action_to_execute, new_state
@@ -1743,6 +1745,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.environment.sim.set_state_from_flattened(state)
 
 	def rollout_variational_network(self, counter, i):
+
+		###########################################################
+		###########################################################
+
 		############# (0) #############
 		# Get sample we're going to train on. Single sample as of now.
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
@@ -1774,8 +1780,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		for t in range(self.rollout_timesteps-1):
 			# Take a rollout step. Feed into policy, get action, step, return new input. 
 			action_to_execute, new_state = self.take_rollout_step(subpolicy_inputs[:(t+1)].view((t+1,-1)), t)
-
-			embed()
 			state_action_tuple = torch.cat([new_state, action_to_execute],dim=1)			
 			# Overwrite the subpolicy inputs with the new state action tuple.
 			subpolicy_inputs[t+1,:self.input_size] = state_action_tuple
