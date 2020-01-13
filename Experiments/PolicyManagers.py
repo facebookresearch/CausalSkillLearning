@@ -90,10 +90,9 @@ class PolicyManager_BaseClass():
 			if not(data_element['is_valid']):
 				return None, None, None, None
 				
-			self.conditional_information = np.zeros((self.args.condition_size))
+			self.conditional_information = np.zeros((self.conditional_info_size))
 
 			trajectory = data_element['demo']
-
 
 			# If normalization is set to some value.
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -102,6 +101,15 @@ class PolicyManager_BaseClass():
 			action_sequence = np.diff(trajectory,axis=0)
 
 			self.current_traj_len = len(trajectory)
+
+			if self.args.data=='Roboturk':
+				robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
+				object_states = data_element['object-state'][start_timepoint:end_timepoint]
+
+				self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
+				self.conditional_information[:,:self.cond_robot_state_size] = robot_states
+				# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
+				self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states			
 
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
@@ -713,16 +721,15 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 					robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
 					object_states = data_element['object-state'][start_timepoint:end_timepoint]
 
-					# self.conditional_information = np.zeros((self.conditional_info_size))
-					# self.conditional_information[:self.cond_robot_state_size] = robot_states
-					# self.conditional_information[self.cond_robot_state_size:object_states.shape[-1]] = object_states
+					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
+					self.conditional_information[:,:self.cond_robot_state_size] = robot_states
+					self.conditional_information[:,self.cond_robot_state_size:object_states.shape[-1]] = object_states
 					
 					# conditional_info = np.concatenate([robot_states,object_states],axis=1)	
 			else:					
 				return None, None, None
 
 			action_sequence = np.diff(trajectory,axis=0)
-
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 
@@ -1203,6 +1210,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				self.norm_sub_value = np.load("MIME_Min.npy")
 				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
 
+			# Max of robot_state + object_state sizes across all Baxter environments. 			
+			self.cond_robot_state_size = 60
+			self.cond_object_state_size = 25
+			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
+
 		elif self.args.data=='Roboturk':
 			self.state_size = 8	
 			self.state_dim = 8
@@ -1211,6 +1223,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.traj_length = self.args.traj_length
 
 			self.visualizer = SawyerVisualizer()
+
+			# Max of robot_state + object_state sizes across all sawyer environments. 
+			# Robot size always 30. Max object state size is... 23. 
+			self.cond_robot_state_size = 30
+			self.cond_object_state_size = 23
+			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 500
@@ -1437,17 +1455,17 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				latent_z_copy = latent_z_indices
 
 			if conditional_information is None:
-				conditional_information = torch.zeros((self.args.condition_size)).cuda().float()
+				conditional_information = torch.zeros((self.conditional_info_size)).cuda().float()
 
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 			
-			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.args.condition_size)).cuda()
+			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.conditional_info_size)).cuda()
 			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size:self.input_size+self.latent_z_dimensionality] = latent_z_copy[:-1]
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality+1] = latent_b[:-1].float()	
-			# assembled_inputs[range(1,len(input_trajectory)),-self.args.condition_size:] = torch.tensor(conditional_information).cuda().float()
+			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
 			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
-			assembled_inputs[:,-self.args.condition_size:] = torch.tensor(conditional_information).cuda().float()
+			assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
 			# Now assemble inputs for subpolicy.
 			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).cuda()
@@ -1781,7 +1799,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				assembled_inputs[t+1, self.input_size:self.input_size+self.latent_z_dimensionality] = selected_z[-1]
 			
 			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality+1] = selected_b[-1]
-			assembled_inputs[t+1, -self.args.condition_size:] = torch.tensor(self.conditional_information).cuda().float()
+			assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
 
 			# Set z's to 0.
 			subpolicy_inputs[t, self.input_size:self.input_size+self.number_policies] = 0.
