@@ -292,7 +292,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# Load data from all tasks. 			
 		self.files = []
 		# for i in range(len(self.task_list)):
-		for i in range(len(self.task_list)-1):
+		for i in range(len(self.task_list)):
 			self.files.append( np.load("{0}/{1}/New_Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
 
 		# # Seems to follow joint angles order:
@@ -320,8 +320,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		# Get bucket that index falls into based on num_demos array. 
 		task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
-		if task_index==5:
-			task_index=4
 		
 		# Decide task ID, and new index modulo num_demos.
 		# Subtract number of demonstrations in cumsum until then, and then 				
