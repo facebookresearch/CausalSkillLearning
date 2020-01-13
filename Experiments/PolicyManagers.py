@@ -1719,7 +1719,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Select last action to execute. 
 		action_to_execute = actions[-1].squeeze(0)
 
-		embed()
 		if use_env==True:
 			# Take a step in the environment. 
 			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
@@ -1775,7 +1774,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		for t in range(self.rollout_timesteps-1):
 			# Take a rollout step. Feed into policy, get action, step, return new input. 
 			action_to_execute, new_state = self.take_rollout_step(subpolicy_inputs[:(t+1)].view((t+1,-1)), t)
-			state_action_tuple = torch.cat([new_state, action_to_execute],dim=1)
+
+			embed()
+			state_action_tuple = torch.cat([new_state, action_to_execute],dim=1)			
 			# Overwrite the subpolicy inputs with the new state action tuple.
 			subpolicy_inputs[t+1,:self.input_size] = state_action_tuple
 		
