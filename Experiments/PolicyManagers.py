@@ -1265,7 +1265,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# This policy network automatically manages input size. 
 
 			# Also add conditional_info_size to this. 
-			self.latent_policy = LatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).cuda()
+			self.latent_policy = LatentPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).cuda()
 
 			# Create variational network. 
 			# self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, number_layers=self.number_layers, z_exploration_bias=self.args.z_exploration_bias, b_exploration_bias=self.args.b_exploration_bias).cuda()
@@ -1276,7 +1276,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()			
 
 			# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).cuda()
-			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.args, self.number_layers).cuda()
+			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
 
 			if self.args.b_prior:
 				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
