@@ -1735,7 +1735,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def create_RL_environment_for_rollout(self, environment_name, state=None):
 
-		self.environment = robosuite.make(environment_name)	
+		self.environment = robosuite.make(environment_name)
 
 		if state is not None:
 			self.environment.sim.set_state_from_flattened(state)
@@ -1848,7 +1848,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		# if self.args.data=='Roboturk':
 		if self.conditional_viz_env:
-			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'])
+			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
 
 		# Rollout policy with 
 		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
