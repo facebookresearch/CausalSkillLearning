@@ -713,9 +713,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 					robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
 					object_states = data_element['object-state'][start_timepoint:end_timepoint]
 
-					self.conditional_information = np.zeros((self.conditional_info_size))
-					self.conditional_information[:self.cond_robot_state_size] = robot_states
-					self.conditional_information[self.cond_robot_state_size:object_states.shape[-1]] = object_states
+					# self.conditional_information = np.zeros((self.conditional_info_size))
+					# self.conditional_information[:self.cond_robot_state_size] = robot_states
+					# self.conditional_information[self.cond_robot_state_size:object_states.shape[-1]] = object_states
 					
 					# conditional_info = np.concatenate([robot_states,object_states],axis=1)	
 			else:					
