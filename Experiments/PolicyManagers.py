@@ -1214,6 +1214,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.cond_robot_state_size = 60
 			self.cond_object_state_size = 25
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
+			self.conditional_viz_env = False
 
 		elif self.args.data=='Roboturk':
 			self.state_size = 8	
@@ -1229,6 +1230,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.cond_robot_state_size = 30
 			self.cond_object_state_size = 23
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
+			self.conditional_viz_env = True
 
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = 500
@@ -1703,36 +1705,42 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.total_loss.sum().backward()
 		self.optimizer.step()
 
+	def set_env_conditional_info(self):
+		obs = self.environment._get_observation()
+		self.conditional_information = np.concatenate([obs['robot-state'],obs['object-state']])		
+
 	def take_rollout_step(self, subpolicy_input, t):
 
+		# Feed subpolicy input into the policy. 
 		actions = self.policy_network.get_actions(subpolicy_input,greedy=True)
 		
 		# Select last action to execute. 
 		action_to_execute = actions[-1].squeeze(1)
 
-		# Compute next state. 
-		new_state = subpolicy_input[t,:self.state_dim]+action_to_execute
-
-		# # Concatenate with current subpolicy input. 
-		# new_subpolicy_input = torch.cat([subpolicy_input, input_row],dim=0)
+		if self.conditional_viz_env:
+			# Take a step in the environment. 
+			step_res = self.environment.step(action_to_execute.detach().cpu().numpy())
+			# Get state. 
+			new_state = step_res[0]
+			# Now update conditional information... 
+			# self.conditional_information = np.concatenate([new_state['robot-state'],new_state['object-state']])
+			self.set_env_conditional_info()
+			
+		else:
+			# Compute next state by adding action to state. 
+			new_state = subpolicy_input[t,:self.state_dim]+action_to_execute
 
 		# return new_subpolicy_input
 		return action_to_execute, new_state
 
-	def create_RL_environment_for_rollout(self, environment_name):
+	def create_RL_environment_for_rollout(self, environment_name, state=None):
 
-		self.environment = robosuite.make(environment_name)
+		self.environment = robosuite.make(environment_name)	
 
-	def rollout_visuals(self, counter, i, get_image=True):
+		if state is not None:
+			self.environment.sim.set_state_from_flattened(state)
 
-		if self.args.data=='Roboturk':
-			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'])
-
-		# Rollout policy with 
-		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
-		# 	b) Latent variable samples from latent policy in a rolling fashion, initialized with states from the trajectory - Tests latent and subpolicies. 
-		# 	c) Latent variables from the ground truth set (only valid for the toy dataset) - Just tests subpolicies. 
-
+	def rollout_variational_network(self, counter, i):
 		############# (0) #############
 		# Get sample we're going to train on. Single sample as of now.
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
@@ -1748,12 +1756,15 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		variational_b_probabilities, variational_z_probabilities, kl_divergence, prior_loglikelihood = self.variational_policy.forward(torch.tensor(old_concatenated_traj).cuda().float(), self.epsilon)
 
 		############# (1.5) ###########
+		# Doesn't really matter what the conditional information is here... because latent policy isn't being rolled out. 
+		# We still call it becasue these assembled inputs are passed to the latnet policy rollout later.
+		self.set_env_conditional_info()
 		# Get assembled inputs and subpolicy inputs for variational rollout.
 		orig_assembled_inputs, orig_subpolicy_inputs, padded_action_seq = self.assemble_inputs(concatenated_traj, latent_z_indices, latent_b, sample_action_seq, self.conditional_information)		
 
-		#####################################
-		## (A) VARIATIONAL POLICY ROLLOUT. ##		
-		#####################################
+		###########################################################
+		############# (A) VARIATIONAL POLICY ROLLOUT. #############
+		###########################################################
 	
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
 
@@ -1766,12 +1777,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			subpolicy_inputs[t+1,:self.input_size] = state_action_tuple
 		
 		# Get trajectory from this. 
-		self.variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())		
+		self.variational_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())				
 
-		#####################################
-		##### (B) LATENT POLICY ROLLOUT. ####
-		#####################################
+		return orig_assembled_inputs, orig_subpolicy_inputs, latent_b
 
+	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
 
@@ -1783,15 +1793,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			##########################################
 
 			# Pick latent_z and latent_b. 
-
 			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=True)
 			# selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=False)
 
 			if t==0:
 				selected_b = torch.ones_like(selected_b).cuda().float()
-
-			# print("Embedding in latent policy rollout")
-			# embed()
 
 			if selected_b[-1]==1:
 				# Copy over ALL z's. This is okay to do because we're greedily selecting, and hte latent policy is hence deterministic.
@@ -1808,7 +1814,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			
 			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality+1] = selected_b[-1]
 
-
+			# Before copying over, set conditional_info from the environment at the current timestep.
+			self.set_env_conditional_info()
 			assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
 
 			# Set z's to 0.
@@ -1835,9 +1842,34 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# Clear these variables from memory.
 		del subpolicy_inputs, assembled_inputs
 
+		return concatenated_selected_b
+
+	def rollout_visuals(self, counter, i, get_image=True):
+
+		# if self.args.data=='Roboturk':
+		if self.conditional_viz_env:
+			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'])
+
+		# Rollout policy with 
+		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
+		# 	b) Latent variable samples from latent policy in a rolling fashion, initialized with states from the trajectory - Tests latent and subpolicies. 
+		# 	c) Latent variables from the ground truth set (only valid for the toy dataset) - Just tests subpolicies. 
+
+		###########################################################
+		############# (A) VARIATIONAL POLICY ROLLOUT. #############
+		###########################################################
+
+		orig_assembled_inputs, orig_subpolicy_inputs, variational_segmentation = self.rollout_variational_network(counter, i)		
+
+		###########################################################
+		################ (B) LATENT POLICY ROLLOUT. ###############
+		###########################################################
+
+		latent_segmentation = self.rollout_latent_policy(orig_assembled_inputs, orig_subpolicy_inputs)
+
 		if get_image==True:
-			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, concatenated_selected_b)
-			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=latent_b.detach().cpu().numpy())	
+			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, latent_segmentation)
+			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=variational_segmentation.detach().cpu().numpy())	
 
 			return variational_rollout_image, latent_rollout_image
 		else:
