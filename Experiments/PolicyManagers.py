@@ -1719,7 +1719,13 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# return new_subpolicy_input
 		return action_to_execute, new_state
 
+	def create_RL_environment_for_rollout(self):
+		
+		
 	def rollout_visuals(self, counter, i, get_image=True):
+
+		if self.args.data=='Roboturk':
+
 
 		# Rollout policy with 
 		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
@@ -1801,6 +1807,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				assembled_inputs[t+1, self.input_size:self.input_size+self.latent_z_dimensionality] = selected_z[-1]
 			
 			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality+1] = selected_b[-1]
+
+
 			assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
 
 			# Set z's to 0.
