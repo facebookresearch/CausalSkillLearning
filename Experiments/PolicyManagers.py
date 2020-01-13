@@ -1709,6 +1709,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		obs = self.environment._get_observation()
 		self.conditional_information = np.zeros((self.conditional_info_size))
 		cond_state = np.concatenate([obs['robot-state'],obs['object-state']])
+
+		embed()
+
 		self.conditional_information[:,-self.conditional_info_size:-self.conditional_info_size+cond_state.shape[-1]] = cond_state
 
 	def take_rollout_step(self, subpolicy_input, t):
