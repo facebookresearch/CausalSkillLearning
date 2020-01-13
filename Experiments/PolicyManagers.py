@@ -1745,9 +1745,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			
 		else:
 			# Compute next state by adding action to state. 
-			new_state = subpolicy_input[t,:self.state_dim]+action_to_execute
-		
-		embed()
+			new_state = subpolicy_input[t,:self.state_dim]+action_to_execute	
 
 		# return new_subpolicy_input
 		return action_to_execute, new_state
