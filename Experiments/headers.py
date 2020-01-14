@@ -8,7 +8,7 @@ from IPython import embed
 
 import matplotlib
 matplotlib.use('Agg')
-matplotlib.rcParams['animation.ffmpeg_args'] = '-report'
+# matplotlib.rcParams['animation.ffmpeg_args'] = '-report'
 matplotlib.rcParams['animation.bitrate'] = 2000
 import matplotlib.pyplot as plt
 import tensorboardX
