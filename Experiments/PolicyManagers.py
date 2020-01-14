@@ -2032,6 +2032,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.baseline = None
 		self.learning_rate = 1e-4
 		self.max_timesteps = 250
+		self.gamma = 0.99
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
@@ -2193,6 +2194,31 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.critic_optimizer.step()
 		######################################
 
+	def set_TD_targets(self):
+		# Construct TD Targets. 
+		self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
+		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)
+		# Set last element in this to 0.
+		self.TD_targets[-1] = 0.
+		self.TD_targets *= self.gamma
+		self.TD_targets += np.array(self.reward_trajectory)
+
+	def update_policies_TD(self, counter):
+		######################################
+		# Compute losses for actor.
+		self.policy_optimizer.zero_grad()
+		self.policy_loss = - self.critic_network.forward(self.policy_inputs).mean()
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
+
+		# Zero gradients, then backprop into critic.
+		self.critic_optimizer.zero_grad()
+		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
+		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.TD_targets).mean()
+		self.critic_loss.backward()
+		self.critic_optimizer.step()
+		######################################
+
 	def update_plots(self, counter):
 		self.tf_logger.scalar_summary('Total Reward', self.cummulative_rewards[0], counter)
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss, counter)
@@ -2223,7 +2249,11 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 			self.process_episode()
 
 			# Now upate the policy and critic.
-			self.update_policies(counter)
+
+			if self.args.TD:
+				self.update_policies_TD(counter)
+			else:
+				self.update_policies(counter)
 
 			# Update plots. 
 			self.update_plots(counter)
