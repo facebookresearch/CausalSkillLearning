@@ -82,11 +82,11 @@ for i in range(number_datapoints):
 		# x_array_dataset[i,t+1] = x_array_dataset[i,t]+a_array_dataset[i,t]
 		x_array_dataset[i,t] = x_array_dataset[i,t+1]-a_array_dataset[i,t]
 
-	# plt.scatter(goal_states[:,0],goal_states[:,1],s=50)
-	# plt.scatter(x_array_dataset[i,:,0],x_array_dataset[i,:,1],cmap='jet',c=range(25))
-	# plt.xlim(-lim, lim)
-	# plt.ylim(-lim, lim)
-	# plt.show()
+	plt.scatter(goal_states[:,0],goal_states[:,1],s=50)
+	plt.scatter(x_array_dataset[i,:,0],x_array_dataset[i,:,1],cmap='jet',c=range(25))
+	plt.xlim(-lim, lim)
+	plt.ylim(-lim, lim)
+	plt.show()
 
 	# Roll over b's.
 	b_array_dataset = np.roll(b_array_dataset,1,axis=1)

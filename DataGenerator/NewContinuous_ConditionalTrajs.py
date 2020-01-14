@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-from headers import *
+# from headers import *
 import numpy as np
+import matplotlib.pyplot as plt
 from IPython import embed
 
 number_datapoints = 1
 number_timesteps = 25
-lim = 25
+lim = 30
 
 x_array_dataset = np.zeros((number_datapoints, number_timesteps, 2))
 a_array_dataset = np.zeros((number_datapoints, number_timesteps-1, 2))
@@ -15,8 +16,8 @@ goal_array_dataset = np.zeros((number_datapoints, 1),dtype=int)
 start_array_dataset = np.zeros((number_datapoints, 1),dtype=int)
 
 action_map = np.array([[0,-1],[-1,0],[0,1],[1,0]])
-start_states = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])*5
-goal_states = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])*5
+start_states = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])*10
+goal_states = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])*10
 # valid_options = np.array([[2,3],[3,0],[1,2],[0,1]])
 
 for i in range(number_datapoints):

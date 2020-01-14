@@ -53,23 +53,28 @@ for i in range(number_datapoints):
 		# GET Y
 		if b_array_dataset[i,t]:
 			current_state = x_array_dataset[i,t+1]
-			directions = current_state-goal.squeeze(z0)
-			directions = directions/abs(directions)
+			# directions = current_state-goal.squeeze(0)
+			directions = goal.squeeze(0)-current_state
+			norm_directions = directions/abs(directions)
 
-			# Set valid options. 
-			dot_product = np.dot(action_map, directions)
+			# # Set valid options. 
+			dot_product = np.dot(action_map, norm_directions)
 			# valid_options = np.where(dot_product>=0)[0]
-			# Sincer we're going backwards in time, 
+			# # Sincer we're going backwards in time, 
 			valid_options = np.where(dot_product<=0)[0]
 
-			# axes = -goal/abs(goal)
-			# step1 = 30*np.ones((2))-axes*np.abs(x_array_dataset[i,t]-x_array_dataset[i,0])
-			# # baseline = t*20*np.sqrt(2)/20
-			# baseline = t
-			# step2 = step1-baseline
-			# step3 = step2/step2.sum()
-			# y_array_dataset[i,t] = np.random.choice(valid_options[goal_array_dataset[i][0]])
-			y_array_dataset[i,t] = np.random.choice(valid_options)
+			# # axes = -goal/abs(goal)
+			# # step1 = 30*np.ones((2))-axes*np.abs(x_array_dataset[i,t]-x_array_dataset[i,0])
+			# # # baseline = t*20*np.sqrt(2)/20
+			# # baseline = t
+			# # step2 = step1-baseline
+			# # step3 = step2/step2.sum()
+			# # y_array_dataset[i,t] = np.random.choice(valid_options[goal_array_dataset[i][0]])
+			# embed()
+			dot_product = np.dot(action_map,directions)
+
+			y_array_dataset[i,t] = np.argmax(dot_product)
+			# y_array_dataset[i,t] = np.random.choice(valid_options)
 
 			reset_counter = 0
 		else:
@@ -83,11 +88,11 @@ for i in range(number_datapoints):
 		# x_array_dataset[i,t+1] = x_array_dataset[i,t]+a_array_dataset[i,t]
 		x_array_dataset[i,t] = x_array_dataset[i,t+1]-a_array_dataset[i,t]
 
-	# plt.scatter(goal_states[:,0],goal_states[:,1],s=50)
-	# plt.scatter(x_array_dataset[i,:,0],x_array_dataset[i,:,1],cmap='jet',c=range(25))
-	# plt.xlim(-25,25)
-	# plt.ylim(-25,25)
-	# plt.show()
+	plt.scatter(goal_states[:,0],goal_states[:,1],s=50)
+	plt.scatter(x_array_dataset[i,:,0],x_array_dataset[i,:,1],cmap='jet',c=range(25))
+	plt.xlim(-25,25)
+	plt.ylim(-25,25)
+	plt.show()
 
 	# Roll over b's.
 	b_array_dataset = np.roll(b_array_dataset,1,axis=1)
