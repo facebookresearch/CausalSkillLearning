@@ -92,6 +92,21 @@ python cluster_run.py --partition=learnfair --name=R21 --cmd='python Master.py -
 # Eval and debug.
 python Master.py --train=0 --setting=pretrain_sub --name=Rdebug --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/R20/saved_models/Model_epoch0
 
+# Rerun with new segmented AND SMOOTHED dataset. 
+python cluster_run.py --partition=learnfair --name=R22 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R22 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --partition=learnfair --name=R23 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R23 --data=Roboturk --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+# Rerunning R22-R23. 
+# Rerun with new segmented AND SMOOTHED dataset. 
+python cluster_run.py --partition=learnfair --name=R24 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R24 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+python cluster_run.py --partition=learnfair --name=R25 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=R25 --data=Roboturk --kl_weight=0.01 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128'
+
+# Debug
+python Master.py --train=0 --setting=pretrain_sub --name=Rdebug --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/R24/saved_models/Model_epoch0
+
+python Master.py --train=0 --setting=pretrain_sub --name=Rdebug_2 --data=Roboturk --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --number_layers=8 --hidden_size=128 --model=Experiment_Logs/R24/saved_models/Model_epoch0
 
 ####################################################
 ####################################################
@@ -111,38 +126,6 @@ python cluster_run.py --partition=learnfair --name=RJ3 --cmd='python Master.py -
 
 python cluster_run.py --partition=learnfair --name=RJ4 --cmd='python Master.py --train=1 --setting=learntsub --name=RJ4 --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R14/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128'
 
-####################################################
-############## Downstream RL Training ##############
-####################################################
+# Trying out training with conditional info.
+python Master.py --train=1 --setting=learntsub --name=RJ_debugcond --kl_weight=0.001 --subpolicy_ratio=0.1 --latentpolicy_ratio=0.001 --b_probability_factor=0.01 --data=Roboturk --subpolicy_model=Experiment_Logs/R14/saved_models/Model_epoch199 --latent_loss_weight=0.01 --z_dimensions=64 --traj_length=-1 --var_skill_length=1 --number_layers=8 --hidden_size=128
 
-python Master.py --train=1 --setting='downstreamRL' --name=RLdebug --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0
-
-python Master.py --train=1 --setting='downstreamRL' --name=RLdebug_2 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50
-
-python Master.py --train=1 --setting='downstreamRL' --name=RLdebug_3 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=1000 --z_dimensions=0 --display_freq=50
-
-# Actual roboturk runs. 
-python cluster_run.py --partition=learnfair --name=R1 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL1 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R2 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL2 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerStack --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R3 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL3 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerPickPlace --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R4 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL4 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerNutAssembly --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R5 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL5 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R6 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL6 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterPegInHole --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-# Run with increased number of episodes.
-python cluster_run.py --partition=learnfair --name=R7 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL7 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerLift --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R8 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL8 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerStack --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R9 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL9 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerPickPlace --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R10 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL10 --number_layers=8 --hidden_size=128 --data=MIME --environment=SawyerNutAssembly --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R11 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL11 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterLift --epsilon_over=10000 --z_dimensions=0 --display_freq=50'
-
-python cluster_run.py --partition=learnfair --name=R12 --cmd='python Master.py --train=1 --setting=downstreamRL --name=RL12 --number_layers=8 --hidden_size=128 --data=MIME --environment=BaxterPegInHole --epsilon_over=10000 --z_dimensions=0 --display_freq=50'

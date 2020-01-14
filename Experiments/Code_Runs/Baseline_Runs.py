@@ -12,7 +12,15 @@ python cluster_run.py --partition=learnfair --name=B2_RTurk --cmd='python Master
 # Running baseline on new Roboturk data. 
 python cluster_run.py --partition=learnfair --name=B3_RTurk --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B3_RTurk --data=Roboturk --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
 
+# Running baselines on new smoothed roboturk data, and mime data with a test set. 
+python cluster_run.py --partition=learnfair --name=B4_MIME --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B4_MIME --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
 
+python cluster_run.py --partition=learnfair --name=B5_RTurk --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B5_RTurk --data=Roboturk --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
+
+# Rerun B4-B5 with proper viz. 
+python cluster_run.py --partition=learnfair --name=B6_MIME --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B6_MIME --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
+
+python cluster_run.py --partition=learnfair --name=B7_RTurk --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B7_RTurk --data=Roboturk --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
 
 
 
