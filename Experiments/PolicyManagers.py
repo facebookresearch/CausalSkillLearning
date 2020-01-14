@@ -2077,7 +2077,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()
 		self.output_size = self.environment.action_spec[0].shape[0]
-		self.input_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0] + self.output_size
+		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		self.input_size = self.state_size + self.output_size		
 		
 		# Create networks. 
 		self.create_networks()
@@ -2176,12 +2177,21 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Input to the policy should be states and actions. 
 		self.policy_inputs = torch.tensor(assembled_inputs).cuda().float()	
 
+	def set_differentiable_critic_inputs(self):
+
+		# Get policy's predicted actions. 
+		self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon)
+		# Concatenate the states from policy inputs and the predicted actions. 
+		embed()
+		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions])
+
 	def update_policies(self, counter):
 	
 		######################################
 		# Compute losses for actor.
 		self.policy_optimizer.zero_grad()
-		self.policy_loss = - self.critic_network.forward(self.policy_inputs).mean()		
+		self.set_differentiable_critic_inputs()
+		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()		
 		self.policy_loss.backward()
 		self.policy_optimizer.step()
 
