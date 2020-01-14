@@ -2202,6 +2202,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.TD_targets[-1] = 0.
 		self.TD_targets *= self.gamma
 		self.TD_targets += np.array(self.reward_trajectory)
+		self.TD_targets = torch.tensor(self.TD_targets).cuda().float()
 
 	def update_policies_TD(self, counter):
 		######################################
