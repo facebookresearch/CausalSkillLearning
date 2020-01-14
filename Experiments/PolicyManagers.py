@@ -2031,7 +2031,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.decay_episodes = self.args.epsilon_over
 		self.baseline = None
 		self.learning_rate = 1e-4
-		self.max_timesteps = 100
+		self.max_timesteps = 250
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
@@ -2184,10 +2184,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.policy_loss.backward()
 		self.policy_optimizer.step()
 
+
 		# Zero gradients, then backprop into critic.
 		self.critic_optimizer.zero_grad()
 		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
 		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.targets).mean()
+
+		embed()
 		self.critic_loss.backward()
 		self.critic_optimizer.step()
 		######################################
@@ -2213,7 +2216,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# 3) 	Update policies. 
 		self.set_parameters(counter)
 
-		# Maintain coujnter to keep track of updating the policy regularly. 			
+		# Maintain counter to keep track of updating the policy regularly. 			
 		self.rollout(random=False)
 
 		if self.args.train:
