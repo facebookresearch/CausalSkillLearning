@@ -174,7 +174,7 @@ class PolicyManager_BaseClass():
 
 	def visualize_robot_data(self):
 
-		self.N = 100
+		self.N = 5
 		self.rollout_timesteps = self.args.traj_length
 	
 		if self.args.data=='MIME':
@@ -343,7 +343,8 @@ class PolicyManager_BaseClass():
 			html_file.write('</body>')
 			html_file.write('</html>')
 
-		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))		
+		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))
+		# animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)), writer='imagemagick')
 
 	def get_robot_embedding(self):
 
