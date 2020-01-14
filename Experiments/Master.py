@@ -163,6 +163,9 @@ def parse_arguments():
 	parser.add_argument('--baseline_window',dest='baseline_window',type=int,default=15)
 	parser.add_argument('--baseline_kernel_bandwidth',dest='baseline_kernel_bandwidth',type=float,default=3.5)
 
+	# Reinforcement Learning parameters. 
+	parser.add_argument('--TD',dest='TD',type=int,default=0) # Whether or not to use Temporal difference while training the critic network.
+
 	return parser.parse_args()
 
 def main(args):
