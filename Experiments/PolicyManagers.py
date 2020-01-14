@@ -2212,8 +2212,11 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		self.policy_optimizer.step()
 
 		# Zero gradients, then backprop into critic.
-		self.critic_optimizer.zero_grad()
+		self.critic_optimizer.zero_grad()		
 		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
+
+		# Before we actually compute loss, compute targets.
+		self.set_TD_targets()
 		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.TD_targets).mean()
 		self.critic_loss.backward()
 		self.critic_optimizer.step()
