@@ -2180,17 +2180,15 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 	def set_differentiable_critic_inputs(self):
 
 		# Get policy's predicted actions. 
-		self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon)
+		self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
 		# Concatenate the states from policy inputs and the predicted actions. 
-		embed()
-		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions])
+		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
 
 	def update_policies(self, counter):
 	
 		######################################
 		# Compute losses for actor.
-		self.policy_optimizer.zero_grad()
-		
+		self.policy_optimizer.zero_grad()		
 		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()		
 		self.policy_loss.backward()
 		self.policy_optimizer.step()
@@ -2219,8 +2217,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 		# Compute losses for actor.
 		self.policy_optimizer.zero_grad()
 		self.set_differentiable_critic_inputs()
-		self.policy_loss = - self.critic_network.forward(self.policy_inputs).mean()
-		embed()
+		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()
 		self.policy_loss.backward()
 		self.policy_optimizer.step()
 
