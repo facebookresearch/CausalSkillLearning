@@ -329,6 +329,8 @@ class PolicyManager_BaseClass():
 
 	def write_embedding_HTML(self, animation_object, prefix=""):
 		print("Writing Embedding File.")
+
+		t1 = time.time()
 		# Open Results HTML file. 	    
 		with open(os.path.join(self.dir_name,'Embedding_{0}_{1}.html'.format(prefix,self.args.name)),'w') as html_file:
 			
@@ -346,6 +348,9 @@ class PolicyManager_BaseClass():
 
 		animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)))
 		# animation_object.save(os.path.join(self.dir_name,'{0}_Embedding_Video.mp4'.format(self.args.name)), writer='imagemagick')
+		t2 = time.time()
+
+		print("Time taken to write this embedding: ",t2-t1)
 
 	def get_robot_embedding(self):
 
