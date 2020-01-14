@@ -182,7 +182,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 
 			return dist.sample()
 
-	def reparameterized_get_actions(self, input, greedy=False):
+	def reparameterized_get_actions(self, input, greedy=False, action_epsilon=0.):
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 
 		hidden = None
@@ -190,7 +190,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 
 		# Predict Gaussian means and variances. 
 		mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias
+		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias + action_epsilon
 
 		noise = torch.randn_like(variance_outputs)
 

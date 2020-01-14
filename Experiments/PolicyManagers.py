@@ -2123,7 +2123,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaseClass):
 				if test:
 					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
 				else:
-					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float())
+					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), action_epsilon=0.2*self.epsilon)
 
 				action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
