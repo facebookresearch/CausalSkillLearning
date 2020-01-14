@@ -283,6 +283,8 @@ class DeterministicGoalDirectedDataset(Dataset):
 		self.B_array = np.load(self.b_path)
 		self.G_array = np.load(self.g_path)
 
+		self.goal_states = np.array([[-1,-1],[-1,1],[1,-1],[1,1]])*5
+
 	def __len__(self):
 		return 50000
 
@@ -296,6 +298,9 @@ class DeterministicGoalDirectedDataset(Dataset):
 
 	def get_goal(self, index):
 		return self.G_array[index]
+
+	def get_goal_position(self, index):
+		return self.goal_states[self.G_array[index]]
 
 class SeparableDataset(Dataset):
 

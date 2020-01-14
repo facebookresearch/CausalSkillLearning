@@ -2,7 +2,6 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
-# from Transformer import TransformerVariationalNet, TransformerEncoder
 from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger
 import DMP
@@ -46,7 +45,7 @@ class PolicyManager_BaseClass():
 
 	def collect_inputs(self, i, get_latents=False):
 
-		if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
+		if self.args.data=='DeterGoal':
 
 			sample_traj, sample_action_seq = self.dataset[i]
 			latent_b_seq, latent_z_seq = self.dataset.get_latent_variables(i)
@@ -71,10 +70,10 @@ class PolicyManager_BaseClass():
 			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
 			old_concatenated_traj = self.old_concat_state_action(sample_traj, sample_action_seq)
 		
-			if self.args.data=='GoalDirected' or self.args.data=='DeterGoal' or self.args.data=='Separable':
-
+			if self.args.data=='DeterGoal':
 				self.conditional_information = np.zeros((self.args.condition_size))
 				self.conditional_information[self.dataset.get_goal(i)] = 1
+				self.conditional_information[4:] = self.dataset.get_goal_position[i]
 			else:
 				self.conditional_information = np.zeros((self.args.condition_size))
 
@@ -1198,6 +1197,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.output_size = 2					
 		self.number_layers = self.args.number_layers
 		self.traj_length = 5
+		self.conditional_info_size = 6
 
 		if self.args.data=='MIME':
 			self.state_size = 16	

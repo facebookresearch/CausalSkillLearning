@@ -10,21 +10,9 @@ class Master():
 		self.args = arguments 
 
 		# Define Data Loader. 
-		if self.args.data=='ContinuousNonZero':
-			self.dataset = DataLoaders.ContinuousNonZeroToyDataset(self.args.datadir)
-		elif self.args.data=='ContinuousDir':			
-			self.dataset = DataLoaders.ContinuousDirectedToyDataset(self.args.datadir)
-		elif self.args.data=='ContinuousDirNZ':			
-			self.dataset = DataLoaders.ContinuousDirectedNonZeroToyDataset(self.args.datadir)
-		elif self.args.data=='GoalDirected':
-			self.dataset = DataLoaders.GoalDirectedDataset(self.args.datadir)
-		elif self.args.data=='DeterGoal':
+		if self.args.data=='DeterGoal':
 			self.dataset = DataLoaders.DeterministicGoalDirectedDataset(self.args.datadir)			
-		elif self.args.data=='Separable':
-			self.dataset = DataLoaders.SeparableDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
-			# self.dataset = MIME_DataLoader.MIME_Dataset()
-			# Now switch to using new dataset object. 
 			self.dataset = MIME_DataLoader.MIME_NewDataset()
 		elif self.args.data=='Roboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset()
