@@ -356,8 +356,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		for i in range(self.total_length):
 
 			data_element = self.__getitem__(i)
-			if
-
 
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
