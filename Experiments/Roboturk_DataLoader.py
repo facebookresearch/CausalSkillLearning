@@ -329,7 +329,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		resample_length = len(data_element['demo'])//self.args.ds_freq
 		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
 
-		if resample_length<=1 or index==4900:
+		if resample_length<=1 or index==4900 or index==537:
 			data_element['is_valid'] = False			
 		else:
 			data_element['is_valid'] = True
@@ -348,6 +348,17 @@ class Roboturk_NewSegmentedDataset(Dataset):
 				data_element['flat-state'] = resample(data_element['flat-state'], resample_length)
 
 		return data_element
+
+	def compute_statistics(self):
+
+		means = np.zeros((self.total_length))
+		variances = np.zeros((self.total_length))
+		for i in range(self.total_length):
+
+			data_element = self.__getitem__(i)
+			if
+
+
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
