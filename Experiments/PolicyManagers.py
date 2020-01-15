@@ -951,6 +951,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		else:
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
 
+		if counter>len(self.dataset):
+			embed()
+
 		if trajectory_segment is not None:
 			############# (1) #############
 			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
