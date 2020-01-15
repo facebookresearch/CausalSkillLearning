@@ -327,8 +327,9 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		data_element = self.files[task_index][new_index]
 
 		resample_length = len(data_element['demo'])//self.args.ds_freq
-		print("Orig:", len(data_element['demo']),"New length:",resample_length)
-		
+		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
+		if index==2415:
+			embed()
 
 		if resample_length<=1:
 			data_element['is_valid'] = False			
