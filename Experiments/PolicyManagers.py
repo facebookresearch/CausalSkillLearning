@@ -943,6 +943,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if self.args.train or not(self.args.discrete_z):
 
 			if self.args.traj_segments:			
+
+				if counter>len(self.dataset):
+					embed()
+
 				trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
 			else:
 				sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
@@ -950,9 +954,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				trajectory_segment = concatenated_traj
 		else:
 			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
-
-		if counter>len(self.dataset):
-			embed()
 
 		if trajectory_segment is not None:
 			############# (1) #############
