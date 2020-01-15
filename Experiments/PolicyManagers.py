@@ -944,7 +944,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			if self.args.traj_segments:			
 
-				if counter>100:
+				if counter>=100:
 					embed()
 
 				trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
