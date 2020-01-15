@@ -328,10 +328,8 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		resample_length = len(data_element['demo'])//self.args.ds_freq
 		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
-		if index==4900:
-			embed()
 
-		if resample_length<=1:
+		if resample_length<=1 or index==4900:
 			data_element['is_valid'] = False			
 		else:
 			data_element['is_valid'] = True
