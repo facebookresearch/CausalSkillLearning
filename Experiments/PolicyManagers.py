@@ -739,6 +739,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			else:					
 				return None, None, None
 
+			embed()
 			action_sequence = np.diff(trajectory,axis=0)
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
