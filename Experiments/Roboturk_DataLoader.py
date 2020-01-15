@@ -326,6 +326,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		new_index = index-self.cummulative_num_demos[max(task_index,0)]		
 		data_element = self.files[task_index][new_index]
 
+		print("Orig:", len(data_element['demo']),"New length:",resample_length)
 		resample_length = len(data_element['demo'])//self.args.ds_freq
 
 		if resample_length<=1:
@@ -339,8 +340,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],3.5,axis=0,mode='nearest')			
 
 			data_element['environment-name'] = self.environment_names[task_index]
-
-			resample_length = len(data_element['demo'])//self.args.ds_freq
 
 			if self.args.ds_freq>1:
 				data_element['demo'] = resample(data_element['demo'], resample_length)
