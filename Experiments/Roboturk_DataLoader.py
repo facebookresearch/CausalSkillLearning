@@ -310,7 +310,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 	def __len__(self):
 		# return self.total_length
-		return 100
+		return 600
 
 	def __getitem__(self, index):
 
