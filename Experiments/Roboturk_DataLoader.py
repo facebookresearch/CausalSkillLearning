@@ -324,8 +324,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		
 		# Decide task ID, and new index modulo num_demos.
 		# Subtract number of demonstrations in cumsum until then, and then 				
-		new_index = index-self.cummulative_num_demos[max(task_index,0)]
-
+		new_index = index-self.cummulative_num_demos[max(task_index,0)]		
 		data_element = self.files[task_index][new_index]
 
 		if data_element['demo'].shape[0]<=1:
@@ -333,10 +332,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
-			if self.args.gripper:
-				data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
-			else:
-				data_element['demo'] = gaussian_filter1d(data_element['demo'][:,:-1],3.5,axis=0,mode='nearest')
+			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
 			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
 			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
 

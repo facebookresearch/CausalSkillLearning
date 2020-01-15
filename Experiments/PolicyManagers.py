@@ -688,7 +688,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
 			# elif self.args.data=='Roboturk':
 			# 	trajectory = data_element['demo']
-			trajectory = data_element['demo']
+			if self.args.gripper:
+				trajectory = data_element['demo']
+			else:
+				trajectory = data_element['demo'][:,:-1]
 
 			# If allowing variable skill length, set length for this sample.				
 			if self.args.var_skill_length:
