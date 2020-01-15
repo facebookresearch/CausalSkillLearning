@@ -466,8 +466,12 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
 		elif self.args.data=='Roboturk':
-			self.state_size = 8	
-			self.state_dim = 8		
+			if self.args.gripper:
+				self.state_size = 8	
+				self.state_dim = 8		
+			else:
+				self.state_size = 7
+				self.state_dim = 7		
 			self.input_size = 2*self.state_size
 			self.hidden_size = self.args.hidden_size
 			self.output_size = self.state_size

@@ -262,12 +262,12 @@ class Roboturk_SegmentedDataset(Roboturk_Dataset):
 
 class Roboturk_NewSegmentedDataset(Dataset):
 
-	def __init__(self):
+	def __init__(self, args):
 
 		super(Roboturk_NewSegmentedDataset, self).__init__()
 		
 		self.dataset_directory = '/checkpoint/tanmayshankar/Roboturk/RoboTurkPilot'
-
+		self.args = args
 		# Require a task list. 
 		# The task name is needed for setting the environment, rendering. 
 		# We shouldn't need the environment for .. training though, should we? 
@@ -332,7 +332,10 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
-			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
+			if self.args.gripper:
+				data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
+			else:
+				data_element['demo'] = gaussian_filter1d(data_element['demo'][:,:-1],3.5,axis=0,mode='nearest')
 			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
 			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
 
