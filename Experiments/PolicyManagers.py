@@ -141,7 +141,7 @@ class PolicyManager_BaseClass():
 			# For every item in the epoch:
 			for i in range(len(self.dataset)-self.test_set_size):
 
-				print("Epoch: ",e," Image:",i)
+				print("Epoch: ",e," Trajectory:",i, "Datapoint: ", self.index_list[i])
 				self.run_iteration(counter, self.index_list[i])				
 
 				counter = counter+1
