@@ -309,7 +309,8 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		# # gripper_closed = [-0.020833, 0.020833]
 
 	def __len__(self):
-		return self.total_length
+		# return self.total_length
+		return 100
 
 	def __getitem__(self, index):
 
