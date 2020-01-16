@@ -392,8 +392,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		np.save("Roboturk_Min.npy", max_value)
 		np.save("Roboturk_Max.npy", min_value)
 
-
-
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
 	def test_Roboturkdataloader(self):

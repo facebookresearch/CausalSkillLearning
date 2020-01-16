@@ -29,6 +29,9 @@ class Master():
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 
 		# Create networks and training operations. 
+
+		embed()
+		
 		self.policy_manager.setup()
 
 	def run(self):
