@@ -360,6 +360,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		for i in range(self.total_length):
 
+			print("Phase 1: DP: ",i)
 			data_element = self.__getitem__(i)
 
 			# Just need to normalize the demonstration. Not the rest. 
@@ -374,12 +375,13 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		for i in range(self.total_length):
 
+			print("Phase 2: DP: ",i)
 			data_element = self.__getitem__(i)
 			
 			# Just need to normalize the demonstration. Not the rest. 
 			if data_element['is_valid']:
 				demo = data_element['demo']
-				variance += (demo-mean)**2
+				variance += ((demo-mean)**2).sum(axis=0)
 
 		variance /= lens.sum()
 		variance = np.sqrt(variance)
