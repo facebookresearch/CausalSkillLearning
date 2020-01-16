@@ -351,11 +351,47 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 	def compute_statistics(self):
 
-		means = np.zeros((self.total_length))
-		variances = np.zeros((self.total_length))
+		self.state_size = 8
+		mean = np.zeros((self.state_size))
+		variance = np.zeros((self.state_size))
+		mins = np.zeros((self.total_length, self.state_size))
+		maxs = np.zeros((self.total_length, self.state_size))
+		lens = np.zeros((self.total_length))
+
 		for i in range(self.total_length):
 
 			data_element = self.__getitem__(i)
+
+			# Just need to normalize the demonstration. Not the rest. 
+			if data_element['is_valid']:
+				demo = data_element['demo']
+				mins[i] = demo.min(axis=0)
+				maxs[i] = demo.max(axis=0)
+				mean += demo.sum(axis=0)				
+				lens[i] = demo.shape[0]
+
+		mean /= lens.sum()
+
+		for i in range(self.total_length):
+
+			data_element = self.__getitem__(i)
+			
+			# Just need to normalize the demonstration. Not the rest. 
+			if data_element['is_valid']:
+				demo = data_element['demo']
+				variance += (demo-mean)**2
+
+		variance /= lens.sum()
+		variance = np.sqrt(variance)
+
+		max_value = maxs.max(axis=0)
+		min_value = mins.min(axis=0)
+
+		np.save("Roboturk_Mean.npy", mean)
+		np.save("Roboturk_Var.npy", variance)
+		np.save("Roboturk_Min.npy", max_value)
+		np.save("Roboturk_Max.npy", min_value)
+
 
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
