@@ -107,6 +107,7 @@ def parse_arguments():
 	parser.add_argument('--reparam',dest='reparam',type=int,default=1)	
 	parser.add_argument('--number_policies',dest='number_policies',type=int,default=4)
 	parser.add_argument('--fix_subpolicy',dest='fix_subpolicy',type=int,default=1)
+	parser.add_argument('--train_only_policy',dest='train_only_policy',type=int,default=0) # Train only the policy network and use a pretrained encoder. This is weird but whatever. 
 	parser.add_argument('--subpolicy_model',dest='subpolicy_model',type=str)
 	parser.add_argument('--traj_length',dest='traj_length',type=int,default=10)
 	parser.add_argument('--skill_length',dest='skill_length',type=int,default=5)

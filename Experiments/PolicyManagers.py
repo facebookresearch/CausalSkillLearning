@@ -539,12 +539,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# These are loss functions. You still instantiate the loss function every time you evaluate it on some particular data. 
 		# When you instantiate it, you call backward on that instantiation. That's why you know what loss to optimize when computing gradients. 		
 
-		if self.args.reparam:
-			parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
-			self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
+		if self.args.train_only_policy:
+			parameter_list = self.policy_network.parameters()
 		else:
-			self.subpolicy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
-			self.encoder_optimizer = torch.optim.Adam(self.encoder_network.parameters(), lr=self.learning_rate)
+			parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
+		self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
 
 	def save_all_models(self, suffix):
 
@@ -558,10 +557,13 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
 	def load_all_models(self, path, only_policy=False):
-		load_object = torch.load(path)		
-		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		if not(only_policy):
+		load_object = torch.load(path)
+		if self.args.train_only_policy and self.args.train: 		
 			self.encoder_network.load_state_dict(load_object['Encoder_Network'])
+		else:
+			self.policy_network.load_state_dict(load_object['Policy_Network'])
+			if not(only_policy):
+				self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
 	def set_epoch(self, counter):
 		if self.args.train:
@@ -786,55 +788,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		return latent_z_indices, latent_b	
 		# return latent_z_indices
 
-	def update_policies(self, loglikelihood, latent_z, encoder_logprobabilities, encoder_entropy, encoder_KL, regularization_kl=None, z_distance=None):
-
-		# Update subpolicy. 
-		self.subpolicy_optimizer.zero_grad()
-		self.subpolicy_loss = -loglikelihood.sum()
-		# self.subpolicy_loss.sum().backward()
-		# self.subpolicy_optimizer.step()
-
-		# Update encoder via Reinforce. 
-		self.encoder_optimizer.zero_grad()
-
-		# Get baseline. 
-		if self.baseline is None:		
-			self.baseline = torch.zeros_like(loglikelihood.sum()).cuda().float()
-
-		baseline_target = loglikelihood.sum().clone().detach()
-		self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target
-
-		# Assume uniform (Categorical) prior over the various Z's. 
-		prior_probabilities = (1./self.number_policies)*torch.ones((self.number_policies)).cuda()
-
-		if self.args.discrete_z:
-			self.encoder_KL = self.KLDivergence_loss_function(encoder_logprobabilities, prior_probabilities).sum()
-			self.encoder_loss = self.negative_log_likelihood_loss_function(encoder_logprobabilities.reshape((1,self.number_policies)), latent_z.reshape((1,))) 
-		else:
-			# Setting "KL" loss / term to negative of entropy. Since we want to maximize entropy of the distribution, minimize the negative of entropy. 
-			self.encoder_KL = encoder_KL
-			self.encoder_loss = -encoder_logprobabilities.sum()
-
-		self.reinforce_encoder_loss = self.encoder_loss*(baseline_target-self.baseline)
-		self.total_encoder_loss = (self.reinforce_encoder_loss + self.args.kl_weight*self.encoder_KL).sum()
-
-		# if self.args.regularize_pretraining:
-		# 	z_epsilon = 0.1
-		# 	self.regularization_loss = (self.args.reg_loss_wt*(regularization_kl*((1-z_distance**2)/(z_distance+z_epsilon)))).sum()
-		# else:
-		self.regularization_loss = 0.
-
-		self.total_loss = (self.total_encoder_loss + self.subpolicy_loss + self.regularization_loss).sum()
-
-		if self.args.debug:			
-			print("Embedding in Update subpolicies.")
-			embed()
-				
-		self.total_loss.backward()
-
-		self.subpolicy_optimizer.step()
-		self.encoder_optimizer.step()
-
 	def update_policies_reparam(self, loglikelihood, latent_z, encoder_KL):
 		self.optimizer.zero_grad()
 
@@ -992,10 +945,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				regularization_kl = None
 				z_distance = None
 
-				if self.args.reparam:				
-					self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
-				else:
-					self.update_policies(loglikelihood, latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence, regularization_kl, z_distance)
+				self.update_policies_reparam(loglikelihood, subpolicy_inputs, kl_divergence)
 
 				# Update Plots. 
 				self.update_plots(counter, loglikelihood, trajectory_segment)
