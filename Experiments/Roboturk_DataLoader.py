@@ -445,9 +445,11 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			# Subtract number of demonstrations in cumsum until then, and then 				
 			new_index = index-self.cummulative_num_demos[max(task_index,0)]		
 			data_element = self.files[task_index][new_index]
-
+			resample_length = len(data_element['demo'])//self.args.ds_freq
 			# Just need to normalize the demonstration. Not the rest. 
-			if data_element['is_valid']:
+			if resample_length<=1 or index==4900 or index==537:
+				pass
+			else:
 				demo = data_element['demo']
 				vel = np.diff(demo,axis=0)
 				mins[i] = demo.min(axis=0)
