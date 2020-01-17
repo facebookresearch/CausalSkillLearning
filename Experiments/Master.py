@@ -28,6 +28,9 @@ class Master():
 			# self.policy_manager = PolicyManager_FlatDMPBaseline(self.args.number_policies, self.dataset, self.args)
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 
+		if self.args.debug:
+			embed()
+			
 		# Create networks and training operations. 
 		self.policy_manager.setup()
 

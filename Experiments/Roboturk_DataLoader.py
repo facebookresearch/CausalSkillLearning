@@ -358,6 +358,12 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		maxs = np.zeros((self.total_length, self.state_size))
 		lens = np.zeros((self.total_length))
 
+		# And velocity statistics. 
+		vel_mean = np.zeros((self.state_size))
+		vel_variance = np.zeros((self.state_size))
+		vel_mins = np.zeros((self.total_length, self.state_size))
+		vel_maxs = np.zeros((self.total_length, self.state_size))
+
 		for i in range(self.total_length):
 
 			print("Phase 1: DP: ",i)
@@ -366,12 +372,18 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			# Just need to normalize the demonstration. Not the rest. 
 			if data_element['is_valid']:
 				demo = data_element['demo']
+				vel = np.diff(demo,axis=0)
 				mins[i] = demo.min(axis=0)
 				maxs[i] = demo.max(axis=0)
-				mean += demo.sum(axis=0)				
+				mean += demo.sum(axis=0)
 				lens[i] = demo.shape[0]
 
+				vel_mins[i] = vel.min(axis=0)
+				vel_maxs[i] = vel.max(axis=0)
+				vel_mean += vel.sum(axis=0)			
+
 		mean /= lens.sum()
+		vel_mean /= lens.sum()
 
 		for i in range(self.total_length):
 
@@ -381,18 +393,30 @@ class Roboturk_NewSegmentedDataset(Dataset):
 			# Just need to normalize the demonstration. Not the rest. 
 			if data_element['is_valid']:
 				demo = data_element['demo']
+				vel = np.diff(demo,axis=0)
 				variance += ((demo-mean)**2).sum(axis=0)
+				vel_variance += ((vel-vel_mean)**2).sum(axis=0)
 
 		variance /= lens.sum()
 		variance = np.sqrt(variance)
 
+		vel_variance /= lens.sum()
+		vel_variance = np.sqrt(vel_variance)
+
 		max_value = maxs.max(axis=0)
 		min_value = mins.min(axis=0)
+
+		vel_max_value = vel_maxs.max(axis=0)
+		vel_min_value = vel_mins.min(axis=0)
 
 		np.save("Roboturk_Mean.npy", mean)
 		np.save("Roboturk_Var.npy", variance)
 		np.save("Roboturk_Min.npy", max_value)
 		np.save("Roboturk_Max.npy", min_value)
+		np.save("Roboturk_Vel_Mean.npy", vel_mean)
+		np.save("Roboturk_Vel_Var.npy", vel_variance)
+		np.save("Roboturk_Vel_Min.npy", vel_max_value)
+		np.save("Roboturk_Vel_Max.npy", vel_min_value)
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
