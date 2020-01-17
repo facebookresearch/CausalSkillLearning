@@ -487,7 +487,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		vel_max_value = vel_maxs.max(axis=0)
 		vel_min_value = vel_mins[(vel_mins>0).all(axis=1)].min(axis=0)
-
+		embed()
 		np.save("Roboturk_Orig_Mean.npy", mean)
 		np.save("Roboturk_Orig_Var.npy", variance)
 		np.save("Roboturk_Orig_Min.npy", min_value)
