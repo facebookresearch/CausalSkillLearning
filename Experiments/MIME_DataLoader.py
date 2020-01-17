@@ -147,7 +147,8 @@ class MIME_NewDataset(Dataset):
 		vel_mins = np.zeros((self.total_length, self.state_size))
 		vel_maxs = np.zeros((self.total_length, self.state_size))
 
-		for i in range(self.__len__()):
+		self.total_length = self.__len__()
+		for i in range(self.total_length):
 
 			print("Phase 1: DP: ",i)
 			data_element = self.__getitem__(i)
