@@ -459,7 +459,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				self.norm_denom_value = np.load("MIME_Var.npy")
 			elif self.args.normalization=='minmax':
 				self.norm_sub_value = np.load("MIME_Min.npy")
-				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
+				self.norm_denom_value = np.load("MIME_Max.npy") - self.norm_sub_value
 
 			# Max of robot_state + object_state sizes across all Baxter environments. 			
 			self.cond_robot_state_size = 60
@@ -480,11 +480,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.traj_length = self.args.traj_length
 
 			if self.args.normalization=='meanvar':
-				self.norm_sub_value = np.load("Roboturk_Mean.npy")
-				self.norm_denom_value = np.load("Roboturk_Var.npy")
+				self.norm_sub_value = np.load("Statistics/Roboturk_Mean.npy")
+				self.norm_denom_value = np.load("Statistics/Roboturk_Var.npy")
 			elif self.args.normalization=='minmax':
-				self.norm_sub_value = np.load("Roboturk_Min.npy")
-				self.norm_denom_value = np.load("Roboturk_Max.npy") - np.load("Roboturk_Min.npy")
+				self.norm_sub_value = np.load("Statistics/Roboturk_Min.npy")
+				self.norm_denom_value = np.load("Statistics/Roboturk_Max.npy") - self.norm_sub_value
 
 			# Max of robot_state + object_state sizes across all sawyer environments. 
 			# Robot size always 30. Max object state size is... 23. 
