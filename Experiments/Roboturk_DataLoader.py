@@ -407,16 +407,16 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		min_value = mins.min(axis=0)
 
 		vel_max_value = vel_maxs.max(axis=0)
-		vel_min_value = vel_mins.min(axis=0)
+		vel_min_value = vel_mins[(vel_mins>0).all(axis=1)].min(axis=0)
 
 		np.save("Roboturk_Mean.npy", mean)
 		np.save("Roboturk_Var.npy", variance)
-		np.save("Roboturk_Min.npy", max_value)
-		np.save("Roboturk_Max.npy", min_value)
+		np.save("Roboturk_Min.npy", min_value)
+		np.save("Roboturk_Max.npy", max_value)
 		np.save("Roboturk_Vel_Mean.npy", vel_mean)
 		np.save("Roboturk_Vel_Var.npy", vel_variance)
-		np.save("Roboturk_Vel_Min.npy", vel_max_value)
-		np.save("Roboturk_Vel_Max.npy", vel_min_value)
+		np.save("Roboturk_Vel_Min.npy", vel_min_value)
+		np.save("Roboturk_Vel_Max.npy", vel_max_value)
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
