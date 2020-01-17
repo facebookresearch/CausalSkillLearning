@@ -349,7 +349,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		return data_element
 
-	def compute_statistics(self):
+	def compute_smooth_statistics(self):
 
 		self.state_size = 8
 		mean = np.zeros((self.state_size))
@@ -417,6 +417,83 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		np.save("Roboturk_Vel_Var.npy", vel_variance)
 		np.save("Roboturk_Vel_Min.npy", vel_min_value)
 		np.save("Roboturk_Vel_Max.npy", vel_max_value)
+
+	def compute_original_statistics(self):
+
+		self.state_size = 8
+		mean = np.zeros((self.state_size))
+		variance = np.zeros((self.state_size))
+		mins = np.zeros((self.total_length, self.state_size))
+		maxs = np.zeros((self.total_length, self.state_size))
+		lens = np.zeros((self.total_length))
+
+		# And velocity statistics. 
+		vel_mean = np.zeros((self.state_size))
+		vel_variance = np.zeros((self.state_size))
+		vel_mins = np.zeros((self.total_length, self.state_size))
+		vel_maxs = np.zeros((self.total_length, self.state_size))
+
+		for i in range(self.total_length):
+
+			print("Phase 1: DP: ",i)
+			index = i
+
+			# Get bucket that index falls into based on num_demos array. 
+			task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
+		
+			# Decide task ID, and new index modulo num_demos.
+			# Subtract number of demonstrations in cumsum until then, and then 				
+			new_index = index-self.cummulative_num_demos[max(task_index,0)]		
+			data_element = self.files[task_index][new_index]
+
+			# Just need to normalize the demonstration. Not the rest. 
+			if data_element['is_valid']:
+				demo = data_element['demo']
+				vel = np.diff(demo,axis=0)
+				mins[i] = demo.min(axis=0)
+				maxs[i] = demo.max(axis=0)
+				mean += demo.sum(axis=0)
+				lens[i] = demo.shape[0]
+
+				vel_mins[i] = abs(vel).min(axis=0)
+				vel_maxs[i] = abs(vel).max(axis=0)
+				vel_mean += vel.sum(axis=0)			
+
+		mean /= lens.sum()
+		vel_mean /= lens.sum()
+
+		for i in range(self.total_length):
+
+			print("Phase 2: DP: ",i)
+			data_element = self.__getitem__(i)
+			
+			# Just need to normalize the demonstration. Not the rest. 
+			if data_element['is_valid']:
+				demo = data_element['demo']
+				vel = np.diff(demo,axis=0)
+				variance += ((demo-mean)**2).sum(axis=0)
+				vel_variance += ((vel-vel_mean)**2).sum(axis=0)
+
+		variance /= lens.sum()
+		variance = np.sqrt(variance)
+
+		vel_variance /= lens.sum()
+		vel_variance = np.sqrt(vel_variance)
+
+		max_value = maxs.max(axis=0)
+		min_value = mins.min(axis=0)
+
+		vel_max_value = vel_maxs.max(axis=0)
+		vel_min_value = vel_mins[(vel_mins>0).all(axis=1)].min(axis=0)
+
+		np.save("Roboturk_Orig_Mean.npy", mean)
+		np.save("Roboturk_Orig_Var.npy", variance)
+		np.save("Roboturk_Orig_Min.npy", min_value)
+		np.save("Roboturk_Orig_Max.npy", max_value)
+		np.save("Roboturk_Orig_Vel_Mean.npy", vel_mean)
+		np.save("Roboturk_Orig_Vel_Var.npy", vel_variance)
+		np.save("Roboturk_Orig_Vel_Min.npy", vel_min_value)
+		np.save("Roboturk_Orig_Vel_Max.npy", vel_max_value)
 
 class Roboturk_Dataloader_Tester(unittest.TestCase):
 	
