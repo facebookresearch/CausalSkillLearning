@@ -261,7 +261,8 @@ class PolicyManager_BaseClass():
 			# New input row. 
 			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
 			input_row[0,:self.state_dim] = new_state
-			input_row[0,self.state_dim:2*self.state_dim] = action_to_execute
+			# Feed in the ORIGINAL prediction from the network as input. Not the downscaled thing. 
+			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
 			input_row[0,2*self.state_dim:] = latent_z
 
 			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
