@@ -135,6 +135,7 @@ class MIME_NewDataset(Dataset):
 	def compute_statistics(self):
 
 		self.state_size = 16
+		self.total_length = self.__len__()
 		mean = np.zeros((self.state_size))
 		variance = np.zeros((self.state_size))
 		mins = np.zeros((self.total_length, self.state_size))
@@ -147,7 +148,7 @@ class MIME_NewDataset(Dataset):
 		vel_mins = np.zeros((self.total_length, self.state_size))
 		vel_maxs = np.zeros((self.total_length, self.state_size))
 
-		self.total_length = self.__len__()
+		
 		for i in range(self.total_length):
 
 			print("Phase 1: DP: ",i)
