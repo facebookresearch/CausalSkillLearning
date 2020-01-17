@@ -378,8 +378,8 @@ class Roboturk_NewSegmentedDataset(Dataset):
 				mean += demo.sum(axis=0)
 				lens[i] = demo.shape[0]
 
-				vel_mins[i] = vel.min(axis=0)
-				vel_maxs[i] = vel.max(axis=0)
+				vel_mins[i] = abs(vel).min(axis=0)
+				vel_maxs[i] = abs(vel).max(axis=0)
 				vel_mean += vel.sum(axis=0)			
 
 		mean /= lens.sum()
