@@ -329,15 +329,17 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		resample_length = len(data_element['demo'])//self.args.ds_freq
 		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
 
+		self.kernel_bandwidth = self.args.smoothing_kernel_bandwidth
+
 		if resample_length<=1 or index==4900 or index==537:
 			data_element['is_valid'] = False			
 		else:
 			data_element['is_valid'] = True
 
-			data_element['demo'] = gaussian_filter1d(data_element['demo'],3.5,axis=0,mode='nearest')
-			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],3.5,axis=0,mode='nearest')
-			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],3.5,axis=0,mode='nearest')
-			data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],3.5,axis=0,mode='nearest')			
+			data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
+			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+			data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')			
 
 			data_element['environment-name'] = self.environment_names[task_index]
 
