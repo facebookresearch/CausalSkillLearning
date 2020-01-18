@@ -109,16 +109,20 @@ class Roboturk_Dataset(Dataset):
 		gripper_values = 2*gripper_values-1
 
 		concatenated_demonstration = np.concatenate([joint_values,gripper_values.reshape((-1,1))],axis=1)
-		donwsampled_demonstration = resample(concatenated_demonstration, concatenated_demonstration.shape[0]//self.ds_freq)
+		downsampled_demonstration = resample(concatenated_demonstration, concatenated_demonstration.shape[0]//self.ds_freq)
 
 		# Performing another check that makes sure data element actually has states.
-		if donwsampled_demonstration.shape[0]==0:
+		if downsampled_demonstration.shape[0]==0:
 			data_element = {}
 			data_element['is_valid'] = False
 			return data_element
 
 		data_element = {}
-		data_element['demo'] = donwsampled_demonstration
+
+		if self.args.smoothen:
+			data_element['demo'] = gaussian_filter1d(data_element['demo'],self.args.smoothing_kernel_bandwidth,axis=0,mode='nearest')
+		else:
+			data_element['demo'] = downsampled_demonstration
 		# Trivially setting is valid to true until we come up wiuth a better strategy. 
 		data_element['is_valid'] = True
 

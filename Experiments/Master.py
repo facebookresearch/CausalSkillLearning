@@ -111,6 +111,7 @@ def parse_arguments():
 	parser.add_argument('--gripper',dest='gripper',type=int,default=1) # Whether to use gripper training in roboturk.
 	parser.add_argument('--ds_freq',dest='ds_freq',type=int,default=1) # Additional downsample frequency.
 	parser.add_argument('--condition_size',dest='condition_size',type=int,default=4)
+	parser.add_argument('--smoothen', dest='smoothen',type=int,default=0) # Whether to smoothen the original dataset. 
 	parser.add_argument('--smoothing_kernel_bandwidth', dest='smoothing_kernel_bandwidth',type=float,default=3.5) # The smoothing bandwidth that is applied to data loader trajectories. 
 
 	parser.add_argument('--new_gradient',dest='new_gradient',type=int,default=1)
