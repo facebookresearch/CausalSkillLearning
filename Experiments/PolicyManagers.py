@@ -999,7 +999,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		np.set_printoptions(suppress=True,precision=2)
 
-		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk'::
+		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 
 			print("Running Evaluation of State Distances on small test set.")
 			self.evaluate_metrics()
