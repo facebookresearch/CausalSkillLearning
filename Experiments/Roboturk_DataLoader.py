@@ -120,7 +120,7 @@ class Roboturk_Dataset(Dataset):
 		data_element = {}
 
 		if self.args.smoothen:
-			data_element['demo'] = gaussian_filter1d(data_element['demo'],self.args.smoothing_kernel_bandwidth,axis=0,mode='nearest')
+			data_element['demo'] = gaussian_filter1d(downsampled_demonstration,self.args.smoothing_kernel_bandwidth,axis=0,mode='nearest')
 		else:
 			data_element['demo'] = downsampled_demonstration
 		# Trivially setting is valid to true until we come up wiuth a better strategy. 
