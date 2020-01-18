@@ -15,9 +15,9 @@ class Roboturk_Dataset(Dataset):
 	# LINK TO DATASET and INFO: http://roboturk.stanford.edu/dataset.html
 
 	# Class implementing instance of Roboturk dataset. 
-	def __init__(self):
+	def __init__(self, args):
 		self.dataset_directory = '/checkpoint/tanmayshankar/Roboturk/RoboTurkPilot'
-
+		self.args = args
 		# Require a task list. 
 
 		# The task name is needed for setting the environment, rendering. 
@@ -509,9 +509,9 @@ class Roboturk_FullDataset(Dataset):
 	# LINK TO DATASET and INFO: http://roboturk.stanford.edu/dataset.html
 
 	# Class implementing instance of Roboturk dataset. 
-	def __init__(self):
+	def __init__(self, args):
 		self.dataset_directory = '/checkpoint/tanmayshankar/Roboturk/RoboTurkPilot'
-
+		self.args = args
 		# Require a task list. 
 
 		# The task name is needed for setting the environment, rendering. 

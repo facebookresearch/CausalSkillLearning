@@ -17,9 +17,9 @@ class Master():
 		elif self.args.data=='Roboturk':					
 			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset(self.args)
 		elif self.args.data=='OrigRoboturk':
-			self.dataset = Roboturk_DataLoader.Roboturk_Dataset()
+			self.dataset = Roboturk_DataLoader.Roboturk_Dataset(self.args)
 		elif self.args.data=='NewFullRoboturk':
-			self.dataset = Roboturk_DataLoader.Roboturk_FullDataset()
+			self.dataset = Roboturk_DataLoader.Roboturk_FullDataset(self.args)
 
 		# Now define policy manager.
 		if self.args.setting=='learntsub':
