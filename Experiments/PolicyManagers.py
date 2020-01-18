@@ -471,7 +471,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.cond_object_state_size = 25
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
-		elif self.args.data=='Roboturk':
+		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 			if self.args.gripper:
 				self.state_size = 8	
 				self.state_dim = 8		
@@ -690,7 +690,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			return concatenated_traj, sample_action_seq, sample_traj
 		
-		elif self.args.data=='MIME' or self.args.data=='Roboturk':
+		elif self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 
 			data_element = self.dataset[i]
 
@@ -745,7 +745,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 				if self.args.data=='MIME':
 					pass
-				elif self.args.data=='Roboturk':
+				elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 					# robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
 					# object_states = data_element['object-state'][start_timepoint:end_timepoint]
 					pass
@@ -999,7 +999,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		np.set_printoptions(suppress=True,precision=2)
 
-		if self.args.data=="MIME" or self.args.data=='Roboturk':
+		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk'::
 
 			print("Running Evaluation of State Distances on small test set.")
 			self.evaluate_metrics()
@@ -1193,7 +1193,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 			self.conditional_viz_env = False
 
-		elif self.args.data=='Roboturk':
+		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 			self.state_size = 8	
 			self.state_dim = 8
 			self.input_size = 2*self.state_size	
@@ -1319,7 +1319,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def visualize_trajectory(self, trajectory, segmentations=None):
 
-		if self.args.data=='MIME' or self.args.data=='Roboturk': 
+		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 				unnorm_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
@@ -1393,7 +1393,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
 
-			if self.args.data=='MIME' or self.args.data=='Roboturk':
+			if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 				# Feeding as list of image because gif_summary.
 				self.tf_logger.gif_summary("GT Trajectory",[gt_trajectory_image],counter)
 				self.tf_logger.gif_summary("Variational Rollout",[variational_rollout_image],counter)
@@ -1928,7 +1928,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			else:
 
-				if self.args.data=='MIME' or self.args.data=='Roboturk':
+				if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 					pass
 				else:
 					print("#############################################")			
@@ -1968,7 +1968,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		np.set_printoptions(suppress=True,precision=2)
 
 		# Visualize space if the subpolicy has been trained...
-		if (self.args.data=="MIME" or self.args.data=='Roboturk') and (self.args.fix_subpolicy==0):
+		if (self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk') and (self.args.fix_subpolicy==0):
 			print("Running Visualization on Robot Data.")	
 			self.pretrain_policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 			self.pretrain_policy_manager.setup()
@@ -2385,7 +2385,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 				if self.args.data=='MIME':
 					sample_traj = sample_traj[:,:-2]
 					self.state_size = 14
-				if self.args.data=='Roboturk':				
+				elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 					sample_traj = sample_traj[:,:-1]
 					self.state_size = 7
 					# sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
