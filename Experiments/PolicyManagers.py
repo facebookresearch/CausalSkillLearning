@@ -246,7 +246,7 @@ class PolicyManager_BaseClass():
 		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
 
 		if rollout_length is not None: 
-			length = rollout_length
+			length = rollout_length-1
 		else:
 			length = self.rollout_timesteps-1
 
