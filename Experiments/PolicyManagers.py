@@ -239,13 +239,18 @@ class PolicyManager_BaseClass():
 		# Save webpage. 
 		self.write_results_HTML()
 
-	def rollout_robot_trajectory(self, trajectory_start, latent_z):
+	def rollout_robot_trajectory(self, trajectory_start, latent_z, rollout_length=None):
 
 		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
 		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
 		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
 
-		for t in range(self.rollout_timesteps-1):
+		if rollout_length is not None: 
+			length = rollout_length
+		else:
+			length = self.rollout_timesteps-1
+
+		for t in range(length):
 
 			actions = self.policy_network.get_actions(subpolicy_inputs, greedy=True)
 
@@ -273,7 +278,7 @@ class PolicyManager_BaseClass():
 	def get_robot_visuals(self, i, latent_z, trajectory, sample_action_seq):		
 
 		# 1) Feed Z into policy, rollout trajectory. 
-		trajectory_rollout = self.rollout_robot_trajectory(trajectory[0], latent_z)
+		trajectory_rollout = self.rollout_robot_trajectory(trajectory[0], latent_z, rollout_length=trajectory.shape[0])
 
 		# 2) Unnormalize data. 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
@@ -981,8 +986,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			if sample_traj is not None:
 				# Feed latent z to the rollout.
 				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
-				self.rollout_timesteps = len(sample_traj)
-				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z)
+				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
 
 				self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
 
