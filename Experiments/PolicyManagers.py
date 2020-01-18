@@ -746,8 +746,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				if self.args.data=='MIME':
 					pass
 				elif self.args.data=='Roboturk':
-					robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
-					object_states = data_element['object-state'][start_timepoint:end_timepoint]
+					# robot_states = data_element['robot-state'][start_timepoint:end_timepoint]
+					# object_states = data_element['object-state'][start_timepoint:end_timepoint]
+					pass
 
 					# self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 					# self.conditional_information[:,:self.cond_robot_state_size] = robot_states
