@@ -2468,6 +2468,8 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Set last element in this to 0.
 		self.TD_targets[-1] = 0.
 		self.TD_targets *= self.gamma
+
+		embed()
 		self.TD_targets += np.array(self.reward_trajectory)
 		self.TD_targets = torch.tensor(self.TD_targets).cuda().float()
 
