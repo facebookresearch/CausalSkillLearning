@@ -3,7 +3,7 @@ from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
 from Visualizers import BaxterVisualizer, SawyerVisualizer
-import TFLogger, DMP, Memory, Transition
+import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
 
@@ -2563,7 +2563,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 	def initialize_memory(self):
 
 		# Create memory object. 
-		self.memory = Memory.ReplayMemory(memory_size=10000)
+		self.memory = RLUtils.ReplayMemory(memory_size=10000)
 
 		# Number of initial episodes needs to be less than memory size. 
 		self.initial_episodes = 200
