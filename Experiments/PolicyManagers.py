@@ -2444,7 +2444,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Now set the lists. 
 		self.state_trajectory = episode.state_list
 		self.action_trajectory = episode.action_list
-		self.reward_trajectory = episode.action_list		
+		self.reward_trajectory = episode.reward_list
 
 		assembled_inputs = self.assemble_inputs()
 
@@ -2468,8 +2468,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Set last element in this to 0.
 		self.TD_targets[-1] = 0.
 		self.TD_targets *= self.gamma
-
-		embed()
+		
 		self.TD_targets += np.array(self.reward_trajectory)
 		self.TD_targets = torch.tensor(self.TD_targets).cuda().float()
 
