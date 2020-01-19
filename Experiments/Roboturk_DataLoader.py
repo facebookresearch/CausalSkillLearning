@@ -228,7 +228,6 @@ class Roboturk_FullDataset(Roboturk_Dataset):
 		super(Roboturk_FullDataset, self).__init__(args)
 
 	def setup(self):
-		embed()
 		for i in range(len(self.task_list)):
 			if i==3 or i==5:
 				self.files.append(np.load("{0}/{1}/FullDataset_Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
