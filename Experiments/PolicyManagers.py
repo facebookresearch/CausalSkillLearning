@@ -2570,7 +2570,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 	def initialize_memory(self):
 
 		# Create memory object. 
-		self.memory = RLUtils.ReplayMemory(memory_size=10000)
+		self.memory = RLUtils.ReplayMemory(memory_size=1000)
 
 		# Number of initial episodes needs to be less than memory size. 
 		self.initial_episodes = 50
