@@ -39,11 +39,6 @@ class Roboturk_Dataset(Dataset):
 
 		self.total_length = self.num_demos.sum()		
 
-		# Load data from all tasks. 			
-		self.files = []
-		for i in range(len(self.task_list)):
-			self.files.append(h5py.File("{0}/{1}/demo.hdf5".format(self.dataset_directory,self.task_list[i]),'r'))
-
 		# Seems to follow joint angles order:
 		# ('time','right_j0', 'head_pan', 'right_j1', 'right_j2', 'right_j3', 'right_j4', 'right_j5', 'right_j6', 'r_gripper_l_finger_joint', 'r_gripper_r_finger_joint', 'Milk0', 'Bread0', 'Cereal0', 'Can0').
 		# Extract these into... 
@@ -56,6 +51,15 @@ class Roboturk_Dataset(Dataset):
 		# [l,r]
 		# gripper_open = [0.0115, -0.0115]
 		# gripper_closed = [-0.020833, 0.020833]
+
+		# Set files. 
+		self.setup()
+
+	def setup(self):
+		# Load data from all tasks. 			
+		self.files = []
+		for i in range(len(self.task_list)):
+			self.files.append(h5py.File("{0}/{1}/demo.hdf5".format(self.dataset_directory,self.task_list[i]),'r'))
 		
 
 	def __len__(self):
@@ -218,6 +222,57 @@ class Roboturk_Dataset(Dataset):
 
 			# Now save this file_demo_list. 
 			np.save(os.path.join(self.dataset_directory,self.task_list[task_index],"FullDataset_Task_Demo_Array.npy"),task_demo_array)
+
+class Roboturk_FullDataset(Roboturk_Dataset):
+	def __init__(self, args):
+		super(Roboturk_FullDataset, self).__init__()
+
+	def setup(self):
+		for i in range(len(self.task_list)):
+			if i==3 or i==5:
+				self.files.append(np.load("{0}/{1}/FullDataset_Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
+			else:
+				self.files.append(np.load("{0}/{1}/New_Task_Demo_Array.npy".format(self.dataset_directory, self.task_list[i]), allow_pickle=True))
+
+	def __getitem__(self, index):
+
+		if index>=self.total_length:
+			print("Out of bounds of dataset.")
+			return None
+
+		# Get bucket that index falls into based on num_demos array. 
+		task_index = np.searchsorted(self.cummulative_num_demos, index, side='right')-1
+		
+		# Decide task ID, and new index modulo num_demos.
+		# Subtract number of demonstrations in cumsum until then, and then 				
+		new_index = index-self.cummulative_num_demos[max(task_index,0)]		
+		data_element = self.files[task_index][new_index]
+
+		resample_length = len(data_element['demo'])//self.args.ds_freq
+		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
+
+		self.kernel_bandwidth = self.args.smoothing_kernel_bandwidth
+
+		if resample_length<=1 or data_element['robot-state'].shape[0]<=1:
+			data_element['is_valid'] = False			
+		else:
+			data_element['is_valid'] = True
+
+			if self.args.smoothen: 
+				data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['object-state'] = gaussian_filter1d(data_element['object-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+
+			data_element['environment-name'] = self.environment_names[task_index]
+
+			if self.args.ds_freq>1:
+				data_element['demo'] = resample(data_element['demo'], resample_length)
+				data_element['robot-state'] = resample(data_element['robot-state'], resample_length)
+				data_element['object-state'] = resample(data_element['object-state'], resample_length)
+				data_element['flat-state'] = resample(data_element['flat-state'], resample_length)
+
+		return data_element
 
 class Roboturk_SegmentedDataset(Roboturk_Dataset):
 
