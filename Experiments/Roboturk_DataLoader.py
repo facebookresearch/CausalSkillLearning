@@ -225,7 +225,7 @@ class Roboturk_Dataset(Dataset):
 
 class Roboturk_FullDataset(Roboturk_Dataset):
 	def __init__(self, args):
-		super(Roboturk_FullDataset, self).__init__()
+		super(Roboturk_FullDataset, self).__init__(args)
 
 	def setup(self):
 		embed()
