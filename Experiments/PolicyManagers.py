@@ -2511,7 +2511,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		for ind in batch_indices:
 
 			# Retrieve appropriate episode from memory. 
-			episode = self.memory[ind]
+			episode = self.memory.memory[ind]
 
 			# Set quantities from episode.
 			self.process_episode(episode)
