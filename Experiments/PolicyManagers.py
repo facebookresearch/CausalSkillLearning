@@ -82,7 +82,7 @@ class PolicyManager_BaseClass():
 			else:
 				return sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj
 	
-		elif self.args.data=='MIME' or self.args.data=='Roboturk':
+		elif self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 
 			data_element = self.dataset[i]
 
@@ -101,7 +101,7 @@ class PolicyManager_BaseClass():
 
 			self.current_traj_len = len(trajectory)
 
-			if self.args.data=='Roboturk':
+			if self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 				robot_states = data_element['robot-state']
 				object_states = data_element['object-state']
 
@@ -179,7 +179,7 @@ class PolicyManager_BaseClass():
 		if self.args.data=='MIME':
 			self.visualizer = BaxterVisualizer()
 			# self.state_dim = 16
-		elif self.args.data=='Roboturk':
+		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 			self.visualizer = SawyerVisualizer()
 			# self.state_dim = 8
 
