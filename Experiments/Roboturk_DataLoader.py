@@ -226,6 +226,7 @@ class Roboturk_Dataset(Dataset):
 class Roboturk_FullDataset(Roboturk_Dataset):
 	def __init__(self, args):
 		super(Roboturk_FullDataset, self).__init__(args)
+		self.environment_names = ["SawyerPickPlaceBread","SawyerPickPlaceCan","SawyerPickPlaceCereal","SawyerPickPlace","SawyerPickPlaceMilk","SawyerNutAssembly", "SawyerNutAssemblyRound","SawyerNutAssemblySquare"]
 
 	def setup(self):
 		self.files = []
