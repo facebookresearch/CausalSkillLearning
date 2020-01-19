@@ -18,7 +18,7 @@ class Master():
 			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset(self.args)
 		elif self.args.data=='OrigRoboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_Dataset(self.args)
-		elif self.args.data=='NewFullRoboturk':
+		elif self.args.data=='FullRoboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_FullDataset(self.args)
 
 		# Now define policy manager.
