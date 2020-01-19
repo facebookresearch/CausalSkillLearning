@@ -2294,9 +2294,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
 		self.number_episodes = 5000000
 
-		self.policy_loss_statistics = 0.
-		self.critic_loss_statistics = 0.
-		self.batch_reward_statistics = 0.
+		self.reset_statistics()
 
 	def create_networks(self):
 
@@ -2416,6 +2414,8 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
+		self.episode_reward_statistics = self.cummulative_rewards[0]
+
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
@@ -2499,10 +2499,13 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.critic_optimizer.step()
 		self.policy_optimizer.zero_grad()
 		self.critic_optimizer.zero_grad()
+
+	def reset_statistics(self):
 		# Can also reset the policy and critic loss statistcs here. 
 		self.policy_loss_statistics = 0.
 		self.critic_loss_statistics = 0.
 		self.batch_reward_statistics = 0.
+		self.episode_reward_statistics = 0.
 
 	def update_batch(self, counter):
 
@@ -2521,10 +2524,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.update_policies_TD(counter)
 
 		# Now actually make a step. 
-		self.step_networks()
+		self.step_networks()		
 
 	def update_plots(self, counter):
-		self.tf_logger.scalar_summary('Total Episode Reward', self.cummulative_rewards[0], counter)
+		self.tf_logger.scalar_summary('Total Episode Reward', self.episode_reward_statistics, counter)
 		self.tf_logger.scalar_summary('Batch Rewards', self.batch_reward_statistics/self.batch_size, counter)
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss_statistics/self.batch_size, counter)
 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss_statistics/self.batch_size, counter)
@@ -2536,6 +2539,9 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			# Rollout policy.
 			self.rollout(random=False, test=True, visualize=True)
 			self.tf_logger.gif_summary("Rollout Trajectory", [np.array(self.image_trajectory)], counter)
+
+		# Now that we've updated these into TB, reset stats. 
+		self.reset_statistics()
 
 	def run_iteration(self, counter):
 
