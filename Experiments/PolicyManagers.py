@@ -2509,7 +2509,8 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.TD_targets += np.array(self.reward_trajectory)
 			self.critic_targets = torch.tensor(self.TD_targets).cuda().float()
 		else:
-			self.critic_targets = torch.tensor(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1]).cuda().float()
+			self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
+			self.critic_targets = torch.tensor(self.cummulative_rewards).cuda().float()
 
 	def update_policies(self, counter):
 		######################################
