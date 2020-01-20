@@ -2301,7 +2301,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		if self.args.MLP_policy:
 			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
-			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
+			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).cuda()
 		else:
 			# Create policy and critic. 		
 			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
@@ -2484,7 +2484,6 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Compute losses for actor.
 		self.policy_optimizer.zero_grad()
 		self.set_differentiable_critic_inputs()
-		embed()
 		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()
 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 		self.policy_loss.backward()
