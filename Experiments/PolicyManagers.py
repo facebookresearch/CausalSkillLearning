@@ -1004,8 +1004,18 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			print("Running Evaluation of State Distances on small test set.")
 			self.evaluate_metrics()
 
-			print("Running Visualization on Robot Data.")	
-			self.visualize_robot_data()
+			# print("Running Visualization on Robot Data.")	
+			# self.visualize_robot_data()
+
+			# Create save directory:
+			upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+			if not(os.path.isdir(upper_dir_name)):
+				os.mkdir(upper_dir_name)
+
+			self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+			if not(os.path.isdir(self.dir_name)):
+				os.mkdir(self.dir_name)
 
 			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
