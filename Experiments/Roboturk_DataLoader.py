@@ -398,6 +398,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
+
 			if self.args.smoothen:
 				data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
 				data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')

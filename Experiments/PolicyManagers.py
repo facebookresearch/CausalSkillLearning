@@ -2584,7 +2584,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.memory = RLUtils.ReplayMemory(memory_size=1000)
 
 		# Number of initial episodes needs to be less than memory size. 
-		self.initial_episodes = 5
+		self.initial_episodes = 50
 
 		# While number of transitions is less than initial_transitions.
 		episode_counter = 0 
