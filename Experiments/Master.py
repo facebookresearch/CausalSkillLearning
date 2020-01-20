@@ -26,9 +26,9 @@ class Master():
 			self.policy_manager = PolicyManager_Joint(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
-		elif self.args.setting=='downstreamRL':
+		elif self.args.setting=='baselineRL':
 			# self.policy_manager = PolicyManager_DownstreamRL(self.args)
-			self.policy_manager = PolicyManager_MemoryDownstreamRL(self.args)
+			self.policy_manager = PolicyManager_BaselineRL(self.args)
 		elif self.args.setting=='DMP':
 			# self.policy_manager = PolicyManager_FlatDMPBaseline(self.args.number_policies, self.dataset, self.args)
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
