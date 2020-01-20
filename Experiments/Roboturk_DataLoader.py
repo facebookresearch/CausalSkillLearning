@@ -398,10 +398,11 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
-			data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
-			data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')
-			data_element['object-state'] = gaussian_filter1d(data_element['object-state'],self.kernel_bandwidth,axis=0,mode='nearest')
-			data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')			
+			if self.args.smoothen:
+				data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['object-state'] = gaussian_filter1d(data_element['object-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')			
 
 			data_element['environment-name'] = self.environment_names[task_index]
 
@@ -551,7 +552,7 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 		vel_max_value = vel_maxs.max(axis=0)
 		vel_min_value = vel_mins[(vel_mins>0).all(axis=1)].min(axis=0)
-		embed()
+
 		np.save("Roboturk_Orig_Mean.npy", mean)
 		np.save("Roboturk_Orig_Var.npy", variance)
 		np.save("Roboturk_Orig_Min.npy", min_value)
