@@ -170,6 +170,7 @@ def parse_arguments():
 	# Reinforcement Learning parameters. 
 	parser.add_argument('--TD',dest='TD',type=int,default=0) # Whether or not to use Temporal difference while training the critic network.
 	parser.add_argument('--MLP_policy',dest='MLP_policy',type=int,default=0) # Whether or not to use MLP policy.
+	parser.add_argument('--burn_in_eps',dest='burn_in_eps',type=int,default=50) # How many epsiodes to burn in.
 
 	return parser.parse_args()
 
