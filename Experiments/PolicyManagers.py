@@ -2393,10 +2393,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 				assembled_inputs = self.assemble_inputs()
 
 				# Get action greedily, then add noise. 				
-				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
-				noise = torch.zeros_like(predicted_action).cuda().float()
-
-				if not(test):			
+				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
+				if test:
+					noise = torch.zeros_like(predicted_action).cuda().float()
+				else:
 					# Get noise from noise process. 					
 					noise = torch.randn_like(predicted_action)*self.epsilon
 
