@@ -2441,10 +2441,11 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 		
-		if self.args.MLP_policy:
-			return inputs[-1]
-		else:			
-			return inputs
+		# if self.args.MLP_policy:
+		# 	return inputs[-1]
+		# else:			
+		# 	return inputs
+		return inputs
 
 	def process_episode(self, episode):
 		# Assemble states, actions, targets.
@@ -2475,6 +2476,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
 			# Concatenate the states from policy inputs and the predicted actions. 
 			self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
+		embed()
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
@@ -2500,6 +2502,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Zero gradients, then backprop into critic.
 		self.critic_optimizer.zero_grad()	
 		embed()
+
 		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
 
 		# Before we actually compute loss, compute targets.
