@@ -2439,6 +2439,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		else:
 			action_sequence = np.zeros((1,self.output_size))
 
+
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 
 		return inputs
