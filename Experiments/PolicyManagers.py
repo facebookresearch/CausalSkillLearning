@@ -2484,6 +2484,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Compute losses for actor.
 		self.policy_optimizer.zero_grad()
 		self.set_differentiable_critic_inputs()
+		embed()
 		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()
 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 		self.policy_loss.backward()
