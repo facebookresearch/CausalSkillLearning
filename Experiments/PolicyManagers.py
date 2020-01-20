@@ -2440,11 +2440,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			action_sequence = np.zeros((1,self.output_size))
 
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
-		
-		# if self.args.MLP_policy:
-		# 	return inputs[-1]
-		# else:			
-		# 	return inputs
+
 		return inputs
 
 	def process_episode(self, episode):
