@@ -2349,7 +2349,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 	def setup(self):
 		# Create Mujoco environment. 
-		self.environment = robosuite.make(self.args.environment, has_renderer=False)
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False)
 		
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()
