@@ -2468,6 +2468,8 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 	def set_differentiable_critic_inputs(self):
 
+		embed()
+
 		# Get policy's predicted actions. 
 		if self.args.MLP_policy:
 			self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon)
@@ -2476,7 +2478,6 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
 			# Concatenate the states from policy inputs and the predicted actions. 
 			self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
-		embed()
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
