@@ -2395,8 +2395,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 				else:
 					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), action_epsilon=0.2*self.epsilon)
 
-				embed()
-				action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+				if self.args.MLP_policy:
+					action = predicted_action.detach().cpu().numpy()
+				else:
+					action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
