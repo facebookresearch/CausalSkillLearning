@@ -2498,17 +2498,20 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Concatenate the states from policy inputs and the predicted actions. 
 		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1)
 
-	def set_TD_targets(self):
-		# Construct TD Targets. 
-		self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
-		# Select till last time step, because we don't care what critic says after last timestep.
-		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)[:-1]
-		# Mask with terminal. 
-		self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
-		self.TD_targets += np.array(self.reward_trajectory)
-		self.TD_targets = torch.tensor(self.TD_targets).cuda().float()
+	def set_targets(self):
+		if self.args.TD:
+			# Construct TD Targets. 
+			self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
+			# Select till last time step, because we don't care what critic says after last timestep.
+			self.TD_targets = np.roll(self.TD_targets,-1,axis=0)[:-1]
+			# Mask with terminal. 
+			self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
+			self.TD_targets += np.array(self.reward_trajectory)
+			self.critic_targets = torch.tensor(self.TD_targets).cuda().float()
+		else:
+			self.critic_targets = torch.tensor(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1]).cuda().float()
 
-	def update_policies_TD(self, counter):
+	def update_policies(self, counter):
 		######################################
 		# Compute losses for actor.
 		self.set_differentiable_critic_inputs()		
@@ -2528,11 +2531,11 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
 
 		# Before we actually compute loss, compute targets.
-		self.set_TD_targets()
+		self.set_targets()
 
 		# We predicted critic values from states S_1 to S_{T+1} because we needed all for bootstrapping. 
 		# For loss, we don't actually need S_{T+1}, so throw it out.
-		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.TD_targets).mean()
+		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.critic_targets).mean()
 		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
 		self.critic_loss.backward()
 		# self.critic_optimizer.step()
@@ -2565,7 +2568,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.process_episode(episode)
 
 			# Now compute gradients to both networks from batch.
-			self.update_policies_TD(counter)
+			self.update_policies(counter)
 
 		# Now actually make a step. 
 		self.step_networks()		
