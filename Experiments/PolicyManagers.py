@@ -2363,6 +2363,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.state_trajectory = []
 		self.action_trajectory = []
 		self.image_trajectory = []
+		self.terminal_trajectory = []
 		self.cummulative_rewards = None
 		self.episode = None
 
@@ -2390,15 +2391,21 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
 
-				if test:
-					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
-				else:
-					predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), action_epsilon=0.2*self.epsilon)
+				# Get action greedily, then add noise. 				
+				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
+				noise = torch.zeros((predicted_action)).cuda().float()
+
+				if not(test):			
+					# Get noise from noise process. 					
+					noise = torch.randn_like(predicted_actions)*self.epsilon
+
+				# Perturb action with noise. 			
+				perturbed_action = predicted_action + noise
 
 				if self.args.MLP_policy:
-					action = predicted_action[-1].detach().cpu().numpy()
+					action = perturbed_action[-1].detach().cpu().numpy()
 				else:
-					action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 
 			# Take a step in the environment. 
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
@@ -2406,6 +2413,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
+			self.terminal_trajectory.append(terminal)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2425,7 +2433,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.episode_reward_statistics = self.cummulative_rewards[0]
 
 		# NOW construct an episode out of this..	
-		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory)
+		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
 	def assemble_inputs(self):
@@ -2454,6 +2462,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.state_trajectory = episode.state_list
 		self.action_trajectory = episode.action_list
 		self.reward_trajectory = episode.reward_list
+		self.terminal_trajectory = episode.terminal_list
 
 		assembled_inputs = self.assemble_inputs()
 
@@ -2471,6 +2480,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
+		embed()
 		self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
 		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)
 		# Set last element in this to 0.
@@ -2483,15 +2493,17 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 	def update_policies_TD(self, counter):
 		######################################
 		# Compute losses for actor.
+		self.set_differentiable_critic_inputs()		
+
 		self.policy_optimizer.zero_grad()
-		self.set_differentiable_critic_inputs()
 		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()
 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 		self.policy_loss.backward()
 		# self.policy_optimizer.step()
 
-		# Zero gradients, then backprop into critic.
+		# Zero gradients, then backprop into critic.		
 		self.critic_optimizer.zero_grad()	
+		# Get critic predictions first. 
 		if self.args.MLP_policy:
 			self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1)
 		else:
@@ -2499,6 +2511,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		# Before we actually compute loss, compute targets.
 		self.set_TD_targets()
+
 		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.TD_targets).mean()
 		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
 		self.critic_loss.backward()
@@ -2572,9 +2585,6 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 			# Update on batch. 
 			self.update_batch(counter)
 
-			# Now upate the policy and critic.
-			self.update_policies_TD(counter)
-			
 			# Update plots. 
 			self.update_plots(counter)
 

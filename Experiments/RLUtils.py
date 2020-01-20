@@ -25,10 +25,11 @@ class Episode_TransitionList():
 # Make it a class that has state_list, action_list, etc. over the episode..
 class Episode():
 
-	def __init__(self, state_list=None, action_list=None, reward_list=None):
+	def __init__(self, state_list=None, action_list=None, reward_list=None, terminal_list=None):
 		self.state_list = state_list
 		self.action_list = action_list
 		self.reward_list = reward_list
+		self.terminal_list = terminal_list
 		self.episode_lenth = len(self.state_list)
 
 	def length(self):
