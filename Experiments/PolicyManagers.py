@@ -2397,7 +2397,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 				if not(test):			
 					# Get noise from noise process. 					
-					noise = torch.randn_like(predicted_actions)*self.epsilon
+					noise = torch.randn_like(predicted_action)*self.epsilon
 
 				# Perturb action with noise. 			
 				perturbed_action = predicted_action + noise
