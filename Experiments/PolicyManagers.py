@@ -2470,6 +2470,8 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
+		embed()
+
 		self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
 		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)
 		# Set last element in this to 0.
