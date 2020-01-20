@@ -2491,7 +2491,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		# Zero gradients, then backprop into critic.
 		self.critic_optimizer.zero_grad()	
-		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
+		if self.args.MLP_policy:
+			self.critic_predictions = self.critic_network.forward(self.policy_inputs)
+		else:
+			self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
 
 		# Before we actually compute loss, compute targets.
 		self.set_TD_targets()
