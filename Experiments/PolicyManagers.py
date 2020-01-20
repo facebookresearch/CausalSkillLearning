@@ -2467,17 +2467,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.batch_reward_statistics += sum(self.reward_trajectory)
 
 	def set_differentiable_critic_inputs(self):
-
-		embed()
-
 		# Get policy's predicted actions. 
-		if self.args.MLP_policy:
-			self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon)
-			self.critic_inputs = torch.cat([self.policy_inputs[:self.state_size], self.predicted_actions])
-		else:
-			self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
-			# Concatenate the states from policy inputs and the predicted actions. 
-			self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
+		self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
+		# Concatenate the states from policy inputs and the predicted actions. 
+		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
@@ -2502,8 +2495,6 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		# Zero gradients, then backprop into critic.
 		self.critic_optimizer.zero_grad()	
-		embed()
-
 		self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
 
 		# Before we actually compute loss, compute targets.
