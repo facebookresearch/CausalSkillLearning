@@ -1056,6 +1056,9 @@ class ContinuousMLP(torch.nn.Module):
 
 		return action
 
+	def reparameterized_get_actions(self, input, greedy=False, action_epsilon=0.0001):
+		return self.forward(input, greedy, action_epsilon)
+
 class CriticMLP(torch.nn.Module):
 
 	def __init__(self, input_size, hidden_size, output_size, args=None, number_layers=4):
