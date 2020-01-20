@@ -2477,10 +2477,9 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Get policy's predicted actions by getting action greedily, then add noise. 				
 		predicted_action = self.policy_network.reparameterized_get_actions(self.policy_inputs, greedy=True).squeeze(1)
 		noise = torch.zeros_like(predicted_action).cuda().float()
-
-		if not(test):			
-			# Get noise from noise process. 					
-			noise = torch.randn_like(predicted_action)*self.epsilon
+		
+		# Get noise from noise process. 					
+		noise = torch.randn_like(predicted_action)*self.epsilon
 
 		# Concatenate the states from policy inputs and the predicted actions. 
 		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1)
