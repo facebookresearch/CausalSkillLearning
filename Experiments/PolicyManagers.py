@@ -2311,6 +2311,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		self.reset_statistics()
 
+
 	def create_networks(self):
 
 		if self.args.MLP_policy:
