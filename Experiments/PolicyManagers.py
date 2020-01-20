@@ -105,7 +105,8 @@ class PolicyManager_BaseClass():
 				robot_states = data_element['robot-state']
 				object_states = data_element['object-state']
 
-				if not(self.args.traj_segments):
+				# Don't set this if pretraining / baseline.
+				if self.args.setting=='learntsub':
 					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 					self.conditional_information[:,:self.cond_robot_state_size] = robot_states
 					# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
