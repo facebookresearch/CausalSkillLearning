@@ -2516,7 +2516,9 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		# Before we actually compute loss, compute targets.
 		self.set_TD_targets()
 
-		self.critic_loss = self.MSE_Loss(self.critic_predictions, self.TD_targets).mean()
+		# We predicted critic values from states S_1 to S_{T+1} because we needed all for bootstrapping. 
+		# For loss, we don't actually need S_{T+1}, so throw it out.
+		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.TD_targets).mean()
 		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
 		self.critic_loss.backward()
 		# self.critic_optimizer.step()
