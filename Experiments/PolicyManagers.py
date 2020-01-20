@@ -105,10 +105,11 @@ class PolicyManager_BaseClass():
 				robot_states = data_element['robot-state']
 				object_states = data_element['object-state']
 
-				self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
-				self.conditional_information[:,:self.cond_robot_state_size] = robot_states
-				# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
-				self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states			
+				if not(self.args.traj_segments):
+					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
+					self.conditional_information[:,:self.cond_robot_state_size] = robot_states
+					# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
+					self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states			
 
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
@@ -1004,18 +1005,20 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			print("Running Evaluation of State Distances on small test set.")
 			self.evaluate_metrics()
 
-			# print("Running Visualization on Robot Data.")	
-			# self.visualize_robot_data()
+			# Only running viz if we're actually pretraining.
+			if self.args.traj_segments:
+				print("Running Visualization on Robot Data.")	
+				self.visualize_robot_data()
+			else:
+				# Create save directory:
+				upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
 
-			# Create save directory:
-			upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+				if not(os.path.isdir(upper_dir_name)):
+					os.mkdir(upper_dir_name)
 
-			if not(os.path.isdir(upper_dir_name)):
-				os.mkdir(upper_dir_name)
-
-			self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
-			if not(os.path.isdir(self.dir_name)):
-				os.mkdir(self.dir_name)
+				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+				if not(os.path.isdir(self.dir_name)):
+					os.mkdir(self.dir_name)
 
 			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
