@@ -2,6 +2,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
+from PolicyNetworks import ContinuousMLP, CriticMLP
 from Visualizers import BaxterVisualizer, SawyerVisualizer
 import TFLogger, DMP, RLUtils
 
@@ -2298,9 +2299,13 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 	def create_networks(self):
 
-		# Create policy and critic. 		
-		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
-		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+		if self.args.MLP_policy:
+			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
+			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
+		else:
+			# Create policy and critic. 		
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
+			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
 
 	def create_training_ops(self):
 
@@ -2433,7 +2438,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 		
-		return inputs
+		if self.args.MLP_policy:
+			return inputs[-1]
+		else:			
+			return inputs
 
 	def process_episode(self, episode):
 		# Assemble states, actions, targets.

@@ -1018,3 +1018,69 @@ class CriticNetwork(torch.nn.Module):
 		critic_value = self.output_layer(lstm_outputs)		
 
 		return critic_value
+
+class ContinuousMLP(torch.nn.Module):
+
+	def __init__(self, input_size, hidden_size, output_size, args=None, number_layers=4):
+
+		super(ContinuousMLP, self).__init__()
+
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.output_size = output_size
+
+		self.input_layer = torch.nn.Linear(self.input_size, self.hidden_size)
+		self.hidden_layer = torch.nn.Linear(self.hidden_size, self.hidden_size)
+		self.output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
+		self.relu_activation = torch.nn.ReLU()
+		self.variance_activation_layer = torch.nn.Softplus()
+
+	def forward(self, input, greedy=False, action_epsilon=0.0001):
+
+		# Assumes input is Batch_Size x Input_Size.
+		h1 = self.relu_activation(self.input_layer(input))
+		h2 = self.relu_activation(self.hidden_layer(h1))
+		h3 = self.relu_activation(self.hidden_layer(h2))
+		h4 = self.relu_activation(self.hidden_layer(h3))
+
+		mean_outputs = self.output_layer(h4)
+		variance_outputs = self.variance_activation_layer(self.output_layer(h4))
+		
+		noise = torch.randn_like(variance_outputs)
+
+		if greedy: 
+			action = mean_outputs
+		else:
+			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
+			action = mean_outputs + variance_outputs * noise
+
+		return action
+
+class CriticMLP(torch.nn.Module):
+
+	def __init__(self, input_size, hidden_size, output_size, args=None, number_layers=4):
+
+		super(CriticMLP, self).__init__()
+
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.output_size = output_size
+		self.batch_size = 1
+
+		self.input_layer = torch.nn.Linear(self.input_size, self.hidden_size)
+		self.hidden_layer = torch.nn.Linear(self.hidden_size, self.hidden_size)
+		self.output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
+		self.relu_activation = torch.nn.ReLU()
+
+	def forward(self, input):
+
+		# Assumes input is Batch_Size x Input_Size.
+		h1 = self.relu_activation(self.input_layer(input))
+		h2 = self.relu_activation(self.hidden_layer(h1))
+		h3 = self.relu_activation(self.hidden_layer(h2))
+		h4 = self.relu_activation(self.hidden_layer(h3))
+
+		# Predict critic value for each timestep. 
+		critic_value = self.output_layer(h4)		
+
+		return critic_value

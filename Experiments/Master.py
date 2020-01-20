@@ -169,6 +169,7 @@ def parse_arguments():
 
 	# Reinforcement Learning parameters. 
 	parser.add_argument('--TD',dest='TD',type=int,default=0) # Whether or not to use Temporal difference while training the critic network.
+	parser.add_argument('--MLP_policy',dest='MLP_policy',type=int,default=0) # Whether or not to use MLP policy.
 
 	return parser.parse_args()
 
