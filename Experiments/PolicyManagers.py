@@ -2379,9 +2379,10 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		if visualize:			
 			image = self.environment.sim.render(600,600, camera_name='frontview')
 			self.image_trajectory.append(np.flipud(image))
-
+		
 		self.state_trajectory.append(state)
-		self.reward_trajectory.append(0.)		
+		# self.terminal_trajectory.append(terminal)
+		# self.reward_trajectory.append(0.)		
 
 		while not(terminal) and counter<self.max_timesteps:
 
@@ -2473,20 +2474,24 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.batch_reward_statistics += sum(self.reward_trajectory)
 
 	def set_differentiable_critic_inputs(self):
-		# Get policy's predicted actions. 
-		self.predicted_actions = self.policy_network.reparameterized_get_actions(self.policy_inputs, action_epsilon=0.2*self.epsilon).squeeze(1)
+		# Get policy's predicted actions by getting action greedily, then add noise. 				
+		predicted_action = self.policy_network.reparameterized_get_actions(self.policy_inputs, greedy=True).squeeze(1)
+		noise = torch.zeros_like(predicted_action).cuda().float()
+
+		if not(test):			
+			# Get noise from noise process. 					
+			noise = torch.randn_like(predicted_action)*self.epsilon
+
 		# Concatenate the states from policy inputs and the predicted actions. 
-		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], self.predicted_actions],axis=1)
+		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1)
 
 	def set_TD_targets(self):
 		# Construct TD Targets. 
-		embed()
 		self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
-		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)
-		# Set last element in this to 0.
-		self.TD_targets[-1] = 0.
-		self.TD_targets *= self.gamma
-		
+		# Select till last time step, because we don't care what critic says after last timestep.
+		self.TD_targets = np.roll(self.TD_targets,-1,axis=0)[:-1]
+		# Mask with terminal. 
+		self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
 		self.TD_targets += np.array(self.reward_trajectory)
 		self.TD_targets = torch.tensor(self.TD_targets).cuda().float()
 
@@ -2496,7 +2501,7 @@ class PolicyManager_MemoryDownstreamRL(PolicyManager_BaseClass):
 		self.set_differentiable_critic_inputs()		
 
 		self.policy_optimizer.zero_grad()
-		self.policy_loss = - self.critic_network.forward(self.critic_inputs).mean()
+		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 		self.policy_loss.backward()
 		# self.policy_optimizer.step()
