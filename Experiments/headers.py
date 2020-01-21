@@ -32,6 +32,7 @@ import h5py
 import time
 import robosuite
 import unittest
+import cProfile
 
 from scipy import stats, signal
 from scipy.interpolate import interp1d
