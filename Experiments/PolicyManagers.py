@@ -2131,7 +2131,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
 				t2 = time.time()
 
-				print("Reparam get actions at counter ",counter," took time:", t2-t1)
+				# print("Reparam get actions at counter ",counter," took time:", t2-t1)
 				t3 = time.time()
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
@@ -2148,7 +2148,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 				
 				t4 = time.time()
-				print("Other crap at ",counter," took time:", t4-t3)
+				# print("Other crap at ",counter," took time:", t4-t3)
 
 			# Take a step in the environment. 
 			ta = time.time()
@@ -2163,7 +2163,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.terminal_trajectory.append(terminal)
 		
 			tc = time.time()
-			print("Step time:",tb-ta)
+			# print("Step time:",tb-ta)
 			# print("Append time:",tc-tb)
 
 			# Copy next state into state. 
@@ -2178,7 +2178,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				self.image_trajectory.append(np.flipud(image))
 		
 		t4 = time.time()
-		print("Rollout took: ",t4-t3)
+		# print("Rollout took: ",t4-t3)
 		print("Rolled out an episode for ",counter," timesteps.")
 
 		# Now that the episode is done, compute cummulative rewards... 
@@ -2351,8 +2351,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
-		cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
-		# self.rollout(random=False)
+		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
+		self.rollout(random=False)
 		t2 = time.time()
 
 		self.memory.append_to_memory(self.episode)
@@ -2366,11 +2366,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.update_plots(counter)
 			t5 = time.time()
 
-		print("#################")
-		print("##### Times: ####")
-		print("Rollout:",t2-t1)
-		print("Update batch:",t4-t3)
-		print("Update plots:",t5-t4)
+		# print("#################")
+		# print("##### Times: ####")
+		# print("Rollout:",t2-t1)
+		# print("Update batch:",t4-t3)
+		# print("Update plots:",t5-t4)
 
 	def initialize_memory(self):
 
