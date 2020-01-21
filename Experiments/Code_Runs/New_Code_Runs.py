@@ -788,6 +788,10 @@ python cluster_run.py --partition=learnfair --name=M148 --cmd='python Master.py 
 # Debug. 
 python Master.py --train=1 --setting=pretrain_sub --name=Tdebug_test --data=MIME --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --test_code=1
 
+#######################################################
+python cluster_run.py --partition=learnfair --name=M150 --cmd='python Master.py --train=1 --setting=pretrain_sub --name=M150 --data=MIME --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --normalization=minmax'
+
+
 ###############################################################
 ##################### MIME JOINT TRIALS #######################
 ###############################################################
@@ -1037,4 +1041,3 @@ python Master.py --train=0 --setting=pretrain_prior --name=P4 --data=MIME --var_
 python cluster_run.py --name=P5 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P5 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=meanvar'
 
 python cluster_run.py --name=P6 --cmd='python Master.py --train=1 --setting=pretrain_prior --name=P6 --data=MIME --var_skill_length=1 --z_dimensions=0 --normalization=minmax'
-

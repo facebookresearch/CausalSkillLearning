@@ -22,6 +22,8 @@ python cluster_run.py --partition=learnfair --name=B6_MIME --cmd='python Master.
 
 python cluster_run.py --partition=learnfair --name=B7_RTurk --cmd='python Master.py --train=1 --setting=pretrain_sub --name=B7_RTurk --data=Roboturk --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0'
 
+# Rerun B7 without visualization.
+python Master.py --train=1 --setting=pretrain_sub --name=B8_RTurk --data=FullRoboturk --number_layers=8 --hidden_size=128 --kl_weight=0.001 --var_skill_length=1 --z_dimensions=64 --traj_segments=0
 
 
 # Running Flat DMP Baseline on MIME Data. 
@@ -34,3 +36,6 @@ python Master.py --name=FlatDMP_MIME --setting=DMP --data=Roboturk
 
 # Running DMP baselines with various parameters. 
 python Master.py --name=FlatDMP_MIME --setting=DMP --data=Roboturk
+
+# RErunning DMP on FullDRoboturk
+python Master.py --name=FlatDMP_MIME --setting=DMP --data=FullRoboturk --smoothen=1 --smoothing_kernel_bandwidth=1.5
