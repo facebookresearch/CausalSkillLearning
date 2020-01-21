@@ -2120,13 +2120,16 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		t3 = time.time()
 
+		assembled_inputs = None
+
 		while not(terminal) and counter<self.max_timesteps:
 
 			if random:
 				action = 2*np.random.random((self.output_size))-1
 			else:
 				# Assemble states. 
-				assembled_inputs = self.assemble_inputs()
+				# assembled_inputs = self.assemble_inputs()
+				assembled_inputs = self.incremental_assemble_inputs(assembled_inputs)
 
 				# Get action greedily, then add noise. 		
 
@@ -2134,7 +2137,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
 				t2 = time.time()
 				print("Reparam get actions at counter ",counter," took time:", t2-t1)
-
 
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
@@ -2192,6 +2194,16 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
+	def incremental_assemble_inputs(self, assembled_inputs=None):
+	
+		if assembled_inputs is not None:		
+			new_input_row = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
+			new_assembled_inputs = np.concatenate([assembled_inputs,new_input_row],axis=0)		
+		else:
+			new_assembled_inputs = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)			
+			
+		return new_assembled_inputs
+
 	def assemble_inputs(self):
 
 		# Assemble states.
@@ -2202,7 +2214,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
 		else:
 			action_sequence = np.zeros((1,self.output_size))
-
 
 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 
