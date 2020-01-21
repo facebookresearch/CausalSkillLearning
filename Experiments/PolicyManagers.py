@@ -2113,9 +2113,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# self.terminal_trajectory.append(terminal)
 		# self.reward_trajectory.append(0.)		
 
-		t3 = time.time()
-
-		assembled_inputs = None
 		hidden = None
 
 		while not(terminal) and counter<self.max_timesteps:
@@ -2123,19 +2120,12 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			if random:
 				action = 2*np.random.random((self.output_size))-1
 			else:
-				# Assemble states. 
-				# assembled_inputs = self.assemble_inputs()
-				# assembled_inputs = self.incremental_assemble_inputs(assembled_inputs)
+				# Assemble states of current input row.
 				current_input_row = self.get_current_input_row()
 
-				# Get action greedily, then add noise. 		
-				t1 = time.time()		
-				# predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
+				# Using the incremental get actions. Still get action greedily, then add noise. 		
 				predicted_action = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
-				t2 = time.time()
 
-				# print("Reparam get actions at counter ",counter," took time:", t2-t1)
-				t3 = time.time()
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
 				else:
@@ -2150,25 +2140,14 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				else:
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 				
-				t4 = time.time()
-				# print("Other crap at ",counter," took time:", t4-t3)
-
-			# Take a step in the environment. 
-			ta = time.time()
-		
+			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
-		
-			tb = time.time()
 		
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
-		
-			tc = time.time()
-			# print("Step time:",tb-ta)
-			# print("Append time:",tc-tb)
-
+				
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
 
@@ -2180,8 +2159,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
 		
-		t4 = time.time()
-		# print("Rollout took: ",t4-t3)
 		print("Rolled out an episode for ",counter," timesteps.")
 
 		# Now that the episode is done, compute cummulative rewards... 
@@ -2358,28 +2335,18 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# 3) 	Update policies. 
 		self.set_parameters(counter)
 
-		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
+
 		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
 		self.rollout(random=False)
-		t2 = time.time()
 
 		self.memory.append_to_memory(self.episode)
 
 		if self.args.train:
-			t3 = time.time()
 			# Update on batch. 
 			self.update_batch(counter)
-			t4 = time.time()
 			# Update plots. 
 			self.update_plots(counter)
-			t5 = time.time()
-
-		# print("#################")
-		# print("##### Times: ####")
-		# print("Rollout:",t2-t1)
-		# print("Update batch:",t4-t3)
-		# print("Update plots:",t5-t4)
 
 	def initialize_memory(self):
 
