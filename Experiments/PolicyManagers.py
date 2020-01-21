@@ -2133,7 +2133,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				t1 = time.time()		
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
 				t2 = time.time()
-				print("Reparam get actions time: ", t2-t1)
+				print("Reparam get actions at counter ",counter," took time:", t2-t1)
 
 
 				if test:
