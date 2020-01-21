@@ -2068,7 +2068,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 	def setup(self):
 		# Create Mujoco environment. 
-		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False)
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()
