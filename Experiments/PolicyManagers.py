@@ -2121,8 +2121,14 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
 
-				# Get action greedily, then add noise. 				
+				# Get action greedily, then add noise. 		
+
+				t1 = time.time()		
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
+				t2 = time.time()
+				print("Reparam get actions time: ", t2-t1)
+
+
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
 				else:
@@ -2336,7 +2342,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		print("Rollout:",t2-t1)
 		print("Update batch:",t4-t3)
 		print("Update plots:",t5-t4)
-
 
 	def initialize_memory(self):
 
