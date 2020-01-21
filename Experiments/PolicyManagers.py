@@ -2136,11 +2136,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		return action, hidden
 
-	def get_OU_action(self, hidden=None, random=True, counter=0):
+	def get_OU_action(self, hidden=None, random=False, counter=0):
 
 		if random==True:
 			action = 2*np.random.random((self.output_size))-1
-			return action
+			return action, hidden
 		
 		# Assemble states of current input row.
 		current_input_row = self.get_current_input_row()
