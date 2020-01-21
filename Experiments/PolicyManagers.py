@@ -2115,7 +2115,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		while not(terminal) and counter<self.max_timesteps:
 
 			if random:
-				action = self.environment.action_space.sample()
+
+				action = 2*np.random.random((self.output_size))-1
 			else:
 				# Assemble states. 
 				assembled_inputs = self.assemble_inputs()
