@@ -2148,7 +2148,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 				
 				t3 = time.time()
-				print("Other crap at ",counter," took time:", t2-t1)
+				print("Other crap at ",counter," took time:", t3-t2)
 
 			# Take a step in the environment. 
 			ta = time.time()
