@@ -2181,7 +2181,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
 		print("Achieved reward: ", self.episode_reward_statistics)
-
+		print("########################################################")
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
