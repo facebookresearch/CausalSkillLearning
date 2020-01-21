@@ -221,7 +221,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
 			action = mean_outputs + variance_outputs * noise
 
-		return action
+		return action, hidden
 
 	def get_regularization_kl(self, input_z1, input_z2):
 		# Input is the trajectory sequence of shape: Sequence_Length x 1 x Input_Size. 

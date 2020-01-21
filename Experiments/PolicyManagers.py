@@ -2024,6 +2024,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
 		self.number_episodes = 5000000
 
+		# Orhnstein Ullenhbeck noise process parameters. 
+		self.theta = 0.15
+		self.sigma = 0.2		
+
 		self.reset_statistics()
 
 	def create_networks(self):
@@ -2078,6 +2082,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 		self.initialize_plots()
 
+		# Create Noise process. 
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+
 	def set_parameters(self, episode_counter):
 		if self.args.train:
 			if episode_counter<self.decay_episodes:
@@ -2095,6 +2102,62 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.terminal_trajectory = []
 		self.cummulative_rewards = None
 		self.episode = None
+
+	def get_action(self, hidden=None, random=True):
+
+		# Change this to epsilon greedy...
+		if random==False:
+			whether_greedy = np.random.binomial(n=1,p=0.8)
+		else:
+			action = 2*np.random.random((self.output_size))-1
+
+		if whether_greedy:
+			# Assemble states of current input row.
+			current_input_row = self.get_current_input_row()
+
+			# Using the incremental get actions. Still get action greedily, then add noise. 		
+			predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+
+			if test:
+				noise = torch.zeros_like(predicted_action).cuda().float()
+			else:
+				# Get noise from noise process. 					
+				noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+
+			# Perturb action with noise. 			
+			perturbed_action = predicted_action + noise
+
+			if self.args.MLP_policy:
+				action = perturbed_action[-1].detach().cpu().numpy()
+			else:
+				action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
+		else:
+			action = 2*np.random.random((self.output_size))-1
+
+		return action, hidden
+
+	def get_OU_action(self, hidden=None, random=True, counter=0):
+
+		if random==True:
+			action = 2*np.random.random((self.output_size))-1
+			return action
+		
+		# Assemble states of current input row.
+		current_input_row = self.get_current_input_row()
+
+		# Using the incremental get actions. Still get action greedily, then add noise. 		
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+
+		# Numpy action
+		if self.args.MLP_policy:
+			action = predicted_action[-1].detach().cpu().numpy()
+		else:
+			action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+
+		# Perturb action with noise. 			
+		perturbed_action = self.NoiseProcess.get_action(action, counter)
+
+		return perturbed_action, hidden
 
 	def rollout(self, random=False, test=False, visualize=False):
 	
@@ -2117,28 +2180,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			if random:
-				action = 2*np.random.random((self.output_size))-1
-			else:
-				# Assemble states of current input row.
-				current_input_row = self.get_current_input_row()
-
-				# Using the incremental get actions. Still get action greedily, then add noise. 		
-				predicted_action = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
-
-				if test:
-					noise = torch.zeros_like(predicted_action).cuda().float()
-				else:
-					# Get noise from noise process. 					
-					noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
-
-				# Perturb action with noise. 			
-				perturbed_action = predicted_action + noise
-
-				if self.args.MLP_policy:
-					action = perturbed_action[-1].detach().cpu().numpy()
-				else:
-					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
+			# action, hidden = self.get_action(hidden=hidden,random=random)
+			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
