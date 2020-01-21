@@ -2116,7 +2116,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		while not(terminal) and counter<self.max_timesteps:
 
 			if random:
-
 				action = 2*np.random.random((self.output_size))-1
 			else:
 				# Assemble states. 
@@ -2161,7 +2160,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
-		self.episode_reward_statistics = self.cummulative_rewards[0]
+		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
 
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
@@ -2291,7 +2290,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.step_networks()		
 
 	def update_plots(self, counter):
-		self.tf_logger.scalar_summary('Total Episode Reward', self.episode_reward_statistics, counter)
+		self.tf_logger.scalar_summary('Total Episode Reward', copy.deepcopy(self.episode_reward_statistics), counter)
 		self.tf_logger.scalar_summary('Batch Rewards', self.batch_reward_statistics/self.batch_size, counter)
 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss_statistics/self.batch_size, counter)
 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss_statistics/self.batch_size, counter)
@@ -2331,7 +2330,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def initialize_memory(self):
 
 		# Create memory object. 
-		self.memory = RLUtils.ReplayMemory(memory_size=1000)
+		self.memory = RLUtils.ReplayMemory(memory_size=5000)
 
 		# Number of initial episodes needs to be less than memory size. 
 		self.initial_episodes = self.args.burn_in_eps
