@@ -2335,9 +2335,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		print("##### Times: ####")
 		print("Rollout:",t2-t1)
 		print("Update batch:",t4-t3)
-		print("Update plots:"t5-t4)
+		print("Update plots:",t5-t4)
 
-		
+
 	def initialize_memory(self):
 
 		# Create memory object. 
