@@ -2140,7 +2140,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 					noise = torch.zeros_like(predicted_action).cuda().float()
 				else:
 					# Get noise from noise process. 					
-					noise = torch.randn_like(predicted_action)*self.epsilon
+					noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
 				# Perturb action with noise. 			
 				perturbed_action = predicted_action + noise
@@ -2228,10 +2228,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		noise = torch.zeros_like(predicted_action).cuda().float()
 		
 		# Get noise from noise process. 					
-		noise = torch.randn_like(predicted_action)*self.epsilon
+		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
 		# Concatenate the states from policy inputs and the predicted actions. 
-		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1)
+		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
 
 	def set_targets(self):
 		if self.args.TD:
