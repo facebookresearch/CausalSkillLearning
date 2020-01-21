@@ -2300,7 +2300,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 		self.policy_loss.backward()
-		# self.policy_optimizer.step()
+		self.policy_optimizer.step()
 
 		# Zero gradients, then backprop into critic.		
 		self.critic_optimizer.zero_grad()	
@@ -2318,7 +2318,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.critic_targets).mean()
 		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
 		self.critic_loss.backward()
-		# self.critic_optimizer.step()
+		self.critic_optimizer.step()
 		######################################
 
 	def step_networks(self):
@@ -2350,8 +2350,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			# Now compute gradients to both networks from batch.
 			self.update_policies(counter)
 
-		# Now actually make a step. 
-		self.step_networks()		
+		# # Now actually make a step. 
+		# self.step_networks()	
 
 	def update_plots(self, counter):
 		self.tf_logger.scalar_summary('Total Episode Reward', copy.deepcopy(self.episode_reward_statistics), counter)
