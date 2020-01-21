@@ -65,7 +65,7 @@ class Master():
 				# self.policy_manager.train(self.args.model)
 				self.policy_manager.evaluate(self.args.model)
 
-		elif self.args.setting=='downstreamRL':
+		elif self.args.setting=='baselineRL':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
