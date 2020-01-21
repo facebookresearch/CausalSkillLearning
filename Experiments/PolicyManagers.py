@@ -2336,7 +2336,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
-		cProfile.runctx('self.rollout()')
+		cProfile.runctx('self.rollout()',globals(), locals())
 		# self.rollout(random=False)
 		t2 = time.time()
 
