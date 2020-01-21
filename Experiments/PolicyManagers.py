@@ -2116,6 +2116,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		t3 = time.time()
 
 		assembled_inputs = None
+		hidden = None
 
 		while not(terminal) and counter<self.max_timesteps:
 
@@ -2124,11 +2125,13 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			else:
 				# Assemble states. 
 				# assembled_inputs = self.assemble_inputs()
-				assembled_inputs = self.incremental_assemble_inputs(assembled_inputs)
+				# assembled_inputs = self.incremental_assemble_inputs(assembled_inputs)
+				current_input_row = self.get_current_input_row()
 
 				# Get action greedily, then add noise. 		
 				t1 = time.time()		
-				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
+				# predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)
+				predicted_action = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 				t2 = time.time()
 
 				# print("Reparam get actions at counter ",counter," took time:", t2-t1)
@@ -2138,7 +2141,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				else:
 					# Get noise from noise process. 					
 					noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
-
+				embed()
 				# Perturb action with noise. 			
 				perturbed_action = predicted_action + noise
 
@@ -2192,13 +2195,19 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
+	def get_current_input_row(self):
+		if len(self.action_trajectory)>0:
+			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
+		else:
+			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+		
 	def incremental_assemble_inputs(self, assembled_inputs=None):
 	
 		if assembled_inputs is not None:		
-			new_input_row = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
+			new_input_row = self.get_current_input_row()
 			new_assembled_inputs = np.concatenate([assembled_inputs,new_input_row],axis=0)		
 		else:
-			new_assembled_inputs = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)			
+			new_assembled_inputs = self.get_current_input_row
 
 		return new_assembled_inputs
 
@@ -2375,7 +2384,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def initialize_memory(self):
 
 		# Create memory object. 
-		self.memory = RLUtils.ReplayMemory(memory_size=5000)
+		self.memory = RLUtils.ReplayMemory(memory_size=2000)
 
 		# Number of initial episodes needs to be less than memory size. 
 		self.initial_episodes = self.args.burn_in_eps

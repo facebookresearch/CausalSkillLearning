@@ -202,6 +202,27 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 
 		return action
 
+	def incremental_reparam_get_actions(self, input, greedy=False, action_epsilon=0., hidden=None):
+		
+		# Input should be a single timestep input here. 
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+		# Instead of feeding in entire input sequence, we are feeding in current timestep input and previous hidden state.
+		lstm_outputs, hidden = self.lstm(format_input, hidden)
+
+		# Predict Gaussian means and variances. 
+		mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
+		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias + action_epsilon
+
+		noise = torch.randn_like(variance_outputs)
+
+		if greedy: 
+			action = mean_outputs
+		else:
+			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
+			action = mean_outputs + variance_outputs * noise
+
+		return action
+
 	def get_regularization_kl(self, input_z1, input_z2):
 		# Input is the trajectory sequence of shape: Sequence_Length x 1 x Input_Size. 
 		# Here, we also need the continuous actions as input to evaluate their logprobability / probability. 		
