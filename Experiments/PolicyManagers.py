@@ -2161,6 +2161,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
+		print("Achieved reward: ", self.episode_reward_statistics)
 
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
@@ -2314,20 +2315,29 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# 3) 	Update policies. 
 		self.set_parameters(counter)
 
+		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
 		self.rollout(random=False)
-		print("Achieved reward: ", self.episode_reward_statistics)
+		t2 = time.time()
 
 		self.memory.append_to_memory(self.episode)
 
 		if self.args.train:
-
+			t3 = time.time()
 			# Update on batch. 
 			self.update_batch(counter)
-
+			t4 = time.time()
 			# Update plots. 
 			self.update_plots(counter)
+			t5 = time.time()
 
+		print("#################")
+		print("##### Times: ####")
+		print("Rollout:",t2-t1)
+		print("Update batch:",t4-t3)
+		print("Update plots:"t5-t4)
+
+		
 	def initialize_memory(self):
 
 		# Create memory object. 
