@@ -2316,6 +2316,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		# Maintain counter to keep track of updating the policy regularly. 			
 		self.rollout(random=False)
+		print("Achieved reward: ", self.episode_reward_statistics)
 
 		self.memory.append_to_memory(self.episode)
 
@@ -2378,7 +2379,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				self.save_all_models("epoch{0}".format(e))
 
 			self.run_iteration(e)
-
+			print("#############################")
 			print("Running Episode: ",e)
 
 			# if e%self.args.eval_freq==0:
