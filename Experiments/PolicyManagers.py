@@ -1017,6 +1017,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				if not(os.path.isdir(upper_dir_name)):
 					os.mkdir(upper_dir_name)
 
+				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
