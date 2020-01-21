@@ -2136,7 +2136,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				t1 = time.time()		
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
 				t2 = time.time()
-				# print("Reparam get actions at counter ",counter," took time:", t2-t1)
+				print("Reparam get actions at counter ",counter," took time:", t2-t1)
 
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
@@ -2165,8 +2165,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.terminal_trajectory.append(terminal)
 		
 			tc = time.time()
-			# print("Step time:",tb-ta)
-			# print("Append time:",tc-ta)
+			print("Step time:",tb-ta)
+			print("Append time:",tc-tb)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2180,8 +2180,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				self.image_trajectory.append(np.flipud(image))
 		
 		t4 = time.time()
-		# print("Rollout took: ",t4-t3)
-		# print("Rolled out an episode for ",counter," timesteps.")
+		print("Rollout took: ",t4-t3)
+		print("Rolled out an episode for ",counter," timesteps.")
 
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
@@ -2201,7 +2201,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			new_assembled_inputs = np.concatenate([assembled_inputs,new_input_row],axis=0)		
 		else:
 			new_assembled_inputs = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)			
-			
+
 		return new_assembled_inputs
 
 	def assemble_inputs(self):
