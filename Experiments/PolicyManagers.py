@@ -2104,7 +2104,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		t1 = time.time()
 		state = self.environment.reset()
 		t2 = time.time()
-		print("Reset took time:",t2-t1)
+		# print("Reset took time:",t2-t1)
 
 		terminal = False
 
@@ -2152,12 +2152,16 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 			# Take a step in the environment. 
 			ta = time.time()
+		
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
+		
 			tb = time.time()
+		
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
+		
 			tc = time.time()
 			# print("Step time:",tb-ta)
 			# print("Append time:",tc-ta)
@@ -2172,16 +2176,18 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			if visualize:
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
+		
 		t4 = time.time()
-		print("Rollout took: ",t4-t3)
+		# print("Rollout took: ",t4-t3)
+		# print("Rolled out an episode for ",counter," timesteps.")
 
-		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
 		print("Achieved reward: ", self.episode_reward_statistics)
-		print("########################################################")
+		# print("########################################################")
+
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
@@ -2336,8 +2342,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
-		cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
-		# self.rollout(random=False)
+		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
+		self.rollout(random=False)
 		t2 = time.time()
 
 		self.memory.append_to_memory(self.episode)
@@ -2351,11 +2357,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.update_plots(counter)
 			t5 = time.time()
 
-		print("#################")
-		print("##### Times: ####")
-		print("Rollout:",t2-t1)
-		print("Update batch:",t4-t3)
-		print("Update plots:",t5-t4)
+		# print("#################")
+		# print("##### Times: ####")
+		# print("Rollout:",t2-t1)
+		# print("Update batch:",t4-t3)
+		# print("Update plots:",t5-t4)
 
 	def initialize_memory(self):
 
