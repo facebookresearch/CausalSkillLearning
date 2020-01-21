@@ -2159,8 +2159,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
 			tc = time.time()
-			print("Step time:",tb-ta)
-			print("Append time:",tc-ta)
+			# print("Step time:",tb-ta)
+			# print("Append time:",tc-ta)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2336,7 +2336,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		t1 = time.time()
 		# Maintain counter to keep track of updating the policy regularly. 			
-		cProfile.runctx('self.rollout()',globals(), locals())
+		cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
 		# self.rollout(random=False)
 		t2 = time.time()
 
