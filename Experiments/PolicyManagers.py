@@ -2141,7 +2141,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				else:
 					# Get noise from noise process. 					
 					noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
-				embed()
+
 				# Perturb action with noise. 			
 				perturbed_action = predicted_action + noise
 
