@@ -2375,11 +2375,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.update_plots(counter)
 			t5 = time.time()
 
-		print("#################")
-		print("##### Times: ####")
-		print("Rollout:",t2-t1)
-		print("Update batch:",t4-t3)
-		print("Update plots:",t5-t4)
+		# print("#################")
+		# print("##### Times: ####")
+		# print("Rollout:",t2-t1)
+		# print("Update batch:",t4-t3)
+		# print("Update plots:",t5-t4)
 
 	def initialize_memory(self):
 
