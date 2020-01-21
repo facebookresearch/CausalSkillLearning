@@ -2132,7 +2132,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				t2 = time.time()
 
 				print("Reparam get actions at counter ",counter," took time:", t2-t1)
-
+				t3 = time.time()
 				if test:
 					noise = torch.zeros_like(predicted_action).cuda().float()
 				else:
@@ -2147,8 +2147,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				else:
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 				
-				t3 = time.time()
-				print("Other crap at ",counter," took time:", t3-t2)
+				t4 = time.time()
+				print("Other crap at ",counter," took time:", t4-t3)
 
 			# Take a step in the environment. 
 			ta = time.time()
