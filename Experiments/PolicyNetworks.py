@@ -95,7 +95,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 
 	# def __init__(self, input_size, hidden_size, output_size, number_subpolicies, number_layers=4, batch_size=1):
 	# def __init__(self, input_size, hidden_size, output_size, z_space_size, number_layers=4, batch_size=1, whether_latentb_input=False):
-	def __init__(self, input_size, hidden_size, output_size, args, number_layers=4, whether_latentb_input=False, zero_z_dim=False):
+	def __init__(self, input_size, hidden_size, output_size, args, number_layers=4, whether_latentb_input=False, zero_z_dim=False, small_init=False):
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
 		# super().__init__()
@@ -122,6 +122,14 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		# Define output layers for the LSTM, and activations for this output layer. 
 		self.mean_output_layer = torch.nn.Linear(self.hidden_size,self.output_size)
 		self.variances_output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
+
+		# # Try initializing the network to something, so that we can escape the stupid constant output business.
+		if small_init:
+			for name, param in self.mean_output_layer.named_parameters():
+				if 'bias' in name:
+					torch.nn.init.constant_(param, 0.0)
+				elif 'weight' in name:
+					torch.nn.init.xavier_normal_(param,gain=0.001)
 
 		self.activation_layer = torch.nn.Tanh()
 		self.variance_activation_layer = torch.nn.Softplus()

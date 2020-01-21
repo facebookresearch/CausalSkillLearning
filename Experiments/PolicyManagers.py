@@ -2037,7 +2037,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).cuda()
 		else:
 			# Create policy and critic. 		
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()			
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers, small_init=True).cuda()			
 			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
 
 	def create_training_ops(self):
