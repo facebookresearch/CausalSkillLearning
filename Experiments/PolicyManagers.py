@@ -2100,12 +2100,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	
 		counter = 0		
 		eps_reward = 0.	
-
-		t1 = time.time()
 		state = self.environment.reset()
-		t2 = time.time()
-		# print("Reset took time:",t2-t1)
-
 		terminal = False
 
 		self.reset_lists()
@@ -2132,10 +2127,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 				assembled_inputs = self.incremental_assemble_inputs(assembled_inputs)
 
 				# Get action greedily, then add noise. 		
-
 				t1 = time.time()		
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
 				t2 = time.time()
+
 				print("Reparam get actions at counter ",counter," took time:", t2-t1)
 
 				if test:
@@ -2151,6 +2146,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 					action = perturbed_action[-1].detach().cpu().numpy()
 				else:
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
+				
+				t3 = time.time()
+				print("Other crap at ",counter," took time:", t2-t1)
 
 			# Take a step in the environment. 
 			ta = time.time()
@@ -2166,7 +2164,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 			tc = time.time()
 			print("Step time:",tb-ta)
-			print("Append time:",tc-tb)
+			# print("Append time:",tc-tb)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
