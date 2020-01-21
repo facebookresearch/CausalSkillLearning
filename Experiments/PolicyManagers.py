@@ -2151,12 +2151,16 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 
 			# Take a step in the environment. 
+			ta = time.time()
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
-
+			tb = time.time()
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
+			tc = time.time()
+			print("Step time:",tb-ta)
+			print("Append time:",tc-ta)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
