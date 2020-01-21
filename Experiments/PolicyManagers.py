@@ -2100,7 +2100,12 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	
 		counter = 0		
 		eps_reward = 0.	
+
+		t1 = time.time()
 		state = self.environment.reset()
+		t2 = time.time()
+		print("Reset took time:",t2-t1)
+
 		terminal = False
 
 		self.reset_lists()
@@ -2113,6 +2118,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# self.terminal_trajectory.append(terminal)
 		# self.reward_trajectory.append(0.)		
 
+		t3 = time.time()
+
 		while not(terminal) and counter<self.max_timesteps:
 
 			if random:
@@ -2123,10 +2130,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 				# Get action greedily, then add noise. 		
 
-				t1 = time.time()		
+				# t1 = time.time()		
 				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
-				t2 = time.time()
-				print("Reparam get actions time: ", t2-t1)
+				# t2 = time.time()
+				# print("Reparam get actions time: ", t2-t1)
 
 
 				if test:
@@ -2161,6 +2168,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			if visualize:
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
+		t4 = time.time()
+		print("Rollout took: ",t4-t3)
 
 		print("Rolled out an episode for ",counter," timesteps.")
 		# Now that the episode is done, compute cummulative rewards... 
