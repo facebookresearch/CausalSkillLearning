@@ -2394,7 +2394,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def initialize_memory(self):
 
 		# Create memory object. 
-		self.memory = RLUtils.ReplayMemory(memory_size=2000)
+		self.memory = RLUtils.ReplayMemory(memory_size=self.args.memory_size)
 
 		# Number of initial episodes needs to be less than memory size. 
 		self.initial_episodes = self.args.burn_in_eps
