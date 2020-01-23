@@ -2447,9 +2447,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# Copying over the create networks from Joint Policy training. 
 
 		# Not sure if there's a better way to inherit - unless we inherit from both classes.
-		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()				
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.number_layers).cuda()				
 		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
-		self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
+		self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.number_layers).cuda()
 
 	def create_training_ops(self):
 		
