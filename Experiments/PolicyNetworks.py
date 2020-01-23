@@ -429,7 +429,6 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		latent_b_preprobabilities = self.termination_output_layer(outputs) + self.b_exploration_bias
 		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
 			
-
 		# Predict Gaussian means and variances. 		
 		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
 		# We should be multiply by self.variance_factor.
@@ -446,9 +445,46 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 			selected_b = self.select_greedy_action(latent_b_probabilities)
 			selected_z = self.dists.sample()
 
-		# embed()
-
 		return selected_b, selected_z
+
+	def incremental_reparam_get_actions(self, input, greedy=False, action_epsilon=0.001, hidden=None):
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+		outputs, hidden = self.lstm(format_input, hidden)
+
+		latent_b_preprobabilities = self.termination_output_layer(outputs)
+		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
+		# Greedily select b. 
+		selected_b = self.select_greedy_action(latent_b_probabilities)
+
+		# Predict Gaussian means and variances. 		
+		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		# We should be multiply by self.variance_factor.
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + action_epsilon
+
+		noise = torch.randn_like(variance_outputs)
+
+		if greedy: 
+			selected_z = mean_outputs
+		else:
+			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
+			selected_z = mean_outputs + variance_outputs * noise
+
+		return selected_z, selected_b, hidden
+
+	def reparam_get_actions(self, input, greedy=False, action_epsilon=0.001, hidden=None):
+
+		# Wraps incremental 
+		# MUST MODIFY INCREMENTAL ONE TO HANDLE NEW_Z_SELECTION (i.e. only choose new one if b is 1....)
+
+			# Set initial b to 1. 
+			sampled_b[0] = 1
+
+			# Initial z is already trivially set. 
+			for t in range(1,input.shape[0]):
+				# If b_t==0, just use previous z. 
+				# If b_t==1, sample new z. Here, we've cloned this from sampled_z's, so there's no need to do anything. 
+				if sampled_b[t]==0:
+					sampled_z_index[t] = sampled_z_index[t-1]
 
 	def select_greedy_action(self, action_probabilities):
 		# Select action with max probability for test time. 

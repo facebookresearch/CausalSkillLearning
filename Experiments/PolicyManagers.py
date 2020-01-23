@@ -2220,16 +2220,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
 		else:
 			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
-		
-	def incremental_assemble_inputs(self, assembled_inputs=None):
-	
-		if assembled_inputs is not None:		
-			new_input_row = self.get_current_input_row()
-			new_assembled_inputs = np.concatenate([assembled_inputs,new_input_row],axis=0)		
-		else:
-			new_assembled_inputs = self.get_current_input_row
-
-		return new_assembled_inputs
 
 	def assemble_inputs(self):
 
@@ -2261,21 +2251,32 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		assembled_inputs = self.assemble_inputs()
 
 		# Input to the policy should be states and actions. 
-		self.policy_inputs = torch.tensor(assembled_inputs).cuda().float()	
+		self.state_action_inputs = torch.tensor(assembled_inputs).cuda().float()	
 
 		# Get summed reward for statistics. 
 		self.batch_reward_statistics += sum(self.reward_trajectory)
 
 	def set_differentiable_critic_inputs(self):
 		# Get policy's predicted actions by getting action greedily, then add noise. 				
-		predicted_action = self.policy_network.reparameterized_get_actions(self.policy_inputs, greedy=True).squeeze(1)
+		predicted_action = self.policy_network.reparameterized_get_actions(self.state_action_inputs, greedy=True).squeeze(1)
 		noise = torch.zeros_like(predicted_action).cuda().float()
 		
 		# Get noise from noise process. 					
 		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
 		# Concatenate the states from policy inputs and the predicted actions. 
-		self.critic_inputs = torch.cat([self.policy_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
+		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
+
+	def update_policies(self):
+		######################################
+		# Compute losses for actor.
+		self.set_differentiable_critic_inputs()		
+
+		self.policy_optimizer.zero_grad()
+		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
+		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
 
 	def set_targets(self):
 		if self.args.TD:
@@ -2291,24 +2292,15 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 			self.critic_targets = torch.tensor(self.cummulative_rewards).cuda().float()
 
-	def update_policies(self, counter):
+	def update_critic(self):
 		######################################
-		# Compute losses for actor.
-		self.set_differentiable_critic_inputs()		
-
-		self.policy_optimizer.zero_grad()
-		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
-		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
-		self.policy_loss.backward()
-		self.policy_optimizer.step()
-
 		# Zero gradients, then backprop into critic.		
 		self.critic_optimizer.zero_grad()	
 		# Get critic predictions first. 
 		if self.args.MLP_policy:
-			self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1)
+			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1)
 		else:
-			self.critic_predictions = self.critic_network.forward(self.policy_inputs).squeeze(1).squeeze(1)
+			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1).squeeze(1)
 
 		# Before we actually compute loss, compute targets.
 		self.set_targets()
@@ -2321,11 +2313,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.critic_optimizer.step()
 		######################################
 
-	def step_networks(self):
-		self.policy_optimizer.step()
-		self.critic_optimizer.step()
-		self.policy_optimizer.zero_grad()
-		self.critic_optimizer.zero_grad()
+	def update_networks(self):
+		# Update policy network. 
+		self.update_policies()
+		# Now update critic network.
+		self.update_critic()
 
 	def reset_statistics(self):
 		# Can also reset the policy and critic loss statistcs here. 
@@ -2334,7 +2326,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.batch_reward_statistics = 0.
 		self.episode_reward_statistics = 0.
 
-	def update_batch(self, counter):
+	def update_batch(self):
 
 		# Get set of indices of episodes in the memory. 
 		batch_indices = self.memory.sample_batch(self.batch_size)
@@ -2348,10 +2340,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.process_episode(episode)
 
 			# Now compute gradients to both networks from batch.
-			self.update_policies(counter)
-
-		# # Now actually make a step. 
-		# self.step_networks()	
+			self.update_networks()
 
 	def update_plots(self, counter):
 		self.tf_logger.scalar_summary('Total Episode Reward', copy.deepcopy(self.episode_reward_statistics), counter)
@@ -2387,7 +2376,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		if self.args.train:
 			# Update on batch. 
-			self.update_batch(counter)
+			self.update_batch()
 			# Update plots. 
 			self.update_plots(counter)
 
@@ -2458,7 +2447,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# Copying over the create networks from Joint Policy training. 
 
 		# Not sure if there's a better way to inherit - unless we inherit from both classes.
-		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()		
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()				
+		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
 		self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
 
 	def create_training_ops(self):
@@ -2468,6 +2458,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		
 		# If we are using reparameterization, use a global optimizer for both policies, and a global loss function.
 		parameter_list = list(self.policy_network.parameters()) + list(self.latent_policy.parameters())
+		# The policy optimizer handles both the low and high level policies, as long as the z's being passed from the latent to sub policy are differentiable.
 		self.policy_optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
 		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
 
@@ -2490,6 +2481,115 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		self.latent_policy.load_state_dict(load_object['Latent_Policy'])
 		self.critic_network.load_state_dict(load_object['Critic_Network'])
 
+	def reset_lists(self):
+		self.reward_trajectory = []
+		self.state_trajectory = []
+		self.action_trajectory = []
+		self.image_trajectory = []
+		self.terminal_trajectory = []
+		self.latent_z_trajectory = []
+		self.latent_b_trajectory = []
+		self.cummulative_rewards = None
+		self.episode = None
+
+	def get_conditional_information_row(self, t=-1):
+		# Get robot and object state.
+		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
+
+	def get_current_input_row(self, t=-1):
+		if len(self.action_trajectory)>0:
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)),self.action_trajectory[t].reshape((1,-1))],axis=1)
+		else:
+			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)			
+
+	def get_latent_input_row(self, t=-1):
+		if len(self.latent_z_trajectory)>0:
+			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
+		else:
+			# If first timestep, z's are 0 and b is 1. 
+			return np.concatenate([np.zeros((1, self.args.latent_z_dimensionality)),np.ones((1,1))],axis=1)
+
+	def assemble_latent_input_row(self, t=-1):
+		# Function to assemble ONE ROW of latent policy input. 
+		# Remember, the latent policy takes.. JOINT_states, actions, z's, b's, and then conditional information of robot-state and object-state. 
+
+		# Assemble these three pieces: 
+		return np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t), self.get_conditional_information_row(t)],axis=1)
+
+	def assemble_latent_inputs(self):
+		# Assemble latent policy inputs over time.
+		return np.concatenate([self.assemble_latent_input_row(t) for t in range(len(self.state_trajectory))],axis=0)		
+
+	def assemble_subpolicy_input_row(self, latent_z=None, t=-1):
+		# Remember, the subpolicy takes.. JOINT_states, actions, z's. 
+		# Assemble (remember, without b, and without conditional info).
+
+		if latent_z is not None:
+			# return np.concatenate([self.get_current_input_row(t), latent_z.reshape((1,-1))],axis=1)
+
+			# Instead of numpy, use torch. 
+			return torch.cat([torch.tensor(self.get_current_input_row(t)).cuda().float(), latent_z.reshape((1,-1))],dim=1)
+		else:
+			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
+
+	def assemble_subpolicy_inputs(self, latent_z_list=None):		
+		# Assemble sub policy inputs over time.	
+		if latent_z_list is not None:
+			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
+
+			# Instead of numpy, use torch... 
+			return torch.cat([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],dim=0)
+		else:
+			# return np.concatenate([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],axis=0)
+
+			# Instead of numpy, use torch... 
+			return torch.cat([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+
+	def assemble_state_action_row(self, action=None, t=-1):
+		# Get state action input row for critic.
+		if action is not None:
+			# Don't create a torch tensor out of actions. 
+			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
+		else:		
+			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
+
+	def assemble_state_action_inputs(self, action_list=None):				
+		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
+		
+		# Instead of numpy use torch.
+		if action_list is not None:
+			return torch.cat([self.assemble_state_action_row(t, action=action_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+		else:
+			return torch.cat([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],dim=0)
+
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0):
+
+		if random==True:
+			action = 2*np.random.random((self.output_size))-1
+			return action, hidden
+
+		# Get latent policy inputs.
+		latent_policy_inputs = self.assemble_latent_input_row()
+
+		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
+		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden)
+
+		# Now get subpolicy inputs.
+		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
+
+		# Feed in subpolicy inputs and get the subpolicy outputs (a, hidden)
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).cuda().float(), greedy=True, hidden=policy_hidden)
+
+		# Numpy action
+		action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+
+		# Perturb action with noise. 			
+		perturbed_action = self.NoiseProcess.get_action(action, counter)
+
+		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
+
 	def rollout(self, random=False, test=False, visualize=False):
 	
 		counter = 0		
@@ -2504,40 +2604,26 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			self.image_trajectory.append(np.flipud(image))
 		
 		self.state_trajectory.append(state)
-		# self.terminal_trajectory.append(terminal)
-		# self.reward_trajectory.append(0.)		
+
+		# Instead of maintaining just one LSTM hidden state... now have one for each policy level.
+		policy_hidden = None
+		latent_hidden = None				
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			if random:
-				action = self.environment.action_space.sample()
-			else:
-				# Assemble states. 
-				assembled_inputs = self.assemble_inputs()
-
-				# Get action greedily, then add noise. 				
-				predicted_action = self.policy_network.reparameterized_get_actions(torch.tensor(assembled_inputs).cuda().float(), greedy=True)					
-				if test:
-					noise = torch.zeros_like(predicted_action).cuda().float()
-				else:
-					# Get noise from noise process. 					
-					noise = torch.randn_like(predicted_action)*self.epsilon
-
-				# Perturb action with noise. 			
-				perturbed_action = predicted_action + noise
-
-				if self.args.MLP_policy:
-					action = perturbed_action[-1].detach().cpu().numpy()
-				else:
-					action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
-
-			# Take a step in the environment. 
+			# # action, hidden = self.get_action(hidden=hidden,random=random)
+			# action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
+			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter)
+				
+			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
-
+		
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
+			self.latent_z_trajectory.append(latent_z)
+			self.latent_b_trajectory.append(latent_b)
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2549,18 +2635,75 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			if visualize:
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
-
+		
 		print("Rolled out an episode for ",counter," timesteps.")
+
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
-		self.episode_reward_statistics = self.cummulative_rewards[0]
+		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
+		print("Achieved reward: ", self.episode_reward_statistics)
+		# print("########################################################")
 
 		# NOW construct an episode out of this..	
-		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
+		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
+	def process_episode(self, episode):
+		# Assemble states, actions, targets.
 
+		# First reset all the lists from the rollout now that they've been written to memory. 
+		self.reset_lists()
+
+		# Now set the lists. 
+		self.state_trajectory = episode.state_list
+		self.action_trajectory = episode.action_list
+		self.reward_trajectory = episode.reward_list
+		self.terminal_trajectory = episode.terminal_list
+		self.latent_z_trajectory = episode.latent_z_list
+		self.latent_b_trajectory = episode.latent_b_list
+
+		# Get summed reward for statistics. 
+		self.batch_reward_statistics += sum(self.reward_trajectory)
+
+		# Assembling state_action inputs to feed to the Critic network for TARGETS. (These don't need to, and in fact shouldn't, be differentiable).
+		self.state_action_inputs = torch.tensor(self.assemble_state_action_inputs()).cuda().float()
+
+	def update_policies(self):
+		# There are a few steps that need to be taken. 
+		# 1) Assemble latent policy inputs.
+		# 2) Get differentiable latent z's from latent policy. 
+		# 3) Assemble subpolicy inputs with these differentiable latent z's. 
+		# 4) Get differentaible actions from subpolicy. 
+		# 5) Assemble critic inputs with these differentiable actions. 
+		# 6) Now compute critic predictions that are differentiable w.r.t. sub and latent policies. 
+		# 7) Backprop.
+
+		# 1) Assemble latent policy inputs. # Remember, these are the only things that don't need to be differentiable.
+		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).cuda().float()		
+
+		# 2) Feed this into latent policy. 
+		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True)
+
+		# 3) Assemble subpolicy inputs with diff latent z's. Remember, this needs to be differentiable. Modify the assembling to torch, WITHOUT creating new torch tensors of z. 
+		self.subpolicy_inputs = self.assemble_subpolicy_inputs(latent_z_list=latent_z)
+
+		# 4) Feed into subpolicy. 
+		diff_actions, _ = self.policy_network.incremental_reparam_get_actions(self.subpolicy_inputs, greedy=True)
+
+		# 5) Now assemble critic inputs. 
+		self.differentiable_critic_inputs = self.assemble_state_action_inputs(actions=diff_actions)
+
+		# 6) Compute critic predictions. 
+		self.policy_loss = - self.critic_network.forward(self.differentiable_critic_inputs[:-1]).mean()
+
+		# Also log statistics. 
+		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
+
+		# 7) Now backprop into policy.
+		self.policy_optimizer.zero_grad()		
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
 
 class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
