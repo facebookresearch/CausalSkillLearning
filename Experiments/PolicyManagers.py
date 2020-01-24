@@ -2742,7 +2742,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		diff_actions, _ = self.policy_network.incremental_reparam_get_actions(self.subpolicy_inputs, greedy=True)
 
 		# 5) Now assemble critic inputs. 
-		self.differentiable_critic_inputs = self.assemble_state_action_inputs(actions=diff_actions)
+		self.differentiable_critic_inputs = self.assemble_state_action_inputs(action_list=diff_actions)
 
 		# 6) Compute critic predictions. 
 		self.policy_loss = - self.critic_network.forward(self.differentiable_critic_inputs[:-1]).mean()
