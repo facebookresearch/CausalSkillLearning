@@ -2598,9 +2598,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		
 		# Instead of numpy use torch.
 		if action_list is not None:
-			return torch.cat([self.assemble_state_action_row(t, action=action_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+			return torch.cat([self.assemble_state_action_row(t=t, action=action_list[t]) for t in range(len(self.state_trajectory))],dim=0)
 		else:
-			return torch.cat([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],dim=0)
+			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
 	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0):
 
