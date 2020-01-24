@@ -2531,6 +2531,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		if len(self.action_trajectory)==0 or t==0:
 			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
 		else:
+
+			print(t, len(self.action_trajectory), len(self.state_trajectory))
 			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
 
 	def get_latent_input_row(self, t=-1):
