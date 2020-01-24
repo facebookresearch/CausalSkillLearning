@@ -447,7 +447,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 
 		return selected_b, selected_z
 
-	def incremental_reparam_get_actions(self, input, greedy=False, action_epsilon=0.001, hidden=None):
+	def incremental_reparam_get_actions(self, input, greedy=False, action_epsilon=0.001, hidden=None, previous_z=None):
 
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 		outputs, hidden = self.lstm(format_input, hidden)
@@ -469,6 +469,24 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		else:
 			# Instead of *sampling* the action from a distribution, construct using mu + sig * eps (random noise).
 			selected_z = mean_outputs + variance_outputs * noise
+
+		# If single input and previous_Z is None, this is the first timestep. So set b to 1, and don't do anything to z. 
+		if input.shape[0]==1 and previous_z is None:
+			selected_b[0] = 1
+		# If previous_Z is not None, this is not the first timestep, so don't do anything to z. If b is 0, use previous. 
+		elif input.shape[0]==1 and previous_z is not None:
+			if selected_b==0:
+				selected_z = previous_z
+		elif input.shape[0]>1:
+			# Now modify z's as per New Z Selection. 
+			# Set initial b to 1. 
+			selected_b[0] = 1
+			# Initial z is already trivially set. 
+			for t in range(1,input.shape[0]):
+				# If b_t==0, just use previous z. 
+				# If b_t==1, sample new z. Here, we've cloned this from sampled_z's, so there's no need to do anything. 
+				if selected_b[t]==0:
+					selected_z[t] = selected_z[t-1]
 
 		return selected_z, selected_b, hidden
 

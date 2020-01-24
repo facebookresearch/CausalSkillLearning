@@ -2607,7 +2607,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		else:
 			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
-	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0):
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None):
 
 		# if random==True:
 		# 	action = 2*np.random.random((self.output_size))-1
@@ -2617,7 +2617,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		latent_policy_inputs = self.assemble_latent_input_row()
 		
 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
-		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden)
+		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z)
 
 		# Now get subpolicy inputs.
 		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
@@ -2651,11 +2651,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 		# Instead of maintaining just one LSTM hidden state... now have one for each policy level.
 		policy_hidden = None
-		latent_hidden = None				
+		latent_hidden = None
+		latent_z = None
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter)
+			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
