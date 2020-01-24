@@ -2603,13 +2603,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 		# Get latent policy inputs.
 		latent_policy_inputs = self.assemble_latent_input_row()
-
-		embed()
+		
 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
 		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden)
 
 		# Now get subpolicy inputs.
-		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
+		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
+		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z=latent_z)
 
 		# Feed in subpolicy inputs and get the subpolicy outputs (a, hidden)
 		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).cuda().float(), greedy=True, hidden=policy_hidden)
