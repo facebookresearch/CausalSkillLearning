@@ -2686,7 +2686,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		print("Achieved reward: ", self.episode_reward_statistics)
 
 		# NOW construct an episode out of this..	
-		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
+		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory, self.latent_z_trajectory, self.latent_b_trajectory)
 
 	def process_episode(self, episode):
 		# Assemble states, actions, targets.
