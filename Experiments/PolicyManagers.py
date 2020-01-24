@@ -2542,10 +2542,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# If first timestep, z's are 0 and b is 1. 
 		if len(self.latent_z_trajectory)==0 or t==0:
 			return np.concatenate([np.zeros((1, self.args.z_dimensions)),np.ones((1,1))],axis=1)
-		else:
-			t-=1
-
-			print(t)
+		if t==-1:
+			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
+		elif t>0:
+			t-=1	
 			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
 
 	def assemble_latent_input_row(self, t=-1):
