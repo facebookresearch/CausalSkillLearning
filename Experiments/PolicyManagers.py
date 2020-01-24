@@ -754,8 +754,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 					# self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 					# self.conditional_information[:,:self.cond_robot_state_size] = robot_states
-					# self.conditional_information[:,self.cond_robot_state_size:object_states.shape[-1]] = object_states
-										
+					# self.conditional_information[:,self.cond_robot_state_size:object_states.shape[-1]] = object_states								
 					# conditional_info = np.concatenate([robot_states,object_states],axis=1)	
 			else:					
 				return None, None, None
