@@ -2460,6 +2460,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		
 		self.initialize_plots()
 
+		self.gripper_open = np.array([0.0115, -0.0115])
+		self.gripper_closed = np.array([-0.020833, 0.020833])
+
 		# Create Noise process. 
 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
 
@@ -2517,10 +2520,18 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
 
 	def get_current_input_row(self, t=-1):
+
+		# The state that we want is ... joint state?
+		gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+
+		finger_diff = gripper_values[1]-gripper_values[0]
+		gripper_value = np.array(2*finger_diff-1)
+
 		if len(self.action_trajectory)>0:
-			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)),self.action_trajectory[t].reshape((1,-1))],axis=1)
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t].reshape((1,-1))],axis=1)
 		else:
-			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)			
+			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)			
 
 	def get_latent_input_row(self, t=-1):
 		if len(self.latent_z_trajectory)>0:
