@@ -2727,7 +2727,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).cuda().float()		
 
 		# 2) Feed this into latent policy. 
-		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True)
+		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(self.latent_policy_inputs).cuda().float(), greedy=True)
 
 		# 3) Assemble subpolicy inputs with diff latent z's. Remember, this needs to be differentiable. Modify the assembling to torch, WITHOUT creating new torch tensors of z. 
 		self.subpolicy_inputs = self.assemble_subpolicy_inputs(latent_z_list=latent_z)
