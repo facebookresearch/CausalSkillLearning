@@ -2579,12 +2579,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
 
 			# Instead of numpy, use torch... 
-			return torch.cat([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],dim=0)
+			return torch.cat([self.assemble_subpolicy_input_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 		else:
 			# return np.concatenate([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],axis=0)
 
 			# Instead of numpy, use torch... 
-			return torch.cat([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+			return torch.cat([self.assemble_subpolicy_input_row(t=t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],dim=0)
 
 	def assemble_state_action_row(self, action=None, t=-1):
 		# Get state action input row for critic.
