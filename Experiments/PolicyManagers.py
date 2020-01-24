@@ -2528,7 +2528,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		finger_diff = gripper_values[1]-gripper_values[0]
 		gripper_value = np.array(2*finger_diff-1)
 
-		embed()
 		if len(self.action_trajectory)>0:
 			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t].reshape((1,-1))],axis=1)
 		else:
