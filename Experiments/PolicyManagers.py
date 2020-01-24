@@ -2004,886 +2004,886 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		if self.args.debug:
 			embed()
 
-# class PolicyManager_BaselineRL(PolicyManager_BaseClass):
+class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
-# 	def __init__(self, args):
+	def __init__(self, args):
 
-# 		# Create environment, setup things, etc. 
-# 		self.args = args		
+		# Create environment, setup things, etc. 
+		self.args = args		
 
-# 		self.initial_epsilon = self.args.epsilon_from
-# 		self.final_epsilon = self.args.epsilon_to
-# 		self.decay_episodes = self.args.epsilon_over
-# 		self.baseline = None
-# 		self.learning_rate = 1e-4
-# 		self.max_timesteps = 250
-# 		self.gamma = 0.99
-# 		self.batch_size = 10
+		self.initial_epsilon = self.args.epsilon_from
+		self.final_epsilon = self.args.epsilon_to
+		self.decay_episodes = self.args.epsilon_over
+		self.baseline = None
+		self.learning_rate = 1e-4
+		self.max_timesteps = 250
+		self.gamma = 0.99
+		self.batch_size = 10
 
-# 		# Per step decay. 
-# 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
-# 		self.number_episodes = 5000000
+		# Per step decay. 
+		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
+		self.number_episodes = 5000000
 
-# 		# Orhnstein Ullenhbeck noise process parameters. 
-# 		self.theta = 0.15
-# 		self.sigma = 0.2		
+		# Orhnstein Ullenhbeck noise process parameters. 
+		self.theta = 0.15
+		self.sigma = 0.2		
 
-# 		self.reset_statistics()
+		self.reset_statistics()
 
-# 	def create_networks(self):
+	def create_networks(self):
 
-# 		if self.args.MLP_policy:
-# 			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
-# 			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).cuda()
-# 		else:
-# 			# Create policy and critic. 		
-# 			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers, small_init=True).cuda()			
-# 			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+		if self.args.MLP_policy:
+			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
+			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).cuda()
+		else:
+			# Create policy and critic. 		
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers, small_init=True).cuda()			
+			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
 
-# 	def create_training_ops(self):
+	def create_training_ops(self):
 
-# 		self.NLL_Loss = torch.nn.NLLLoss(reduction='none')
-# 		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
+		self.NLL_Loss = torch.nn.NLLLoss(reduction='none')
+		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
 		
-# 		# parameter_list = list(self.policy_network.parameters()) + list(self.critic_network.parameters())
-# 		self.policy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
-# 		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
+		# parameter_list = list(self.policy_network.parameters()) + list(self.critic_network.parameters())
+		self.policy_optimizer = torch.optim.Adam(self.policy_network.parameters(), lr=self.learning_rate)
+		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
 
-# 	def save_all_models(self, suffix):
-# 		logdir = os.path.join(self.args.logdir, self.args.name)
-# 		savedir = os.path.join(logdir,"saved_models")	
-# 		if not(os.path.isdir(savedir)):
-# 			os.mkdir(savedir)
+	def save_all_models(self, suffix):
+		logdir = os.path.join(self.args.logdir, self.args.name)
+		savedir = os.path.join(logdir,"saved_models")	
+		if not(os.path.isdir(savedir)):
+			os.mkdir(savedir)
 		
-# 		save_object = {}
-# 		save_object['Policy_Network'] = self.policy_network.state_dict()
-# 		save_object['Critic_Network'] = self.critic_network.state_dict()
+		save_object = {}
+		save_object['Policy_Network'] = self.policy_network.state_dict()
+		save_object['Critic_Network'] = self.critic_network.state_dict()
 		
-# 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-# 	def load_all_models(self, path):
-# 		load_object = torch.load(path)
-# 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-# 		self.critic_network.load_state_dict(load_object['Critic_Network'])
+	def load_all_models(self, path):
+		load_object = torch.load(path)
+		self.policy_network.load_state_dict(load_object['Policy_Network'])
+		self.critic_network.load_state_dict(load_object['Critic_Network'])
 
-# 	def setup(self):
-# 		# Create Mujoco environment. 
-# 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
+	def setup(self):
+		# Create Mujoco environment. 
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
-# 		# Get input and output sizes from these environments, etc. 
-# 		self.obs = self.environment.reset()
-# 		self.output_size = self.environment.action_spec[0].shape[0]
-# 		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
-# 		self.input_size = self.state_size + self.output_size		
+		# Get input and output sizes from these environments, etc. 
+		self.obs = self.environment.reset()
+		self.output_size = self.environment.action_spec[0].shape[0]
+		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		self.input_size = self.state_size + self.output_size		
 		
-# 		# Create networks. 
-# 		self.create_networks()
-# 		self.create_training_ops()
+		# Create networks. 
+		self.create_networks()
+		self.create_training_ops()
 		
-# 		self.initialize_plots()
+		self.initialize_plots()
 
-# 		# Create Noise process. 
-# 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+		# Create Noise process. 
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
 
-# 	def set_parameters(self, episode_counter):
-# 		if self.args.train:
-# 			if episode_counter<self.decay_episodes:
-# 				self.epsilon = self.initial_epsilon-self.decay_rate*episode_counter
-# 			else:
-# 				self.epsilon = self.final_epsilon		
-# 		else:
-# 			self.epsilon = 0.
+	def set_parameters(self, episode_counter):
+		if self.args.train:
+			if episode_counter<self.decay_episodes:
+				self.epsilon = self.initial_epsilon-self.decay_rate*episode_counter
+			else:
+				self.epsilon = self.final_epsilon		
+		else:
+			self.epsilon = 0.
 
-# 	def reset_lists(self):
-# 		self.reward_trajectory = []
-# 		self.state_trajectory = []
-# 		self.action_trajectory = []
-# 		self.image_trajectory = []
-# 		self.terminal_trajectory = []
-# 		self.cummulative_rewards = None
-# 		self.episode = None
+	def reset_lists(self):
+		self.reward_trajectory = []
+		self.state_trajectory = []
+		self.action_trajectory = []
+		self.image_trajectory = []
+		self.terminal_trajectory = []
+		self.cummulative_rewards = None
+		self.episode = None
 
-# 	def get_action(self, hidden=None, random=True):
+	def get_action(self, hidden=None, random=True):
 
-# 		# Change this to epsilon greedy...
-# 		if random==False:
-# 			whether_greedy = np.random.binomial(n=1,p=0.8)
-# 		else:
-# 			action = 2*np.random.random((self.output_size))-1
+		# Change this to epsilon greedy...
+		if random==False:
+			whether_greedy = np.random.binomial(n=1,p=0.8)
+		else:
+			action = 2*np.random.random((self.output_size))-1
 
-# 		if whether_greedy:
-# 			# Assemble states of current input row.
-# 			current_input_row = self.get_current_input_row()
+		if whether_greedy:
+			# Assemble states of current input row.
+			current_input_row = self.get_current_input_row()
 
-# 			# Using the incremental get actions. Still get action greedily, then add noise. 		
-# 			predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+			# Using the incremental get actions. Still get action greedily, then add noise. 		
+			predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
-# 			if test:
-# 				noise = torch.zeros_like(predicted_action).cuda().float()
-# 			else:
-# 				# Get noise from noise process. 					
-# 				noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+			if test:
+				noise = torch.zeros_like(predicted_action).cuda().float()
+			else:
+				# Get noise from noise process. 					
+				noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
-# 			# Perturb action with noise. 			
-# 			perturbed_action = predicted_action + noise
+			# Perturb action with noise. 			
+			perturbed_action = predicted_action + noise
 
-# 			if self.args.MLP_policy:
-# 				action = perturbed_action[-1].detach().cpu().numpy()
-# 			else:
-# 				action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
-# 		else:
-# 			action = 2*np.random.random((self.output_size))-1
+			if self.args.MLP_policy:
+				action = perturbed_action[-1].detach().cpu().numpy()
+			else:
+				action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
+		else:
+			action = 2*np.random.random((self.output_size))-1
 
-# 		return action, hidden
+		return action, hidden
 
-# 	def get_OU_action(self, hidden=None, random=False, counter=0):
+	def get_OU_action(self, hidden=None, random=False, counter=0):
 
-# 		if random==True:
-# 			action = 2*np.random.random((self.output_size))-1
-# 			return action, hidden
+		if random==True:
+			action = 2*np.random.random((self.output_size))-1
+			return action, hidden
 		
-# 		# Assemble states of current input row.
-# 		current_input_row = self.get_current_input_row()
+		# Assemble states of current input row.
+		current_input_row = self.get_current_input_row()
 
-# 		# Using the incremental get actions. Still get action greedily, then add noise. 		
-# 		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+		# Using the incremental get actions. Still get action greedily, then add noise. 		
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
-# 		# Numpy action
-# 		if self.args.MLP_policy:
-# 			action = predicted_action[-1].detach().cpu().numpy()
-# 		else:
-# 			action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+		# Numpy action
+		if self.args.MLP_policy:
+			action = predicted_action[-1].detach().cpu().numpy()
+		else:
+			action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
-# 		# Perturb action with noise. 			
-# 		perturbed_action = self.NoiseProcess.get_action(action, counter)
+		# Perturb action with noise. 			
+		perturbed_action = self.NoiseProcess.get_action(action, counter)
 
-# 		return perturbed_action, hidden
+		return perturbed_action, hidden
 
-# 	def rollout(self, random=False, test=False, visualize=False):
+	def rollout(self, random=False, test=False, visualize=False):
 	
-# 		counter = 0		
-# 		eps_reward = 0.	
-# 		state = self.environment.reset()
-# 		terminal = False
+		counter = 0		
+		eps_reward = 0.	
+		state = self.environment.reset()
+		terminal = False
 
-# 		self.reset_lists()
+		self.reset_lists()
 
-# 		if visualize:			
-# 			image = self.environment.sim.render(600,600, camera_name='frontview')
-# 			self.image_trajectory.append(np.flipud(image))
+		if visualize:			
+			image = self.environment.sim.render(600,600, camera_name='frontview')
+			self.image_trajectory.append(np.flipud(image))
 		
-# 		self.state_trajectory.append(state)
-# 		# self.terminal_trajectory.append(terminal)
-# 		# self.reward_trajectory.append(0.)		
+		self.state_trajectory.append(state)
+		# self.terminal_trajectory.append(terminal)
+		# self.reward_trajectory.append(0.)		
 
-# 		hidden = None
+		hidden = None
 
-# 		while not(terminal) and counter<self.max_timesteps:
+		while not(terminal) and counter<self.max_timesteps:
 
-# 			# action, hidden = self.get_action(hidden=hidden,random=random)
-# 			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
+			# action, hidden = self.get_action(hidden=hidden,random=random)
+			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
 				
-# 			# Take a step in the environment. 	
-# 			next_state, onestep_reward, terminal, success = self.environment.step(action)
+			# Take a step in the environment. 	
+			next_state, onestep_reward, terminal, success = self.environment.step(action)
 		
-# 			self.state_trajectory.append(next_state)
-# 			self.action_trajectory.append(action)
-# 			self.reward_trajectory.append(onestep_reward)
-# 			self.terminal_trajectory.append(terminal)
+			self.state_trajectory.append(next_state)
+			self.action_trajectory.append(action)
+			self.reward_trajectory.append(onestep_reward)
+			self.terminal_trajectory.append(terminal)
 				
-# 			# Copy next state into state. 
-# 			state = copy.deepcopy(next_state)
+			# Copy next state into state. 
+			state = copy.deepcopy(next_state)
 
-# 			# Counter
-# 			counter += 1 
+			# Counter
+			counter += 1 
 
-# 			# Append image. 
-# 			if visualize:
-# 				image = self.environment.sim.render(600,600, camera_name='frontview')
-# 				self.image_trajectory.append(np.flipud(image))
+			# Append image. 
+			if visualize:
+				image = self.environment.sim.render(600,600, camera_name='frontview')
+				self.image_trajectory.append(np.flipud(image))
 		
-# 		print("Rolled out an episode for ",counter," timesteps.")
+		print("Rolled out an episode for ",counter," timesteps.")
 
-# 		# Now that the episode is done, compute cummulative rewards... 
-# 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
+		# Now that the episode is done, compute cummulative rewards... 
+		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
 
-# 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
-# 		print("Achieved reward: ", self.episode_reward_statistics)
-# 		# print("########################################################")
+		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
+		print("Achieved reward: ", self.episode_reward_statistics)
+		# print("########################################################")
 
-# 		# NOW construct an episode out of this..	
-# 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
-# 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
+		# NOW construct an episode out of this..	
+		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
+		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
-# 	def get_current_input_row(self):
-# 		if len(self.action_trajectory)>0:
-# 			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
-# 		else:
-# 			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+	def get_current_input_row(self):
+		if len(self.action_trajectory)>0:
+			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
+		else:
+			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
 
-# 	def assemble_inputs(self):
+	def assemble_inputs(self):
 
-# 		# Assemble states.
-# 		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
-# 		if len(self.action_trajectory)>0:
-# 			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
-# 			# Appending 0 action to start of sequence.
-# 			action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
-# 		else:
-# 			action_sequence = np.zeros((1,self.output_size))
+		# Assemble states.
+		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
+		if len(self.action_trajectory)>0:
+			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
+			# Appending 0 action to start of sequence.
+			action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
+		else:
+			action_sequence = np.zeros((1,self.output_size))
 
-# 		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
+		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
 
-# 		return inputs
+		return inputs
 
-# 	def process_episode(self, episode):
-# 		# Assemble states, actions, targets.
+	def process_episode(self, episode):
+		# Assemble states, actions, targets.
 
-# 		# First reset all the lists from the rollout now that they've been written to memory. 
-# 		self.reset_lists()
+		# First reset all the lists from the rollout now that they've been written to memory. 
+		self.reset_lists()
 
-# 		# Now set the lists. 
-# 		self.state_trajectory = episode.state_list
-# 		self.action_trajectory = episode.action_list
-# 		self.reward_trajectory = episode.reward_list
-# 		self.terminal_trajectory = episode.terminal_list
+		# Now set the lists. 
+		self.state_trajectory = episode.state_list
+		self.action_trajectory = episode.action_list
+		self.reward_trajectory = episode.reward_list
+		self.terminal_trajectory = episode.terminal_list
 
-# 		assembled_inputs = self.assemble_inputs()
+		assembled_inputs = self.assemble_inputs()
 
-# 		# Input to the policy should be states and actions. 
-# 		self.state_action_inputs = torch.tensor(assembled_inputs).cuda().float()	
+		# Input to the policy should be states and actions. 
+		self.state_action_inputs = torch.tensor(assembled_inputs).cuda().float()	
 
-# 		# Get summed reward for statistics. 
-# 		self.batch_reward_statistics += sum(self.reward_trajectory)
+		# Get summed reward for statistics. 
+		self.batch_reward_statistics += sum(self.reward_trajectory)
 
-# 	def set_differentiable_critic_inputs(self):
-# 		# Get policy's predicted actions by getting action greedily, then add noise. 				
-# 		predicted_action = self.policy_network.reparameterized_get_actions(self.state_action_inputs, greedy=True).squeeze(1)
-# 		noise = torch.zeros_like(predicted_action).cuda().float()
+	def set_differentiable_critic_inputs(self):
+		# Get policy's predicted actions by getting action greedily, then add noise. 				
+		predicted_action = self.policy_network.reparameterized_get_actions(self.state_action_inputs, greedy=True).squeeze(1)
+		noise = torch.zeros_like(predicted_action).cuda().float()
 		
-# 		# Get noise from noise process. 					
-# 		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+		# Get noise from noise process. 					
+		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
-# 		# Concatenate the states from policy inputs and the predicted actions. 
-# 		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
+		# Concatenate the states from policy inputs and the predicted actions. 
+		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
 
-# 	def update_policies(self):
-# 		######################################
-# 		# Compute losses for actor.
-# 		self.set_differentiable_critic_inputs()		
+	def update_policies(self):
+		######################################
+		# Compute losses for actor.
+		self.set_differentiable_critic_inputs()		
 
-# 		self.policy_optimizer.zero_grad()
-# 		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
-# 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
-# 		self.policy_loss.backward()
-# 		self.policy_optimizer.step()
+		self.policy_optimizer.zero_grad()
+		self.policy_loss = - self.critic_network.forward(self.critic_inputs[:-1]).mean()
+		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
 
-# 	def set_targets(self):
-# 		if self.args.TD:
-# 			# Construct TD Targets. 
-# 			self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
-# 			# Select till last time step, because we don't care what critic says after last timestep.
-# 			self.TD_targets = np.roll(self.TD_targets,-1,axis=0)[:-1]
-# 			# Mask with terminal. 
-# 			self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
-# 			self.TD_targets += np.array(self.reward_trajectory)
-# 			self.critic_targets = torch.tensor(self.TD_targets).cuda().float()
-# 		else:
-# 			self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
-# 			self.critic_targets = torch.tensor(self.cummulative_rewards).cuda().float()
+	def set_targets(self):
+		if self.args.TD:
+			# Construct TD Targets. 
+			self.TD_targets = self.critic_predictions.clone().detach().cpu().numpy()
+			# Select till last time step, because we don't care what critic says after last timestep.
+			self.TD_targets = np.roll(self.TD_targets,-1,axis=0)[:-1]
+			# Mask with terminal. 
+			self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
+			self.TD_targets += np.array(self.reward_trajectory)
+			self.critic_targets = torch.tensor(self.TD_targets).cuda().float()
+		else:
+			self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
+			self.critic_targets = torch.tensor(self.cummulative_rewards).cuda().float()
 
-# 	def update_critic(self):
-# 		######################################
-# 		# Zero gradients, then backprop into critic.		
-# 		self.critic_optimizer.zero_grad()	
-# 		# Get critic predictions first. 
-# 		if self.args.MLP_policy:
-# 			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1)
-# 		else:
-# 			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1).squeeze(1)
+	def update_critic(self):
+		######################################
+		# Zero gradients, then backprop into critic.		
+		self.critic_optimizer.zero_grad()	
+		# Get critic predictions first. 
+		if self.args.MLP_policy:
+			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1)
+		else:
+			self.critic_predictions = self.critic_network.forward(self.state_action_inputs).squeeze(1).squeeze(1)
 
-# 		# Before we actually compute loss, compute targets.
-# 		self.set_targets()
+		# Before we actually compute loss, compute targets.
+		self.set_targets()
 
-# 		# We predicted critic values from states S_1 to S_{T+1} because we needed all for bootstrapping. 
-# 		# For loss, we don't actually need S_{T+1}, so throw it out.
-# 		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.critic_targets).mean()
-# 		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
-# 		self.critic_loss.backward()
-# 		self.critic_optimizer.step()
-# 		######################################
+		# We predicted critic values from states S_1 to S_{T+1} because we needed all for bootstrapping. 
+		# For loss, we don't actually need S_{T+1}, so throw it out.
+		self.critic_loss = self.MSE_Loss(self.critic_predictions[:-1], self.critic_targets).mean()
+		self.critic_loss_statistics += self.critic_loss.clone().detach().cpu().numpy().mean()	
+		self.critic_loss.backward()
+		self.critic_optimizer.step()
+		######################################
 
-# 	def update_networks(self):
-# 		# Update policy network. 
-# 		self.update_policies()
-# 		# Now update critic network.
-# 		self.update_critic()
+	def update_networks(self):
+		# Update policy network. 
+		self.update_policies()
+		# Now update critic network.
+		self.update_critic()
 
-# 	def reset_statistics(self):
-# 		# Can also reset the policy and critic loss statistcs here. 
-# 		self.policy_loss_statistics = 0.
-# 		self.critic_loss_statistics = 0.
-# 		self.batch_reward_statistics = 0.
-# 		self.episode_reward_statistics = 0.
+	def reset_statistics(self):
+		# Can also reset the policy and critic loss statistcs here. 
+		self.policy_loss_statistics = 0.
+		self.critic_loss_statistics = 0.
+		self.batch_reward_statistics = 0.
+		self.episode_reward_statistics = 0.
 
-# 	def update_batch(self):
+	def update_batch(self):
 
-# 		# Get set of indices of episodes in the memory. 
-# 		batch_indices = self.memory.sample_batch(self.batch_size)
+		# Get set of indices of episodes in the memory. 
+		batch_indices = self.memory.sample_batch(self.batch_size)
 
-# 		for ind in batch_indices:
+		for ind in batch_indices:
 
-# 			# Retrieve appropriate episode from memory. 
-# 			episode = self.memory.memory[ind]
+			# Retrieve appropriate episode from memory. 
+			episode = self.memory.memory[ind]
 
-# 			# Set quantities from episode.
-# 			self.process_episode(episode)
+			# Set quantities from episode.
+			self.process_episode(episode)
 
-# 			# Now compute gradients to both networks from batch.
-# 			self.update_networks()
+			# Now compute gradients to both networks from batch.
+			self.update_networks()
 
-# 	def update_plots(self, counter):
-# 		self.tf_logger.scalar_summary('Total Episode Reward', copy.deepcopy(self.episode_reward_statistics), counter)
-# 		self.tf_logger.scalar_summary('Batch Rewards', self.batch_reward_statistics/self.batch_size, counter)
-# 		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss_statistics/self.batch_size, counter)
-# 		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss_statistics/self.batch_size, counter)
+	def update_plots(self, counter):
+		self.tf_logger.scalar_summary('Total Episode Reward', copy.deepcopy(self.episode_reward_statistics), counter)
+		self.tf_logger.scalar_summary('Batch Rewards', self.batch_reward_statistics/self.batch_size, counter)
+		self.tf_logger.scalar_summary('Policy Loss', self.policy_loss_statistics/self.batch_size, counter)
+		self.tf_logger.scalar_summary('Critic Loss', self.critic_loss_statistics/self.batch_size, counter)
 
-# 		if counter%self.args.display_freq==0:
+		if counter%self.args.display_freq==0:
 
-# 			# print("Embedding in Update Plots.")
+			# print("Embedding in Update Plots.")
 			
-# 			# Rollout policy.
-# 			self.rollout(random=False, test=True, visualize=True)
-# 			self.tf_logger.gif_summary("Rollout Trajectory", [np.array(self.image_trajectory)], counter)
+			# Rollout policy.
+			self.rollout(random=False, test=True, visualize=True)
+			self.tf_logger.gif_summary("Rollout Trajectory", [np.array(self.image_trajectory)], counter)
 
-# 		# Now that we've updated these into TB, reset stats. 
-# 		self.reset_statistics()
+		# Now that we've updated these into TB, reset stats. 
+		self.reset_statistics()
 
-# 	def run_iteration(self, counter):
+	def run_iteration(self, counter):
 
-# 		# This is really a run episode function. Ignore the index, just use the counter. 
-# 		# 1) 	Rollout trajectory. 
-# 		# 2) 	Collect stats / append to memory and stuff.
-# 		# 3) 	Update policies. 
-# 		self.set_parameters(counter)
+		# This is really a run episode function. Ignore the index, just use the counter. 
+		# 1) 	Rollout trajectory. 
+		# 2) 	Collect stats / append to memory and stuff.
+		# 3) 	Update policies. 
+		self.set_parameters(counter)
 
-# 		# Maintain counter to keep track of updating the policy regularly. 			
+		# Maintain counter to keep track of updating the policy regularly. 			
 
-# 		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
-# 		self.rollout(random=False)
+		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
+		self.rollout(random=False)
 
-# 		self.memory.append_to_memory(self.episode)
+		self.memory.append_to_memory(self.episode)
 
-# 		if self.args.train:
-# 			# Update on batch. 
-# 			self.update_batch()
-# 			# Update plots. 
-# 			self.update_plots(counter)
+		if self.args.train:
+			# Update on batch. 
+			self.update_batch()
+			# Update plots. 
+			self.update_plots(counter)
 
-# 	def initialize_memory(self):
+	def initialize_memory(self):
 
-# 		# Create memory object. 
-# 		self.memory = RLUtils.ReplayMemory(memory_size=self.args.memory_size)
+		# Create memory object. 
+		self.memory = RLUtils.ReplayMemory(memory_size=self.args.memory_size)
 
-# 		# Number of initial episodes needs to be less than memory size. 
-# 		self.initial_episodes = self.args.burn_in_eps
+		# Number of initial episodes needs to be less than memory size. 
+		self.initial_episodes = self.args.burn_in_eps
 
-# 		# While number of transitions is less than initial_transitions.
-# 		episode_counter = 0 
-# 		while episode_counter<self.initial_episodes:
+		# While number of transitions is less than initial_transitions.
+		episode_counter = 0 
+		while episode_counter<self.initial_episodes:
 
-# 			print("Initializing Memory Episode: ", episode_counter)
-# 			# Rollout an episode.
-# 			self.rollout(random=True)
+			print("Initializing Memory Episode: ", episode_counter)
+			# Rollout an episode.
+			self.rollout(random=True)
 
-# 			# Add episode to memory.
-# 			self.memory.append_to_memory(self.episode)
+			# Add episode to memory.
+			self.memory.append_to_memory(self.episode)
 
-# 			episode_counter += 1			
+			episode_counter += 1			
 
-# 	def train(self, model=None):
+	def train(self, model=None):
 
-# 		# 1) Initialize memory maybe.
-# 		# 2) For number of iterations, RUN ITERATION:
-# 		# 3) 	Rollout trajectory. 
-# 		# 4) 	Collect stats. 
-# 		# 5) 	Update policies. 
+		# 1) Initialize memory maybe.
+		# 2) For number of iterations, RUN ITERATION:
+		# 3) 	Rollout trajectory. 
+		# 4) 	Collect stats. 
+		# 5) 	Update policies. 
 
-# 		if model:
-# 			print("Loading model in training.")
-# 			self.load_all_models(model)
+		if model:
+			print("Loading model in training.")
+			self.load_all_models(model)
 
-# 		print("Starting Main Training Procedure.")
-# 		self.set_parameters(0)
+		print("Starting Main Training Procedure.")
+		self.set_parameters(0)
 
-# 		np.set_printoptions(suppress=True,precision=2)
+		np.set_printoptions(suppress=True,precision=2)
 
-# 		# Fixing seeds.
-# 		np.random.seed(seed=0)
-# 		torch.manual_seed(0)		
+		# Fixing seeds.
+		np.random.seed(seed=0)
+		torch.manual_seed(0)		
 
-# 		print("Initializing Memory.")
-# 		self.initialize_memory()
+		print("Initializing Memory.")
+		self.initialize_memory()
 
-# 		for e in range(self.number_episodes):
+		for e in range(self.number_episodes):
 
-# 			if e%self.args.save_freq==0:
-# 				self.save_all_models("epoch{0}".format(e))
+			if e%self.args.save_freq==0:
+				self.save_all_models("epoch{0}".format(e))
 
-# 			self.run_iteration(e)
-# 			print("#############################")
-# 			print("Running Episode: ",e)
+			self.run_iteration(e)
+			print("#############################")
+			print("Running Episode: ",e)
 
-# 			# if e%self.args.eval_freq==0:
-# 			# 	self.automatic_evaluation(e)
+			# if e%self.args.eval_freq==0:
+			# 	self.automatic_evaluation(e)
 
-# class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
+class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
-# 	def __init__(self, args):
+	def __init__(self, args):
 
-# 		super(PolicyManager_DownstreamRL, self).__init__(args)
+		super(PolicyManager_DownstreamRL, self).__init__(args)
 
-# 	def setup(self):
-# 		# Create Mujoco environment. 
-# 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
+	def setup(self):
+		# Create Mujoco environment. 
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
-# 		# Get input and output sizes from these environments, etc. 
-# 		self.obs = self.environment.reset()
-# 		self.output_size = self.environment.action_spec[0].shape[0]
-# 		self.state_size = self.environment.action_spec[0].shape[0]
-# 		self.conditional_info_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
-# 		self.input_size = 2*self.state_size
+		# Get input and output sizes from these environments, etc. 
+		self.obs = self.environment.reset()
+		self.output_size = self.environment.action_spec[0].shape[0]
+		self.state_size = self.environment.action_spec[0].shape[0]
+		self.conditional_info_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		self.input_size = 2*self.state_size
 		
-# 		# Create networks. 
-# 		self.create_networks()
-# 		self.create_training_ops()
+		# Create networks. 
+		self.create_networks()
+		self.create_training_ops()
 		
-# 		self.initialize_plots()
+		self.initialize_plots()
 
-# 		self.gripper_open = np.array([0.0115, -0.0115])
-# 		self.gripper_closed = np.array([-0.020833, 0.020833])
+		self.gripper_open = np.array([0.0115, -0.0115])
+		self.gripper_closed = np.array([-0.020833, 0.020833])
 
-# 		# Create Noise process. 
-# 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+		# Create Noise process. 
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
 
-# 	def create_networks(self):
-# 		# Copying over the create networks from Joint Policy training. 
+	def create_networks(self):
+		# Copying over the create networks from Joint Policy training. 
 
-# 		# Not sure if there's a better way to inherit - unless we inherit from both classes.
-# 		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()				
-# 		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
-# 		self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).cuda()
+		# Not sure if there's a better way to inherit - unless we inherit from both classes.
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()				
+		self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+		self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).cuda()
 
-# 	def create_training_ops(self):
+	def create_training_ops(self):
 		
-# 		self.NLL_Loss = torch.nn.NLLLoss(reduction='none')
-# 		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
+		self.NLL_Loss = torch.nn.NLLLoss(reduction='none')
+		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
 		
-# 		# If we are using reparameterization, use a global optimizer for both policies, and a global loss function.
-# 		parameter_list = list(self.policy_network.parameters()) + list(self.latent_policy.parameters())
-# 		# The policy optimizer handles both the low and high level policies, as long as the z's being passed from the latent to sub policy are differentiable.
-# 		self.policy_optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
-# 		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
+		# If we are using reparameterization, use a global optimizer for both policies, and a global loss function.
+		parameter_list = list(self.policy_network.parameters()) + list(self.latent_policy.parameters())
+		# The policy optimizer handles both the low and high level policies, as long as the z's being passed from the latent to sub policy are differentiable.
+		self.policy_optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
+		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
 
-# 	def save_all_models(self, suffix):
-# 		logdir = os.path.join(self.args.logdir, self.args.name)
-# 		savedir = os.path.join(logdir,"saved_models")	
-# 		if not(os.path.isdir(savedir)):
-# 			os.mkdir(savedir)
+	def save_all_models(self, suffix):
+		logdir = os.path.join(self.args.logdir, self.args.name)
+		savedir = os.path.join(logdir,"saved_models")	
+		if not(os.path.isdir(savedir)):
+			os.mkdir(savedir)
 		
-# 		save_object = {}
-# 		save_object['Policy_Network'] = self.policy_network.state_dict()
-# 		save_object['Latent_Policy'] = self.latent_policy.state_dict()
-# 		save_object['Critic_Network'] = self.critic_network.state_dict()
+		save_object = {}
+		save_object['Policy_Network'] = self.policy_network.state_dict()
+		save_object['Latent_Policy'] = self.latent_policy.state_dict()
+		save_object['Critic_Network'] = self.critic_network.state_dict()
 		
-# 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-# 	def load_all_models(self, path):
-# 		load_object = torch.load(path)
-# 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-# 		self.latent_policy.load_state_dict(load_object['Latent_Policy'])
-# 		self.critic_network.load_state_dict(load_object['Critic_Network'])
+	def load_all_models(self, path):
+		load_object = torch.load(path)
+		self.policy_network.load_state_dict(load_object['Policy_Network'])
+		self.latent_policy.load_state_dict(load_object['Latent_Policy'])
+		self.critic_network.load_state_dict(load_object['Critic_Network'])
 
-# 	def reset_lists(self):
-# 		self.reward_trajectory = []
-# 		self.state_trajectory = []
-# 		self.action_trajectory = []
-# 		self.image_trajectory = []
-# 		self.terminal_trajectory = []
-# 		self.latent_z_trajectory = []
-# 		self.latent_b_trajectory = []
-# 		self.cummulative_rewards = None
-# 		self.episode = None
+	def reset_lists(self):
+		self.reward_trajectory = []
+		self.state_trajectory = []
+		self.action_trajectory = []
+		self.image_trajectory = []
+		self.terminal_trajectory = []
+		self.latent_z_trajectory = []
+		self.latent_b_trajectory = []
+		self.cummulative_rewards = None
+		self.episode = None
 
-# 	def get_conditional_information_row(self, t=-1):
-# 		# Get robot and object state.
-# 		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
+	def get_conditional_information_row(self, t=-1):
+		# Get robot and object state.
+		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
 
-# 	def get_transformed_gripper_value(self, gripper_finger_values):
-# 		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+	def get_transformed_gripper_value(self, gripper_finger_values):
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
 
-# 		finger_diff = gripper_values[1]-gripper_values[0]
-# 		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
-# 		return gripper_value
+		finger_diff = gripper_values[1]-gripper_values[0]
+		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+		return gripper_value
 
-# 	def get_current_input_row(self, t=-1):
+	def get_current_input_row(self, t=-1):
 
-# 		# The state that we want is ... joint state?
-# 		gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
+		# The state that we want is ... joint state?
+		gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
 
-# 		if len(self.action_trajectory)==0 or t==0:
-# 			return np.concatenate([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
-# 		elif t==-1:
-# 			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t].reshape((1,-1))],axis=1)
-# 		else: 
-# 			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
+		if len(self.action_trajectory)==0 or t==0:
+			return np.concatenate([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
+		elif t==-1:
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t].reshape((1,-1))],axis=1)
+		else: 
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
 
-# 	def get_latent_input_row(self, t=-1):
-# 		# If first timestep, z's are 0 and b is 1. 
-# 		if len(self.latent_z_trajectory)==0 or t==0:
-# 			return np.concatenate([np.zeros((1, self.args.z_dimensions)),np.ones((1,1))],axis=1)
-# 		if t==-1:
-# 			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
-# 		elif t>0:
-# 			t-=1	
-# 			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
+	def get_latent_input_row(self, t=-1):
+		# If first timestep, z's are 0 and b is 1. 
+		if len(self.latent_z_trajectory)==0 or t==0:
+			return np.concatenate([np.zeros((1, self.args.z_dimensions)),np.ones((1,1))],axis=1)
+		if t==-1:
+			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
+		elif t>0:
+			t-=1	
+			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
 
-# 	def assemble_latent_input_row(self, t=-1):
-# 		# Function to assemble ONE ROW of latent policy input. 
-# 		# Remember, the latent policy takes.. JOINT_states, actions, z's, b's, and then conditional information of robot-state and object-state. 
+	def assemble_latent_input_row(self, t=-1):
+		# Function to assemble ONE ROW of latent policy input. 
+		# Remember, the latent policy takes.. JOINT_states, actions, z's, b's, and then conditional information of robot-state and object-state. 
 
-# 		# Assemble these three pieces: 
-# 		return np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t), self.get_conditional_information_row(t)],axis=1)
+		# Assemble these three pieces: 
+		return np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t), self.get_conditional_information_row(t)],axis=1)
 
-# 	def assemble_latent_inputs(self):
-# 		# Assemble latent policy inputs over time.
-# 		return np.concatenate([self.assemble_latent_input_row(t) for t in range(len(self.state_trajectory))],axis=0)		
+	def assemble_latent_inputs(self):
+		# Assemble latent policy inputs over time.
+		return np.concatenate([self.assemble_latent_input_row(t) for t in range(len(self.state_trajectory))],axis=0)		
 
-# 	def assemble_subpolicy_input_row(self, latent_z=None, t=-1):
-# 		# Remember, the subpolicy takes.. JOINT_states, actions, z's. 
-# 		# Assemble (remember, without b, and without conditional info).
+	def assemble_subpolicy_input_row(self, latent_z=None, t=-1):
+		# Remember, the subpolicy takes.. JOINT_states, actions, z's. 
+		# Assemble (remember, without b, and without conditional info).
 
-# 		if latent_z is not None:
-# 			# return np.concatenate([self.get_current_input_row(t), latent_z.reshape((1,-1))],axis=1)
+		if latent_z is not None:
+			# return np.concatenate([self.get_current_input_row(t), latent_z.reshape((1,-1))],axis=1)
 
-# 			# Instead of numpy, use torch. 
-# 			return torch.cat([torch.tensor(self.get_current_input_row(t)).cuda().float(), latent_z.reshape((1,-1))],dim=1)
-# 		else:
-# 			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
-# 			# return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
-# 			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.latent_z_trajectory[t].reshape((1,-1))],axis=1)).cuda().float()
+			# Instead of numpy, use torch. 
+			return torch.cat([torch.tensor(self.get_current_input_row(t)).cuda().float(), latent_z.reshape((1,-1))],dim=1)
+		else:
+			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
+			# return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.latent_z_trajectory[t].reshape((1,-1))],axis=1)).cuda().float()
 
-# 	def assemble_subpolicy_inputs(self, latent_z_list=None):
-# 		# Assemble sub policy inputs over time.	
-# 		if latent_z_list is None:
-# 			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
+	def assemble_subpolicy_inputs(self, latent_z_list=None):
+		# Assemble sub policy inputs over time.	
+		if latent_z_list is None:
+			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
 
-# 			# Instead of numpy, use torch... 
-# 			return torch.cat([self.assemble_subpolicy_input_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
-# 		else:
-# 			# return np.concatenate([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],axis=0)
+			# Instead of numpy, use torch... 
+			return torch.cat([self.assemble_subpolicy_input_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
+		else:
+			# return np.concatenate([self.assemble_subpolicy_input_row(t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],axis=0)
 
-# 			# Instead of numpy, use torch... 
-# 			return torch.cat([self.assemble_subpolicy_input_row(t=t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+			# Instead of numpy, use torch... 
+			return torch.cat([self.assemble_subpolicy_input_row(t=t, latent_z=latent_z_list[t]) for t in range(len(self.state_trajectory))],dim=0)
 
-# 	def assemble_state_action_row(self, action=None, t=-1):
-# 		# Get state action input row for critic.
-# 		if action is not None:
+	def assemble_state_action_row(self, action=None, t=-1):
+		# Get state action input row for critic.
+		if action is not None:
 
-# 			gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
-# 			gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+			gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
+			gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
 
-# 			finger_diff = gripper_values[1]-gripper_values[0]
-# 			gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+			finger_diff = gripper_values[1]-gripper_values[0]
+			gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
 
-# 			# Don't create a torch tensor out of actions. 
-# 			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), torch.tensor(gripper_value).cuda().float(), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
-# 		else:		
-# 			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
-# 			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
+			# Don't create a torch tensor out of actions. 
+			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), torch.tensor(gripper_value).cuda().float(), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
+		else:		
+			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
 
-# 	def assemble_state_action_inputs(self, action_list=None):
-# 		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
+	def assemble_state_action_inputs(self, action_list=None):
+		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
 		
-# 		# Instead of numpy use torch.
-# 		if action_list is not None:
-# 			return torch.cat([self.assemble_state_action_row(t=t, action=action_list[t]) for t in range(len(self.state_trajectory))],dim=0)
-# 		else:
-# 			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
+		# Instead of numpy use torch.
+		if action_list is not None:
+			return torch.cat([self.assemble_state_action_row(t=t, action=action_list[t]) for t in range(len(self.state_trajectory))],dim=0)
+		else:
+			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
-# 	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None):
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None):
 
-# 		# if random==True:
-# 		# 	action = 2*np.random.random((self.output_size))-1
-# 		# 	return action, 
+		# if random==True:
+		# 	action = 2*np.random.random((self.output_size))-1
+		# 	return action, 
 
-# 		# Get latent policy inputs.
-# 		latent_policy_inputs = self.assemble_latent_input_row()
+		# Get latent policy inputs.
+		latent_policy_inputs = self.assemble_latent_input_row()
 		
-# 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
-# 		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z)
+		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
+		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z)
 
-# 		# Now get subpolicy inputs.
-# 		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
-# 		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z=latent_z)
+		# Now get subpolicy inputs.
+		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
+		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z=latent_z)
 
-# 		# Feed in subpolicy inputs and get the subpolicy outputs (a, hidden)
-# 		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).cuda().float(), greedy=True, hidden=policy_hidden)
+		# Feed in subpolicy inputs and get the subpolicy outputs (a, hidden)
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).cuda().float(), greedy=True, hidden=policy_hidden)
 
-# 		# Numpy action
-# 		action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
+		# Numpy action
+		action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
-# 		# Perturb action with noise. 			
-# 		perturbed_action = self.NoiseProcess.get_action(action, counter)
+		# Perturb action with noise. 			
+		perturbed_action = self.NoiseProcess.get_action(action, counter)
 
-# 		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
+		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
 
-# 	def rollout(self, random=False, test=False, visualize=False):
+	def rollout(self, random=False, test=False, visualize=False):
 		
-# 		# Reset some data for the rollout. 
-# 		counter = 0		
-# 		eps_reward = 0.			
-# 		terminal = False
-# 		self.reset_lists()
+		# Reset some data for the rollout. 
+		counter = 0		
+		eps_reward = 0.			
+		terminal = False
+		self.reset_lists()
 
-# 		# Reset environment and add state to the list.
-# 		state = self.environment.reset()
-# 		self.state_trajectory.append(state)		
+		# Reset environment and add state to the list.
+		state = self.environment.reset()
+		self.state_trajectory.append(state)		
 
-# 		# If we are going to visualize, get an initial image.
-# 		if visualize:			
-# 			image = self.environment.sim.render(600,600, camera_name='frontview')
-# 			self.image_trajectory.append(np.flipud(image))
+		# If we are going to visualize, get an initial image.
+		if visualize:			
+			image = self.environment.sim.render(600,600, camera_name='frontview')
+			self.image_trajectory.append(np.flipud(image))
 
-# 		# Instead of maintaining just one LSTM hidden state... now have one for each policy level.
-# 		policy_hidden = None
-# 		latent_hidden = None
-# 		latent_z = None
+		# Instead of maintaining just one LSTM hidden state... now have one for each policy level.
+		policy_hidden = None
+		latent_hidden = None
+		latent_z = None
 
-# 		# For number of steps / while we don't terminate:
-# 		while not(terminal) and counter<self.max_timesteps:
+		# For number of steps / while we don't terminate:
+		while not(terminal) and counter<self.max_timesteps:
 
-# 			# Get the action to execute, b, z, and hidden states. 
-# 			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z)
+			# Get the action to execute, b, z, and hidden states. 
+			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z)
 				
-# 			# Take a step in the environment. 	
-# 			next_state, onestep_reward, terminal, success = self.environment.step(action)
+			# Take a step in the environment. 	
+			next_state, onestep_reward, terminal, success = self.environment.step(action)
 			
-# 			# Append everything to lists. 
-# 			self.state_trajectory.append(next_state)
-# 			self.action_trajectory.append(action)
-# 			self.reward_trajectory.append(onestep_reward)
-# 			self.terminal_trajectory.append(terminal)
-# 			self.latent_z_trajectory.append(latent_z.detach().cpu().numpy())
-# 			self.latent_b_trajectory.append(latent_b.detach().cpu().numpy())
+			# Append everything to lists. 
+			self.state_trajectory.append(next_state)
+			self.action_trajectory.append(action)
+			self.reward_trajectory.append(onestep_reward)
+			self.terminal_trajectory.append(terminal)
+			self.latent_z_trajectory.append(latent_z.detach().cpu().numpy())
+			self.latent_b_trajectory.append(latent_b.detach().cpu().numpy())
 
-# 			# Copy next state into state. 
-# 			state = copy.deepcopy(next_state)
+			# Copy next state into state. 
+			state = copy.deepcopy(next_state)
 
-# 			# Counter
-# 			counter += 1 
+			# Counter
+			counter += 1 
 
-# 			# Append image to image list if we are visualizing. 
-# 			if visualize:
-# 				image = self.environment.sim.render(600,600, camera_name='frontview')
-# 				self.image_trajectory.append(np.flipud(image))
+			# Append image to image list if we are visualizing. 
+			if visualize:
+				image = self.environment.sim.render(600,600, camera_name='frontview')
+				self.image_trajectory.append(np.flipud(image))
 				
-# 		# Now that the episode is done, compute cummulative rewards... 
-# 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
-# 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
+		# Now that the episode is done, compute cummulative rewards... 
+		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
+		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
 		
-# 		print("Rolled out an episode for ",counter," timesteps.")
-# 		print("Achieved reward: ", self.episode_reward_statistics)
+		print("Rolled out an episode for ",counter," timesteps.")
+		print("Achieved reward: ", self.episode_reward_statistics)
 
-# 		# NOW construct an episode out of this..	
-# 		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory, self.latent_z_trajectory, self.latent_b_trajectory)
+		# NOW construct an episode out of this..	
+		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory, self.latent_z_trajectory, self.latent_b_trajectory)
 
-# 	def process_episode(self, episode):
-# 		# Assemble states, actions, targets.
+	def process_episode(self, episode):
+		# Assemble states, actions, targets.
 
-# 		# First reset all the lists from the rollout now that they've been written to memory. 
-# 		self.reset_lists()
+		# First reset all the lists from the rollout now that they've been written to memory. 
+		self.reset_lists()
 
-# 		# Now set the lists. 
-# 		self.state_trajectory = episode.state_list
-# 		self.action_trajectory = episode.action_list
-# 		self.reward_trajectory = episode.reward_list
-# 		self.terminal_trajectory = episode.terminal_list
-# 		self.latent_z_trajectory = episode.latent_z_list
-# 		self.latent_b_trajectory = episode.latent_b_list
+		# Now set the lists. 
+		self.state_trajectory = episode.state_list
+		self.action_trajectory = episode.action_list
+		self.reward_trajectory = episode.reward_list
+		self.terminal_trajectory = episode.terminal_list
+		self.latent_z_trajectory = episode.latent_z_list
+		self.latent_b_trajectory = episode.latent_b_list
 
-# 		# Get summed reward for statistics. 
-# 		self.batch_reward_statistics += sum(self.reward_trajectory)
+		# Get summed reward for statistics. 
+		self.batch_reward_statistics += sum(self.reward_trajectory)
 
-# 		# Assembling state_action inputs to feed to the Critic network for TARGETS. (These don't need to, and in fact shouldn't, be differentiable).
-# 		self.state_action_inputs = torch.tensor(self.assemble_state_action_inputs()).cuda().float()
+		# Assembling state_action inputs to feed to the Critic network for TARGETS. (These don't need to, and in fact shouldn't, be differentiable).
+		self.state_action_inputs = torch.tensor(self.assemble_state_action_inputs()).cuda().float()
 
-# 	def update_policies(self):
-# 		# There are a few steps that need to be taken. 
-# 		# 1) Assemble latent policy inputs.
-# 		# 2) Get differentiable latent z's from latent policy. 
-# 		# 3) Assemble subpolicy inputs with these differentiable latent z's. 
-# 		# 4) Get differentiable actions from subpolicy. 
-# 		# 5) Assemble critic inputs with these differentiable actions. 
-# 		# 6) Now compute critic predictions that are differentiable w.r.t. sub and latent policies. 
-# 		# 7) Backprop.
+	def update_policies(self):
+		# There are a few steps that need to be taken. 
+		# 1) Assemble latent policy inputs.
+		# 2) Get differentiable latent z's from latent policy. 
+		# 3) Assemble subpolicy inputs with these differentiable latent z's. 
+		# 4) Get differentiable actions from subpolicy. 
+		# 5) Assemble critic inputs with these differentiable actions. 
+		# 6) Now compute critic predictions that are differentiable w.r.t. sub and latent policies. 
+		# 7) Backprop.
 
-# 		# 1) Assemble latent policy inputs. # Remember, these are the only things that don't need to be differentiable.
-# 		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).cuda().float()		
+		# 1) Assemble latent policy inputs. # Remember, these are the only things that don't need to be differentiable.
+		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).cuda().float()		
 
-# 		# 2) Feed this into latent policy. 
-# 		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(self.latent_policy_inputs).cuda().float(), greedy=True)
+		# 2) Feed this into latent policy. 
+		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(self.latent_policy_inputs).cuda().float(), greedy=True)
 
-# 		# 3) Assemble subpolicy inputs with diff latent z's. Remember, this needs to be differentiable. Modify the assembling to torch, WITHOUT creating new torch tensors of z. 
+		# 3) Assemble subpolicy inputs with diff latent z's. Remember, this needs to be differentiable. Modify the assembling to torch, WITHOUT creating new torch tensors of z. 
 
-# 		self.subpolicy_inputs = self.assemble_subpolicy_inputs(latent_z_list=latent_z)
+		self.subpolicy_inputs = self.assemble_subpolicy_inputs(latent_z_list=latent_z)
 
-# 		# 4) Feed into subpolicy. 
-# 		diff_actions, _ = self.policy_network.incremental_reparam_get_actions(self.subpolicy_inputs, greedy=True)
+		# 4) Feed into subpolicy. 
+		diff_actions, _ = self.policy_network.incremental_reparam_get_actions(self.subpolicy_inputs, greedy=True)
 
-# 		# 5) Now assemble critic inputs. 
-# 		self.differentiable_critic_inputs = self.assemble_state_action_inputs(actions=diff_actions)
+		# 5) Now assemble critic inputs. 
+		self.differentiable_critic_inputs = self.assemble_state_action_inputs(actions=diff_actions)
 
-# 		# 6) Compute critic predictions. 
-# 		self.policy_loss = - self.critic_network.forward(self.differentiable_critic_inputs[:-1]).mean()
+		# 6) Compute critic predictions. 
+		self.policy_loss = - self.critic_network.forward(self.differentiable_critic_inputs[:-1]).mean()
 
-# 		# Also log statistics. 
-# 		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
+		# Also log statistics. 
+		self.policy_loss_statistics += self.policy_loss.clone().detach().cpu().numpy().mean()
 
-# 		# 7) Now backprop into policy.
-# 		self.policy_optimizer.zero_grad()		
-# 		self.policy_loss.backward()
-# 		self.policy_optimizer.step()
+		# 7) Now backprop into policy.
+		self.policy_optimizer.zero_grad()		
+		self.policy_loss.backward()
+		self.policy_optimizer.step()
 
-# class PolicyManager_DMPBaselines(PolicyManager_Joint):
+class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
-# 	def __init__(self, number_policies=4, dataset=None, args=None):
-# 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
+	def __init__(self, number_policies=4, dataset=None, args=None):
+		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
-# 		self.number_kernels = 30
-# 		self.window = 8
-# 		self.kernel_bandwidth = 1.5
+		self.number_kernels = 30
+		self.window = 8
+		self.kernel_bandwidth = 1.5
 
-# 		self.number_kernels = self.args.baseline_kernels
-# 		self.window = self.args.baseline_window
-# 		self.kernel_bandwidth = self.args.baseline_kernel_bandwidth
+		self.number_kernels = self.args.baseline_kernels
+		self.window = self.args.baseline_window
+		self.kernel_bandwidth = self.args.baseline_kernel_bandwidth
 
-# 	def get_MSE(self, sample_traj, trajectory_rollout):
-# 		# Evaluate MSE between reconstruction and sample trajectory. 
-# 		return ((sample_traj-trajectory_rollout)**2).mean()
+	def get_MSE(self, sample_traj, trajectory_rollout):
+		# Evaluate MSE between reconstruction and sample trajectory. 
+		return ((sample_traj-trajectory_rollout)**2).mean()
 
-# 	def get_FlatDMP_rollout(self, sample_traj, velocities=None):
-# 		# Reinitialize DMP Class. 
-# 		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=self.kernel_bandwidth, alphaz=5., time_basis=True)
+	def get_FlatDMP_rollout(self, sample_traj, velocities=None):
+		# Reinitialize DMP Class. 
+		self.dmp = DMP.DMP(time_steps=len(sample_traj), num_ker=self.number_kernels, dimensions=self.state_size, kernel_bandwidth=self.kernel_bandwidth, alphaz=5., time_basis=True)
 
-# 		# Learn DMP for particular trajectory.
-# 		self.dmp.learn_DMP(sample_traj)
+		# Learn DMP for particular trajectory.
+		self.dmp.learn_DMP(sample_traj)
 
-# 		# Get rollout. 
-# 		if velocities is not None: 
-# 			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],velocities)
-# 		else:
-# 			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
+		# Get rollout. 
+		if velocities is not None: 
+			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],velocities)
+		else:
+			trajectory_rollout = self.dmp.rollout(sample_traj[0],sample_traj[-1],np.zeros((self.state_size)))
 
-# 		return trajectory_rollout
+		return trajectory_rollout
 
-# 	def evaluate_FlatDMPBaseline_iteration(self, index, sample_traj):
-# 		trajectory_rollout = self.get_FlatDMP_rollout(sample_traj)
-# 		self.FlatDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
+	def evaluate_FlatDMPBaseline_iteration(self, index, sample_traj):
+		trajectory_rollout = self.get_FlatDMP_rollout(sample_traj)
+		self.FlatDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
 
-# 	def get_AccelerationChangepoint_rollout(self, sample_traj):
+	def get_AccelerationChangepoint_rollout(self, sample_traj):
 
-# 		# Get magnitudes of acceleration across time.
-# 		acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
+		# Get magnitudes of acceleration across time.
+		acceleration_norm = np.linalg.norm(np.diff(sample_traj,n=2,axis=0),axis=1)
 
-# 		# Get velocities. 
-# 		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
+		# Get velocities. 
+		velocities = np.diff(sample_traj,n=1,axis=0,prepend=sample_traj[0].reshape((1,-1)))
 
-# 		# Find peaks with minimum length = 8.
-# 		window = self.window
-# 		segmentation = find_peaks(acceleration_norm, distance=window)[0]
+		# Find peaks with minimum length = 8.
+		window = self.window
+		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
-# 		# Add start and end to peaks. 
-# 		if segmentation[0]<window:
-# 			segmentation[0] = 0
-# 		else:
-# 			segmentation = np.insert(segmentation, 0, 0)
-# 		# If end segmentation is within WINDOW of end, change segment to end. 
-# 		if (len(sample_traj) - segmentation[-1])<window:
-# 			segmentation[-1] = len(sample_traj)
-# 		else:
-# 			segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
+		# Add start and end to peaks. 
+		if segmentation[0]<window:
+			segmentation[0] = 0
+		else:
+			segmentation = np.insert(segmentation, 0, 0)
+		# If end segmentation is within WINDOW of end, change segment to end. 
+		if (len(sample_traj) - segmentation[-1])<window:
+			segmentation[-1] = len(sample_traj)
+		else:
+			segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
-# 		trajectory_rollout = np.zeros_like(sample_traj)		
+		trajectory_rollout = np.zeros_like(sample_traj)		
 
-# 		# For every segment.
-# 		for i in range(len(segmentation)-1):
-# 			# Get trajectory segment. 
-# 			trajectory_segment = sample_traj[segmentation[i]:segmentation[i+1]]
+		# For every segment.
+		for i in range(len(segmentation)-1):
+			# Get trajectory segment. 
+			trajectory_segment = sample_traj[segmentation[i]:segmentation[i+1]]
 
-# 			# Get rollout. # Feed velocities into rollout. # First velocity is 0. 
-# 			segment_rollout = self.get_FlatDMP_rollout(trajectory_segment, velocities[segmentation[i]])
+			# Get rollout. # Feed velocities into rollout. # First velocity is 0. 
+			segment_rollout = self.get_FlatDMP_rollout(trajectory_segment, velocities[segmentation[i]])
 
-# 			# Copy segment rollout into full rollout. 
-# 			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
+			# Copy segment rollout into full rollout. 
+			trajectory_rollout[segmentation[i]:segmentation[i+1]] = segment_rollout
 
-# 		return trajectory_rollout
+		return trajectory_rollout
 
-# 	def evaluate_AccelerationChangepoint_iteration(self, index, sample_traj):
-# 		trajectory_rollout = self.get_AccelerationChangepoint_rollout(sample_traj)
-# 		self.AccChangepointDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
+	def evaluate_AccelerationChangepoint_iteration(self, index, sample_traj):
+		trajectory_rollout = self.get_AccelerationChangepoint_rollout(sample_traj)
+		self.AccChangepointDMP_distances[index] = self.get_MSE(sample_traj, trajectory_rollout)
 
-# 	def evaluate_MeanRegression_iteration(self, index, sample_traj):
-# 		mean = sample_traj.mean(axis=0)
-# 		self.MeanRegression_distances[index] = ((sample_traj-mean)**2).mean()
+	def evaluate_MeanRegression_iteration(self, index, sample_traj):
+		mean = sample_traj.mean(axis=0)
+		self.MeanRegression_distances[index] = ((sample_traj-mean)**2).mean()
 
-# 	def get_GreedyDMP_rollout(self, sample_traj):
-# 		pass		
+	def get_GreedyDMP_rollout(self, sample_traj):
+		pass		
 
-# 	def evaluate_across_testset(self):
+	def evaluate_across_testset(self):
 
-# 		# Create array for distances. 
-# 		self.FlatDMP_distances = -np.ones((self.test_set_size))
-# 		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
-# 		self.MeanRegression_distances = -np.ones((self.test_set_size))
-# 		self.lengths = -np.ones((self.test_set_size))
+		# Create array for distances. 
+		self.FlatDMP_distances = -np.ones((self.test_set_size))
+		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
+		self.MeanRegression_distances = -np.ones((self.test_set_size))
+		self.lengths = -np.ones((self.test_set_size))
 
-# 		for i in range(self.test_set_size):
+		for i in range(self.test_set_size):
 
-# 			# Set actual index. 
-# 			index = i + len(self.dataset) - self.test_set_size
+			# Set actual index. 
+			index = i + len(self.dataset) - self.test_set_size
 
-# 			if i%100==0:
-# 				print("Evaluating Datapoint ", i)
+			if i%100==0:
+				print("Evaluating Datapoint ", i)
 
-# 			# Get trajectory. 
-# 			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+			# Get trajectory. 
+			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
 
-# 			if sample_traj is not None: 
+			if sample_traj is not None: 
 
-# 				# Set sample trajectory to ignore gripper. 
-# 				if self.args.data=='MIME':
-# 					sample_traj = sample_traj[:,:-2]
-# 					self.state_size = 14
-# 				elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
-# 					sample_traj = sample_traj[:,:-1]
-# 					self.state_size = 7
-# 					# sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
+				# Set sample trajectory to ignore gripper. 
+				if self.args.data=='MIME':
+					sample_traj = sample_traj[:,:-2]
+					self.state_size = 14
+				elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+					sample_traj = sample_traj[:,:-1]
+					self.state_size = 7
+					# sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
 					
-# 				self.lengths[i] = len(sample_traj)
+				self.lengths[i] = len(sample_traj)
 
-# 				# Eval Flat DMP.
-# 				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
+				# Eval Flat DMP.
+				self.evaluate_FlatDMPBaseline_iteration(i, sample_traj)
 
-# 				# Eval AccChange DMP Baseline.
-# 				self.evaluate_AccelerationChangepoint_iteration(i, sample_traj)
+				# Eval AccChange DMP Baseline.
+				self.evaluate_AccelerationChangepoint_iteration(i, sample_traj)
 
-# 				# Evaluate Mean regression Basleine. 
-# 				self.evaluate_MeanRegression_iteration(i, sample_traj)
+				# Evaluate Mean regression Basleine. 
+				self.evaluate_MeanRegression_iteration(i, sample_traj)
 
-# 		# self.mean_distance = self.distances[self.distances>0].mean()		
-# 		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
-# 		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
-# 		print("Average Distance of Mean Regression Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
+		# self.mean_distance = self.distances[self.distances>0].mean()		
+		print("Average Distance of Flat DMP Baseline: ", self.FlatDMP_distances[self.FlatDMP_distances>0].mean())
+		print("Average Distance of Acceleration Changepoint Baseline: ", self.AccChangepointDMP_distances[self.AccChangepointDMP_distances>0].mean())
+		print("Average Distance of Mean Regression Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
 
-# 		embed()
+		embed()
