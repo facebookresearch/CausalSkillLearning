@@ -176,8 +176,8 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias
+		mean_outputs = self.mean_output_layer(lstm_outputs)
+		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		if greedy:
 			return mean_outputs
@@ -197,8 +197,8 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias + action_epsilon
+		mean_outputs = self.mean_output_layer(lstm_outputs)
+		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		noise = torch.randn_like(variance_outputs)
 
@@ -218,8 +218,8 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input, hidden)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
-		variance_outputs = self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias + action_epsilon
+		mean_outputs = self.mean_output_layer(lstm_outputs)
+		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		noise = torch.randn_like(variance_outputs)
 
