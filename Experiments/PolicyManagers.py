@@ -2643,8 +2643,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			# # action, hidden = self.get_action(hidden=hidden,random=random)
-			# action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
 			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter)
 				
 			# Take a step in the environment. 	
@@ -2654,8 +2652,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
 			self.terminal_trajectory.append(terminal)
-			self.latent_z_trajectory.append(latent_z)
-			self.latent_b_trajectory.append(latent_b)
+			self.latent_z_trajectory.append(latent_z.detach().cpu().numpy())
+			self.latent_b_trajectory.append(latent_b.detach().cpu().numpy())
 
 			# Copy next state into state. 
 			state = copy.deepcopy(next_state)
@@ -2667,19 +2665,16 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			if visualize:
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
-		
-		print("Rolled out an episode for ",counter," timesteps.")
-
+				
 		# Now that the episode is done, compute cummulative rewards... 
 		self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
-
 		self.episode_reward_statistics = copy.deepcopy(self.cummulative_rewards[0])
+		
+		print("Rolled out an episode for ",counter," timesteps.")
 		print("Achieved reward: ", self.episode_reward_statistics)
-		# print("########################################################")
 
 		# NOW construct an episode out of this..	
 		self.episode = RLUtils.HierarchicalEpisode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
-		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
 	def process_episode(self, episode):
 		# Assemble states, actions, targets.
