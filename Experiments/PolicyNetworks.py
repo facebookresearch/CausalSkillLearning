@@ -448,6 +448,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		return selected_b, selected_z
 
 	def incremental_reparam_get_actions(self, input, greedy=False, action_epsilon=0.001, hidden=None):
+
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 		outputs, hidden = self.lstm(format_input, hidden)
 
