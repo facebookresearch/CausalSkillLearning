@@ -2519,21 +2519,24 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# Get robot and object state.
 		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
 
+	def get_transformed_gripper_value(self, gripper_finger_values):
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+
+		finger_diff = gripper_values[1]-gripper_values[0]
+		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+		return gripper_value
+
 	def get_current_input_row(self, t=-1):
 
 		# The state that we want is ... joint state?
 		gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
-		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
-
-		finger_diff = gripper_values[1]-gripper_values[0]
-		gripper_value = np.array(2*finger_diff-1)
 
 		if len(self.action_trajectory)==0 or t==0:
-			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
-		else:
-
-			print(t, len(self.action_trajectory), len(self.state_trajectory))
-			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
+			return np.concatenate([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
+		elif t==-1:
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t].reshape((1,-1))],axis=1)
+		else: 
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
 
 	def get_latent_input_row(self, t=-1):
 		if len(self.latent_z_trajectory)>0:
