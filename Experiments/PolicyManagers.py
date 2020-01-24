@@ -2639,32 +2639,37 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
 
 	def rollout(self, random=False, test=False, visualize=False):
-	
+		
+		# Reset some data for the rollout. 
 		counter = 0		
-		eps_reward = 0.	
-		state = self.environment.reset()
+		eps_reward = 0.			
 		terminal = False
-
 		self.reset_lists()
 
+		# Reset environment and add state to the list.
+		state = self.environment.reset()
+		self.state_trajectory.append(state)		
+
+		# If we are going to visualize, get an initial image.
 		if visualize:			
 			image = self.environment.sim.render(600,600, camera_name='frontview')
 			self.image_trajectory.append(np.flipud(image))
-		
-		self.state_trajectory.append(state)
 
 		# Instead of maintaining just one LSTM hidden state... now have one for each policy level.
 		policy_hidden = None
 		latent_hidden = None
 		latent_z = None
 
+		# For number of steps / while we don't terminate:
 		while not(terminal) and counter<self.max_timesteps:
 
+			# Get the action to execute, b, z, and hidden states. 
 			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
-		
+			
+			# Append everything to lists. 
 			self.state_trajectory.append(next_state)
 			self.action_trajectory.append(action)
 			self.reward_trajectory.append(onestep_reward)
@@ -2678,7 +2683,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# Counter
 			counter += 1 
 
-			# Append image. 
+			# Append image to image list if we are visualizing. 
 			if visualize:
 				image = self.environment.sim.render(600,600, camera_name='frontview')
 				self.image_trajectory.append(np.flipud(image))
