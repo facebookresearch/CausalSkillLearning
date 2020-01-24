@@ -2443,6 +2443,26 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 		super(PolicyManager_DownstreamRL, self).__init__(args)
 
+	def setup(self):
+		# Create Mujoco environment. 
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
+		
+		# Get input and output sizes from these environments, etc. 
+		self.obs = self.environment.reset()
+		self.output_size = self.environment.action_spec[0].shape[0]
+		self.state_size = self.environment.action_spec[0].shape[0]
+		self.conditional_info_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		self.input_size = 2*self.state_size
+		
+		# Create networks. 
+		self.create_networks()
+		self.create_training_ops()
+		
+		self.initialize_plots()
+
+		# Create Noise process. 
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+
 	def create_networks(self):
 		# Copying over the create networks from Joint Policy training. 
 
