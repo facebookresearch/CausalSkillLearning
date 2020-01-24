@@ -2575,7 +2575,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 	def assemble_subpolicy_inputs(self, latent_z_list=None):
 		# Assemble sub policy inputs over time.	
-		if latent_z_list is not None:
+		if latent_z_list is None:
 			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
 
 			# Instead of numpy, use torch... 
@@ -2723,7 +2723,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# 1) Assemble latent policy inputs.
 		# 2) Get differentiable latent z's from latent policy. 
 		# 3) Assemble subpolicy inputs with these differentiable latent z's. 
-		# 4) Get differentaible actions from subpolicy. 
+		# 4) Get differentiable actions from subpolicy. 
 		# 5) Assemble critic inputs with these differentiable actions. 
 		# 6) Now compute critic predictions that are differentiable w.r.t. sub and latent policies. 
 		# 7) Backprop.
