@@ -844,7 +844,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			actions = self.policy_network.get_actions(subpolicy_inputs,greedy=True)
 			
-			# Select last action to execute. 
+			# Select last action to execute.
 			action_to_execute = actions[-1].squeeze(1)
 
 			# Downscale the actions by action_scale_factor.
