@@ -2544,6 +2544,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			return np.concatenate([np.zeros((1, self.args.z_dimensions)),np.ones((1,1))],axis=1)
 		else:
 			t-=1
+
+			print(t)
 			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
 
 	def assemble_latent_input_row(self, t=-1):
