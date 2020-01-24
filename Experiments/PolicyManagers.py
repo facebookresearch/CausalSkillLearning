@@ -2539,11 +2539,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
 
 	def get_latent_input_row(self, t=-1):
-		if len(self.latent_z_trajectory)>0:
-			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
-		else:
-			# If first timestep, z's are 0 and b is 1. 
+		# If first timestep, z's are 0 and b is 1. 
+		if len(self.latent_z_trajectory)==0 or t==0:
 			return np.concatenate([np.zeros((1, self.args.z_dimensions)),np.ones((1,1))],axis=1)
+		else:
+			t-=1
+			return np.concatenate([self.latent_z_trajectory[t].reshape((1,-1)),self.latent_b_trajectory[t].reshape((1,1))],axis=1)
 
 	def assemble_latent_input_row(self, t=-1):
 		# Function to assemble ONE ROW of latent policy input. 
@@ -2567,7 +2568,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			return torch.cat([torch.tensor(self.get_current_input_row(t)).cuda().float(), latent_z.reshape((1,-1))],dim=1)
 		else:
 			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
-			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
+			# return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.latent_z_trajectory[t].reshape((1,-1))],axis=1)).cuda().float()
 
 	def assemble_subpolicy_inputs(self, latent_z_list=None):
 		# Assemble sub policy inputs over time.	
