@@ -462,11 +462,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.number_epochs = 500
 
 			if self.args.normalization=='meanvar':
-				self.norm_sub_value = np.load("MIME_Means.npy")
-				self.norm_denom_value = np.load("MIME_Var.npy")
+				self.norm_sub_value = np.load("Statistics/MIME_Means.npy")
+				self.norm_denom_value = np.load("Statistics/MIME_Var.npy")
 			elif self.args.normalization=='minmax':
-				self.norm_sub_value = np.load("MIME_Min.npy")
-				self.norm_denom_value = np.load("MIME_Max.npy") - self.norm_sub_value
+				self.norm_sub_value = np.load("Statistics/MIME_Min.npy")
+				self.norm_denom_value = np.load("Statistics/MIME_Max.npy") - self.norm_sub_value
 
 			# Max of robot_state + object_state sizes across all Baxter environments. 			
 			self.cond_robot_state_size = 60
@@ -1195,11 +1195,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.visualizer = BaxterVisualizer()
 
 			if self.args.normalization=='meanvar':
-				self.norm_sub_value = np.load("MIME_Means.npy")
-				self.norm_denom_value = np.load("MIME_Var.npy")
+				self.norm_sub_value = np.load("Statistics/MIME_Means.npy")
+				self.norm_denom_value = np.load("Statistics/MIME_Var.npy")
 			elif self.args.normalization=='minmax':
-				self.norm_sub_value = np.load("MIME_Min.npy")
-				self.norm_denom_value = np.load("MIME_Max.npy") - np.load("MIME_Min.npy")
+				self.norm_sub_value = np.load("Statistics/MIME_Min.npy")
+				self.norm_denom_value = np.load("Statistics/MIME_Max.npy") - np.load("Statistics/MIME_Min.npy")
 
 			# Max of robot_state + object_state sizes across all Baxter environments. 			
 			self.cond_robot_state_size = 60
