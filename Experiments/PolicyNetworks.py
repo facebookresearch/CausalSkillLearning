@@ -430,7 +430,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
 			
 		# Predict Gaussian means and variances. 		
-		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		mean_outputs = self.mean_output_layer(outputs)
 		# We should be multiply by self.variance_factor.
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
@@ -458,7 +458,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		selected_b = self.select_greedy_action(latent_b_probabilities)
 
 		# Predict Gaussian means and variances. 		
-		mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		mean_outputs = self.mean_output_layer(outputs)
 		# We should be multiply by self.variance_factor.
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + action_epsilon
 
