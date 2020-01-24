@@ -2564,7 +2564,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
 			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
 
-	def assemble_subpolicy_inputs(self, latent_z_list=None):		
+	def assemble_subpolicy_inputs(self, latent_z_list=None):
 		# Assemble sub policy inputs over time.	
 		if latent_z_list is not None:
 			# return np.concatenate([self.assemble_subpolicy_input_row(t) for t in range(len(self.state_trajectory))],axis=0)
@@ -2580,13 +2580,20 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 	def assemble_state_action_row(self, action=None, t=-1):
 		# Get state action input row for critic.
 		if action is not None:
+
+			gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
+			gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+
+			finger_diff = gripper_values[1]-gripper_values[0]
+			gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+
 			# Don't create a torch tensor out of actions. 
-			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
+			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), torch.tensor(gripper_value).cuda().float(), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
 		else:		
 			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
 			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
 
-	def assemble_state_action_inputs(self, action_list=None):				
+	def assemble_state_action_inputs(self, action_list=None):
 		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
 		
 		# Instead of numpy use torch.
