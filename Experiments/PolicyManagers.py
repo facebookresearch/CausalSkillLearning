@@ -2528,10 +2528,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		finger_diff = gripper_values[1]-gripper_values[0]
 		gripper_value = np.array(2*finger_diff-1)
 
-		if len(self.action_trajectory)>0:
-			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t].reshape((1,-1))],axis=1)
+		if len(self.action_trajectory)==0 or t==0:
+			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
 		else:
-			return np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)			
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), gripper_value.reshape((1,-1)), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
 
 	def get_latent_input_row(self, t=-1):
 		if len(self.latent_z_trajectory)>0:
