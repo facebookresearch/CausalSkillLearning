@@ -2586,9 +2586,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0):
 
-		if random==True:
-			action = 2*np.random.random((self.output_size))-1
-			return action, hidden
+		# if random==True:
+		# 	action = 2*np.random.random((self.output_size))-1
+		# 	return action, 
 
 		# Get latent policy inputs.
 		latent_policy_inputs = self.assemble_latent_input_row()
