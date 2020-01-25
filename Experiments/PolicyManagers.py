@@ -1732,6 +1732,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			new_state_numpy = np.concatenate([observation['joint_pos'], np.array(gripper_value).reshape((1,))])
 			new_state = torch.tensor(new_state_numpy).cuda().float().view((1,-1))
 
+			# This should be true by default...
+			# if self.conditional_viz_env:
+			# 	self.set_env_conditional_info()
 			self.set_env_conditional_info()
 			
 		else:
@@ -1770,7 +1773,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		############# (1.5) ###########
 		# Doesn't really matter what the conditional information is here... because latent policy isn't being rolled out. 
 		# We still call it becasue these assembled inputs are passed to the latnet policy rollout later.
-		self.set_env_conditional_info()
+
+		if self.conditional_viz_env:
+			self.set_env_conditional_info()
 		# Get assembled inputs and subpolicy inputs for variational rollout.
 		orig_assembled_inputs, orig_subpolicy_inputs, padded_action_seq = self.assemble_inputs(concatenated_traj, latent_z_indices, latent_b, sample_action_seq, self.conditional_information)		
 
@@ -1827,7 +1832,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality+1] = selected_b[-1]
 
 			# Before copying over, set conditional_info from the environment at the current timestep.
-			self.set_env_conditional_info()
+
+			if self.conditional_viz_env:
+				self.set_env_conditional_info()
+
 			assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
 
 			# Set z's to 0.
