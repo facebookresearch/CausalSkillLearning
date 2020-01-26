@@ -500,8 +500,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
 		elif self.args.data=='Mocap':
-			self.state_size = 23*3
-			self.state_dim = 23*3	
+			self.state_size = 22*3
+			self.state_dim = 22*3	
 			self.input_size = 2*self.state_size
 			self.hidden_size = self.args.hidden_size
 			self.output_size = self.state_size
@@ -1121,7 +1121,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			# (1) Encoder trajectory. 
 			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
-
 
 			# Copy z. 
 			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
