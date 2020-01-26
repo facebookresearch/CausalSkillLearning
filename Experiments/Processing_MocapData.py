@@ -20,7 +20,8 @@ demo_list = []
 
 print("Starting to preprocess data.")
 
-for i in range(len(filelist)):
+# for i in range(len(filelist)):
+for i in range(1):
 
 	print("Processing file number: ",i, " of ",len(filelist))
 	# Get filename. 
@@ -33,6 +34,7 @@ for i in range(len(filelist)):
 	data_element['global_positions'] = global_positions
 	data_element['local_positions'] = local_positions
 	data_element['local_rotations'] = local_rotations
+	embed()
 
 	demo_list.append(data_element)
 
