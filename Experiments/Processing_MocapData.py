@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import mocap_processing
+import mocap_processing, glob, numpy as np
 from mocap_processing.motion.pfnn import Animation, BVH
 from mocap_processing.motion.pfnn import Animation, BVH
 
