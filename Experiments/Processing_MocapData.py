@@ -31,8 +31,8 @@ for i in range(len(filelist)):
 	# Create data element object.
 	data_element = {}
 	data_element['global_positions'] = global_positions
-	data_element['local_positions'] = global_positions
-	data_element['local_rotations'] = global_positions
+	data_element['local_positions'] = local_positions
+	data_element['local_rotations'] = local_rotations
 
 	demo_list.append(data_element)
 
