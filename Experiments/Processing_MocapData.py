@@ -18,7 +18,11 @@ filelist = glob.glob(os.path.join(directory,"*/*.bvh"))
 
 demo_list = []
 
+print("Starting to preprocess data.")
+
 for i in range(len(filelist)):
+
+	print("Processing file number: ",i, " of ",len(filelist))
 	# Get filename. 
 	filename = os.path.join(directory, filelist[i])
 	# Actually load file. 
