@@ -475,8 +475,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 			if self.args.gripper:
-				self.state_size = 8	
-				self.state_dim = 8		
+				self.state_size = 8
+				self.state_dim = 8
 			else:
 				self.state_size = 7
 				self.state_dim = 7		
@@ -499,6 +499,14 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.cond_object_state_size = 23
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
+		elif self.args.data=='Mocap':
+			self.state_size = 23*3
+			self.state_dim = 23*3	
+			self.input_size = 2*self.state_size
+			self.hidden_size = self.args.hidden_size
+			self.output_size = self.state_size
+			self.traj_length = self.args.traj_length			
+
 		# Training parameters. 		
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
@@ -512,7 +520,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Log-likelihood penalty.
 		self.lambda_likelihood_penalty = self.args.likelihood_penalty
 		self.baseline = None
-
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_counter)
@@ -705,6 +712,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# 	trajectory = np.concatenate([data_element['la_trajectory'],data_element['ra_trajectory'],data_element['left_gripper'].reshape((-1,1)),data_element['right_gripper'].reshape((-1,1))],axis=-1)
 			# elif self.args.data=='Roboturk':
 			# 	trajectory = data_element['demo']
+			
 			if self.args.gripper:
 				trajectory = data_element['demo']
 			else:
@@ -2608,7 +2616,6 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		else:		
 			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
 			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
-
 
 	def assemble_state_action_inputs(self, action_list=None):
 		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
