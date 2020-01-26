@@ -2,6 +2,7 @@
 import mocap_processing, glob, numpy as np, os
 from mocap_processing.motion.pfnn import Animation, BVH
 from mocap_processing.motion.pfnn import Animation, BVH
+from IPython import embed
 
 # Define function that loads global and local posiitons, and the rotations from a datafile.
 def load_animation_data(bvh_filename):
