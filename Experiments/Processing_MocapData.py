@@ -34,8 +34,8 @@ for i in range(1):
 	data_element = {}
 	data_element['global_positions'] = global_positions
 	data_element['local_positions'] = local_positions
-	data_element['local_rotations'] = local_rotations
-	embed()
+	# Get quaternion as array.
+	data_element['local_rotations'] = local_rotations.qs	
 
 	demo_list.append(data_element)
 
