@@ -48,7 +48,7 @@ class Mocap_Dataset(Dataset):
 		# Remember, the global and local posiitons are all stored as Number_Frames x Number_Joints x 3 array. 
 		# Change this to # Number_Frames x Number_Dimensions...? But the dimensions are not independent.. so what do we do?
 
-		return self.process_item(self.data_list[index])
+		return self.process_item(copy.deepcopy(self.data_list[index]))
 
 	def compute_statistics(self):
 		embed()
