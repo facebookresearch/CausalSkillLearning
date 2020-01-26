@@ -17,12 +17,25 @@ class Mocap_Dataset(Dataset):
 
 		# Load the entire set of trajectories. 
 		self.data_list = np.load(os.path.join(self.dataset_directory, "Demo_Array.npy"),allow_pickle=True)
-
 		self.dataset_length = len(self.data_list)
+		self.ds_freq = 20		
 	
 	def __len__(self):
 		# Return length of file list. 
 		return self.dataset_length
+
+	def process_item(self, item):
+		resample_length = len(item['global_positions']) // self.ds_freq
+			
+		if resample_length<5:
+			item['is_valid'] = False
+		else:
+			item['is_valid'] = True
+			item['global_positions'] = resample(item['global_positions'], resample_length)
+			item['local_positions'] = resample(item['local_positions'], resample_length)
+			item['local_rotations'] = resample(item['local_rotations'], resample_length)
+
+		return item
 
 	def __getitem__(self, index):
 		# Return n'th item of dataset.
@@ -31,7 +44,7 @@ class Mocap_Dataset(Dataset):
 		# Remember, the global and local posiitons are all stored as Number_Frames x Number_Joints x 3 array. 
 		# Change this to # Number_Frames x Number_Dimensions...? But the dimensions are not independent.. so what do we do?
 
-		return self.data_list[index]
+		return self.process_item(self.data_list[index])
 
 	def compute_statistics(self):
 		embed()
