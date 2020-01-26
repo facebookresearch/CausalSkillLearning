@@ -1122,6 +1122,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# (1) Encoder trajectory. 
 			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
 
+
 			# Copy z. 
 			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
 
