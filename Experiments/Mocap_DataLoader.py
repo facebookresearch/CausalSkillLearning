@@ -34,6 +34,8 @@ class Mocap_Dataset(Dataset):
 			item['global_positions'] = resample(item['global_positions'], resample_length)
 			item['local_positions'] = resample(item['local_positions'], resample_length)
 			item['local_rotations'] = resample(item['local_rotations'], resample_length)
+			# Replicate as demo for downstream dataloading.
+			item['demo'] = resample(item['local_positions'], resample_length)
 
 		return item
 
