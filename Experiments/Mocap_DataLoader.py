@@ -32,10 +32,12 @@ class Mocap_Dataset(Dataset):
 		else:
 			item['is_valid'] = True
 			item['global_positions'] = resample(item['global_positions'], resample_length)
-			item['local_positions'] = resample(item['local_positions'], resample_length)
+			demo = resample(item['local_positions'], resample_length)
+			item['local_positions'] = demo
 			item['local_rotations'] = resample(item['local_rotations'], resample_length)
-			# Replicate as demo for downstream dataloading.
-			item['demo'] = resample(item['local_positions'], resample_length)
+						
+			# Replicate as demo for downstream dataloading. # Reshape to TxNumber of dimensions.
+			item['demo'] = demo.reshape((demo.shape[0],-1))
 
 		return item
 
