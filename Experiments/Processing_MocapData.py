@@ -21,8 +21,7 @@ demo_list = []
 
 print("Starting to preprocess data.")
 
-# for i in range(len(filelist)):
-for i in range(1):
+for i in range(len(filelist)):
 
 	print("Processing file number: ",i, " of ",len(filelist))
 	# Get filename. 
