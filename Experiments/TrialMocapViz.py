@@ -11,6 +11,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 import time
+from IPython import embed
 
 def load_animation(bvh_filename):
 	animation, joint_names, time_per_frame = BVH.load(bvh_filename)
@@ -62,6 +63,9 @@ file_num = 0
 global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
 
 print("About to run viewer.")
+
+embed()
+
 viewer.run(
     title='BVH viewer',
     # cam_pos=cam_pos,
