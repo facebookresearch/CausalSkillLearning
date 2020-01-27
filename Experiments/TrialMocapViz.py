@@ -56,6 +56,7 @@ start_time = time.time()
 cam_origin = 0.01*np.array([0, 50, 0])
 cam_pos = cam_origin + np.array([0.0, 1.0, 3.5])
 
+bvh_filename = "/checkpoint/dgopinath/amass/CMU/01/01_01_poses.bvh"  
 filenames = [bvh_filename]
 file_num = 0
 global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
