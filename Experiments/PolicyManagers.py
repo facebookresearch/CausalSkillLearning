@@ -531,7 +531,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.number_policies, self.number_layers).cuda()
 		else:
 			# self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.latent_z_dimensionality, self.number_layers).cuda()
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()			
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()
 
 		# Create encoder.
 		if self.args.discrete_z: 
@@ -2902,3 +2902,80 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		print("Average Distance of Mean Regression Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
 
 		embed()
+
+
+class PolicyManager_Imitation(PolicyManager_Pretrain):
+
+	def __init__(self, number_policies=4, dataset=None, args=None):
+
+		super(PolicyManager_Imitation, self).__init__(number_policies, dataset, args)
+
+		# Set train only policy to true.
+		self.args.train_only_policy = 1
+
+	def create_networks(self):
+
+		# We don't need a decoder.
+		# Policy Network is the only thing we need.
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()
+
+	def save_all_models(self, suffix):
+
+		logdir = os.path.join(self.args.logdir, self.args.name)
+		savedir = os.path.join(logdir,"saved_models")
+		if not(os.path.isdir(savedir)):
+			os.mkdir(savedir)
+		save_object = {}
+		save_object['Policy_Network'] = self.policy_network.state_dict()
+		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+
+	def load_all_models(self, path, only_policy=False):
+		load_object = torch.load(path)
+		self.policy_network.load_state_dict(load_object['Policy_Network'])
+
+	def update_policies(self, logprobabilities):
+
+		# Set gradients to 0.
+		self.optimizer.zero_grad()
+
+		# Set policy loss. 
+		self.policy_loss = -logprobabilities[:-1].mean()
+
+		# Backward. 
+		self.policy_loss.backward()
+
+		# Take a step. 
+		self.optimizer.step()
+
+	def update_plots(self, logprobabilities):
+		self.tf_logger.scalar_summary('Policy LogLikelihood', torch.mean(logprobabilities), counter)
+
+	def run_iteration(self):
+
+		self.set_epoch(counter)	
+		self.iter = counter
+
+		############# (0) #############
+		# Get sample we're going to train on.
+		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+
+		if sample_traj is not None:
+
+			# Add zeros to the last action, so that we evaluate likelihood correctly. 
+			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
+
+			# Feed concatenated trajectory into the policy. 
+			logprobabilities, _ = self.policy_network.forward(torch.tensor(concatenated_traj).cuda().float(), torch.tensor(padded_action_seq).cuda().float())
+
+			if self.args.train:
+
+				if self.args.debug:
+					if self.iter%self.args.debug==0:
+						print("Embedding in Train Function.")
+						embed()
+				
+				# Update policy. 						
+				self.update_policies(logprobabilities)
+
+				# Update plots.
+				self.update_plots(logprobabilities)
