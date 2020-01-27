@@ -60,6 +60,8 @@ bvh_filename = "/checkpoint/dgopinath/amass/CMU/01/01_01_poses.bvh"
 filenames = [bvh_filename]
 file_num = 0
 global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
+
+print("About to run viewer.")
 viewer.run(
     title='BVH viewer',
     # cam_pos=cam_pos,
