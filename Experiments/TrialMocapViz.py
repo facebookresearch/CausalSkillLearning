@@ -39,6 +39,27 @@ def render_callback():
 			pos_parent = global_positions[frame_num][j]
 			gl_render.render_line(p1=pos_parent, p2=pos, color=[0, 0, 0, 1])            
 	glPopMatrix()
+
+def render_callback_time_independent():
+	global global_positions, joint_parents
+
+	gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='y', origin=True, use_arrow=True)
+
+	glPushMatrix()
+	# glRotatef(90, -1, 0, 0)
+	glScalef(0.1, 0.1, 0.1)
+
+	glEnable(GL_LIGHTING)
+
+	t = 0
+	for i in range(len(joint_parents)):
+		pos = global_positions[t][i]
+		gl_render.render_point(pos, radius=0.25, color=[0.8, 0.8, 0.0, 1.0])
+		j = joint_parents[i]
+		if j!=-1:
+			pos_parent = global_positions[t][j]
+			gl_render.render_line(p1=pos_parent, p2=pos, color=[0, 0, 0, 1])            
+	glPopMatrix()
 			
 def keyboard_callback(key):
 	global filenames, file_num, global_positions, joint_parents, time_per_frame
@@ -50,6 +71,14 @@ def keyboard_callback(key):
 		file_num -= 1
 		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
 		print(filenames[file_num])
+
+	if key == b'm':
+
+		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
+
+		viewer.drawGL()
+		viewer.save_screen(".","TRY_VIZ")
+
 	return
 
 start_time = time.time()
@@ -72,5 +101,5 @@ viewer.run(
     # cam_origin=cam_origin,
     size=(1280, 720),
     keyboard_callback=keyboard_callback,
-    render_callback=render_callback,
+    render_callback=render_callback_time_independent,
 )
