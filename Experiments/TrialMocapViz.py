@@ -63,6 +63,7 @@ def render_callback_time_independent():
 	glPopMatrix()
 			
 def keyboard_callback(key):
+	print("Entering the keyboard clalba.", key)
 	global filenames, file_num, global_positions, joint_parents, time_per_frame
 	if key == b'.':
 		file_num += 1
