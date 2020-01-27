@@ -41,7 +41,7 @@ def render_callback():
 	glPopMatrix()
 
 def render_callback_time_independent():
-	print("Running time independent callback.")
+	# print("Running time independent callback.")
 	global global_positions, joint_parents
 
 	gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='y', origin=True, use_arrow=True)
