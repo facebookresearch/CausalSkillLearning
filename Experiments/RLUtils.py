@@ -39,7 +39,7 @@ class HierarchicalEpisode(Episode):
 
 	def __init__(self, state_list=None, action_list=None, reward_list=None, terminal_list=None, latent_z_list=None, latent_b_list=None):
 
-		super(HierarchicalEpisode, self).__init__(state_list, action_list, terminal_list)
+		super(HierarchicalEpisode, self).__init__(state_list, action_list, reward_list, terminal_list)
 
 		self.latent_z_list = latent_z_list
 		self.latent_b_list = latent_b_list		
