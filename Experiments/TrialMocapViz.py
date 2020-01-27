@@ -41,6 +41,7 @@ def render_callback():
 	glPopMatrix()
 
 def render_callback_time_independent():
+	print("Running time independent callback.")
 	global global_positions, joint_parents
 
 	gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='y', origin=True, use_arrow=True)
@@ -73,7 +74,7 @@ def keyboard_callback(key):
 		print(filenames[file_num])
 
 	if key == b'm':
-
+		print("Entering Callback.")
 		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
 
 		viewer.drawGL()
