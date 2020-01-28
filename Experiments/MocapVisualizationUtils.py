@@ -5,7 +5,7 @@ from basecode.render import gl_render, camera
 from basecode.utils import basics
 from basecode.math import mmMath
 
-import numpy as np
+import numpy as np, imageio
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -18,11 +18,14 @@ global whether_to_render
 whether_to_render = False
 
 def init():
-	global whether_to_render, global_positions, counter, joint_parents, done_with_render
+	global whether_to_render, global_positions, counter, joint_parents, done_with_render, save_path, name_prefix, image_list
 	whether_to_render = False
 	done_with_render = False
 	global_positions = None
 	joint_parents = None
+	save_path = "/home/tanmayshankar/Research/Code/"
+	name_prefix = "Viz_Image"
+	image_list = []
 	counter = 0
 
 # Define function to load animation file. 
@@ -77,20 +80,56 @@ def idle_callback():
 	# 	# Call drawGL and savescreen. 
 	# 	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
 
-	global whether_to_render, counter, global_positions, done_with_render
+	global whether_to_render, counter, global_positions, done_with_render, save_path, name_prefix
 	done_with_render = False
 
-	if whether_to_render and counter<global_positions.shape[0]:	
+	# if whether_to_render and counter<global_positions.shape[0]:	
+	if whether_to_render and counter<10:	
 
 		print("Whether to render is actually true, with counter:",counter)
 		# render_callback_time_independent()
 		viewer.drawGL()
-		viewer.save_screen("/home/tanmayshankar/Research/Code/","Visualize_Image_{}".format(counter))
+		viewer.save_screen(save_path, "Image_{}_{}".format(name_prefix, counter))
+		# viewer.save_screen("/home/tanmayshankar/Research/Code/","Visualize_Image_{}".format(counter))
+
+		counter += 1
+
+		# Set whether to render to false if counter exceeded. 
+		# if counter>=global_positions.shape[0]:
+		if counter>=10:
+			whether_to_render = False
+			done_with_render = True
+
+	# If whether to render is false, reset the counter.
+	else:
+		counter = 0
+
+def idle_callback_return():
+	# 	# Increment counter
+	# 	# Set frame number of trajectory to be rendered
+	# 	# Using the time independent rendering. 
+	# 	# Call drawGL and savescreen. 
+	# 	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
+
+	global whether_to_render, counter, global_positions, done_with_render, save_path, name_prefix, image_list
+	done_with_render = False
+
+	if whether_to_render and counter<global_positions.shape[0]:	
+	# if whether_to_render and counter<10:	
+
+		print("Whether to render is actually true, with counter:",counter)
+		# render_callback_time_independent()
+		viewer.drawGL()
+		name = "Image_{}_{}".format(name_prefix, counter)
+		viewer.save_screen(save_path, name)
+		img = imageio.imread(os.path.join(save_path, name+".png"))
+		image_list.append(img)
 
 		counter += 1
 
 		# Set whether to render to false if counter exceeded. 
 		if counter>=global_positions.shape[0]:
+		# if counter>=10:
 			whether_to_render = False
 			done_with_render = True
 

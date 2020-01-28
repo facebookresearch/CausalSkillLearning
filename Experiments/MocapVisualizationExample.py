@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-import MocapVisualizer
+import MocapVisualizationUtils
 import threading, time, numpy as np
 
 bvh_filename = "/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
@@ -8,27 +8,45 @@ file_num = 0
 
 print("About to run viewer.")
 
-cam_cur = MocapVisualizer.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
+cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
 								origin=np.array([0.0, 0.0, 0.0]), 
 								vup=np.array([0.0, 0.0, 1.0]), 
 								fov=45.0)
 
 def run_thread():
-	MocapVisualizer.viewer.run(
+	MocapVisualizationUtils.viewer.run(
 		title='BVH viewer',
 		cam=cam_cur,
 		size=(1280, 720),
 		keyboard_callback=None,
-		render_callback=MocapVisualizer.render_callback_time_independent,
-		idle_callback=MocapVisualizer.idle_callback,
+		render_callback=MocapVisualizationUtils.render_callback_time_independent,
+		idle_callback=MocapVisualizationUtils.idle_callback,
 	)
 
+def run_thread():
+	MocapVisualizationUtils.viewer.run(
+		title='BVH viewer',
+		cam=cam_cur,
+		size=(1280, 720),
+		keyboard_callback=None,
+		render_callback=MocapVisualizationUtils.render_callback_time_independent,
+		idle_callback=MocapVisualizationUtils.idle_callback_return,
+	)
+
+
 # Run init before loading animation.
-MocapVisualizer.init()
-MocapVisualizer.global_positions, MocapVisualizer.joint_parents, MocapVisualizer.time_per_frame = MocapVisualizer.load_animation(filenames[file_num])
+MocapVisualizationUtils.init()
+MocapVisualizationUtils.global_positions, MocapVisualizationUtils.joint_parents, MocapVisualizationUtils.time_per_frame = MocapVisualizationUtils.load_animation(filenames[file_num])
 thread = threading.Thread(target=run_thread)
 thread.start()
 
 print("Going to actually call callback now.")
-MocapVisualizer.whether_to_render = True
+MocapVisualizationUtils.whether_to_render = True
 
+x_count = 0
+while MocapVisualizationUtils.done_with_render==False and MocapVisualizationUtils.whether_to_render==True:
+	x_count += 1
+	time.sleep(1)
+	print("x_count is now: ",x_count)
+
+print("We finished with the visualization!")
