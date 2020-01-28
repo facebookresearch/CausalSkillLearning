@@ -193,7 +193,6 @@ def run_thread():
 		render_callback=render_callback_trajectory,
 	)
 
-
 def run_thread():
 	viewer.run(
 		title='BVH viewer',
