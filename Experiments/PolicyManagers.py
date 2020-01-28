@@ -776,17 +776,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			return concatenated_traj, scaled_action_sequence, trajectory
 
-	def get_test_trajectory_segment(self, i):
-		sample_traj = np.zeros((5,2))
-
-		sample_traj[:,i//2] = np.arange(0,((-1)**i)*5,((-1)**i))
-		sample_action_seq = np.diff(sample_traj,axis=0)
-
-		trajectory_segment = self.concat_state_action(sample_traj, sample_action_seq)
-		# sample_action_seq = np.concatenate([np.zeros((1,self.output_size)),sample_action_seq],axis=0)
-		
-		return trajectory_segment, sample_action_seq, sample_traj
-
 	def construct_dummy_latents(self, latent_z):
 
 		if self.args.discrete_z:
@@ -894,16 +883,12 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		############# (0) #############
 		# Sample trajectory segment from dataset. 			
-		if self.args.train or not(self.args.discrete_z):
-
-			if self.args.traj_segments:			
-				trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
-			else:
-				sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
-				# Calling it trajectory segment, but it's not actually a trajectory segment here.
-				trajectory_segment = concatenated_traj
+		if self.args.traj_segments:			
+			trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
 		else:
-			trajectory_segment, sample_action_seq, sample_traj  = self.get_test_trajectory_segment(i)
+			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)				
+			# Calling it trajectory segment, but it's not actually a trajectory segment here.
+			trajectory_segment = concatenated_traj
 
 		if trajectory_segment is not None:
 			############# (1) #############
