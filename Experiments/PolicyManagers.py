@@ -880,31 +880,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if return_traj:
 			return trajectory_rollout		
 
-	def fake_rollout(self, i, j, latent_z, start_state):
-		self.state_dim = 2
-		self.rollout_timesteps = 5
-
-		# start_state = torch.zeros((self.state_dim))
-		start_state = torch.tensor(start_state).cuda().float()
-
-		self.action_map = np.array([[0,-1],[-1,0],[0,1],[1,0]], dtype=np.float)
-
-		# Init subpolicy input.
-		subpolicy_inputs = torch.zeros((self.rollout_timesteps,self.input_size+self.latent_z_dimensionality)).cuda()
-
-		# Set latent z
-		subpolicy_inputs[:,self.input_size:] = latent_z
-
-		subpolicy_inputs[:,self.state_dim:self.input_size] = torch.tensor(self.action_map[j]).cuda().float()
-		subpolicy_inputs[0,:self.state_dim] = start_state
-		subpolicy_inputs[range(1,self.rollout_timesteps),:self.state_dim] = start_state+torch.cumsum(subpolicy_inputs[range(self.rollout_timesteps-1),self.state_dim:self.input_size],dim=0)
-	
-		# Don't feed in epsilon, since it's a rollout, just use the default 0.001.
-		logprobabilities, _ = self.policy_network.forward(subpolicy_inputs, subpolicy_inputs[:,self.state_dim:self.input_size].detach().cpu().numpy())
-
-		# embed()
-		return logprobabilities[:-1].sum().detach().cpu().numpy()
-
 	def run_iteration(self, counter, i, return_z=False):
 
 		# Basic Training Algorithm: 
@@ -1031,132 +1006,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
-
-		else:
-			print("Running Eval on Dummy Trajectories!")
-			for i in range(4):			
-				self.run_iteration(0, i)
-			
-			print("#########################################")	
-			print("#########################################")	
-		
-			if self.args.discrete_z:
-				print("Running Rollouts with each latent variable.")
-				for i in range(4):	
-					print(i)	
-					self.rollout_visuals(i)
-			else:
-				# self.visualize_embedding_space()
-				self.visualize_embedded_likelihoods()
-
-	def visualize_embedding_space(self):
-
-		# For N number of random trajectories from MIME: 
-		#	# Encode trajectory using encoder into latent_z. 
-		# 	# Feed latent_z into subpolicy. 
-		#	# Rollout subpolicy for t timesteps. 
-		#	# Plot rollout.
-		# Embed plots. 
-
-		# Set N:
-		self.N = 200
-		self.rollout_timesteps = 5
-		self.state_dim = 2
-
-		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
-		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
-
-		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
-		for i in range(self.N):
-
-			# (1) Encoder trajectory. 
-			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
-
-			# Copy z. 
-			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
-
-			if not (self.args.data=='MIME'):
-				# (2) Now rollout policy.
-				trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
-
-			# # (3) Plot trajectory.
-			# traj_image = self.visualize_trajectory(rollout_traj)
-
-		# TSNE on latentz's.
-		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
-		embedded_zs = tsne.fit_transform(latent_z_set)
-
-		ratio = 0.3
-		if self.args.data=='MIME':
-			plt.scatter(embedded_zs[:,0],embedded_zs[:,1])
-		else:
-			for i in range(self.N):
-				plt.scatter(embedded_zs[i,0]+ratio*trajectory_set[i,:,0],embedded_zs[i,1]+ratio*trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
-
-		# Format with name.
-		plt.savefig("Images/Embedding_Joint_{0}.png".format(self.args.name))
-		plt.close()
-
-	def visualize_embedded_likelihoods(self):
-
-		# For N number of random trajectories from MIME: 
-		#	# Encode trajectory using encoder into latent_z. 
-		# 	# Feed latent_z into subpolicy. 
-		# 	# Evaluate likelihoods for all sets of actions.
-		# 	# Plot
-
-		# Use a constant TSNE fit to project everything.
-
-		# Set N:
-		self.N = 200
-		self.rollout_timesteps = 5
-		self.state_dim = 2
-
-		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))
-		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
-		likelihoods = np.zeros((self.N, 4))
-
-		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
-		for i in range(self.N):
-
-			# (1) Encoder trajectory. 
-			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
-
-			# Copy z. 
-			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
-
-			if not (self.args.data=='MIME'):
-				# (2) Now rollout policy.
-				trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
-
-			trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
-			# For each action.
-			for j in range(4):
-				likelihoods[i,j] = self.fake_rollout(i, j, latent_z=latent_z, start_state=sample_traj[0])
-	
-		# TSNE on latentz's.
-		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
-		embedded_zs = tsne.fit_transform(latent_z_set)
-
-		ratio = 0.3
-		if self.args.data=='MIME':
-			plt.scatter(embedded_zs[:,0],embedded_zs[:,1])
-		else:
-			for i in range(self.N):
-				plt.scatter(embedded_zs[i,0]+ratio*trajectory_set[i,:,0],embedded_zs[i,1]+ratio*trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
-
-		# Format with name.
-		plt.savefig("Images/Embedding_Joint_{0}.png".format(self.args.name))
-		plt.close()
-		
-
-		for j in range(4):
-			plt.scatter(embedded_zs[:,0],embedded_zs[:,1],c=likelihoods[:,j],cmap='jet',vmin=-100,vmax=10)
-			plt.colorbar()
-			# Format with name.
-			plt.savefig("Images/Likelihood_{0}_Embedding{1}.png".format(self.args.name,j))
-			plt.close()
-		# For all 4 actions, make fake rollout, feed into trajectory, evaluate likelihood. 
 
 class PolicyManager_Joint(PolicyManager_BaseClass):
 
@@ -2902,7 +2751,6 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		print("Average Distance of Mean Regression Baseline: ", self.MeanRegression_distances[self.MeanRegression_distances>0].mean())
 
 		embed()
-
 
 class PolicyManager_Imitation(PolicyManager_Pretrain):
 
