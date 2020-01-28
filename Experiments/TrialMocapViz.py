@@ -47,26 +47,23 @@ def render_pose_by_capsule(global_positions, frame_num, joint_parents, scale=1.0
 	glPopMatrix()
 
 def render_callback_time_independent():	
-	global global_positions, joint_parents
+	global global_positions, joint_parents, counter
 
 	gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='z', origin=True, use_arrow=True)
 
 	# Render Shadow of Character
-
-	# For now, use the first timestep of the posiitons.
-	time = 0
 
 	glEnable(GL_DEPTH_TEST)
 	glDisable(GL_LIGHTING)
 	glPushMatrix()
 	glTranslatef(0, 0, 0.001)
 	glScalef(1, 1, 0)
-	render_pose_by_capsule(global_positions, time, joint_parents, color=[0.5,0.5,0.5,1.0])	
+	render_pose_by_capsule(global_positions, counter, joint_parents, color=[0.5,0.5,0.5,1.0])	
 	glPopMatrix()
 
 	# Render Character
 	glEnable(GL_LIGHTING)
-	render_pose_by_capsule(global_positions, time, joint_parents, color=np.array([85, 160, 173, 255])/255.0)
+	render_pose_by_capsule(global_positions, counter, joint_parents, color=np.array([85, 160, 173, 255])/255.0)
 			
 def render_callback_trajectory():
 	global global_positions, joint_parents, image_list
@@ -108,19 +105,34 @@ def render_callback():
 
 		render_callback_trajectory()
 
+# def idle_callback():
+# 	global whether_to_render
+
+# 	if whether_to_render:
+# 		print("Whether to render is actually true.")
+
+# 		render_callback_trajectory()
+
+# 	# Increment counter
+# 	# Set frame number of trajectory to be rendered
+# 	# Using the time independent rendering. 
+# 	# Call drawGL and savescreen. 
+# 	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
+
 def idle_callback():
-	global whether_to_render
 
+	global whether_to_render, counter, global_positions
 	if whether_to_render:
-		print("Whether to render is actually true.")
+		print("Whether to render is actually true, with counter:",counter)
+		# render_callback_time_independent()
+		viewer.drawGL()
+		viewer.save_screen("/home/tanmayshankar/Research/Code/","Visualize_Image_{}".format(counter))
 
-		render_callback_trajectory()
+		counter += 1
 
-	# Increment counter
-	# Set frame number of trajectory to be rendered
-	# Using the time independent rendering. 
-	# Call drawGL and savescreen. 
-	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
+	# If whether to render is false, reset the counter.
+	else:
+		counter = 0
 
 def keyboard_callback(key):
 	print("Entering the keyboard callback.", key)
@@ -190,7 +202,7 @@ def run_thread():
 		cam=cam_cur,
 		size=(1280, 720),
 		keyboard_callback=keyboard_callback,
-		render_callback=render_callback,
+		render_callback=render_callback_time_independent,
 		idle_callback=idle_callback,
 	)
 
