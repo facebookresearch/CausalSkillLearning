@@ -14,6 +14,7 @@ import os
 import robosuite
 from robosuite.wrappers import IKWrapper
 import MocapVisualizationUtils
+from mocap_processing.motion.pfnn import Animation, BVH
 
 class SawyerVisualizer():
 
@@ -221,6 +222,9 @@ class MocapVisualizer():
 		thread = threading.Thread(target=run_thread)
 		thread.start()
 
+		# Also create dummy animation object. 
+		self.animation_object, _, _ = BVH.load(bvh_filename)
+
 	def run_thread(self):
 		MocapVisualizationUtils.viewer.run(
 			title='BVH viewer',
@@ -231,13 +235,30 @@ class MocapVisualizer():
 			idle_callback=MocapVisualizationUtils.idle_callback_return,
 		) 
 
+	def get_global_positions(self, positions):
+
+		# Function to get global positions corresponding to predicted or actual local positions.
+
+		# First set positions as item of animations.
+		self.animation_object.positions = positions
+		# Then transform them.
+		transformed_global_positions = Animation.positions_global(self.animation_object)
+
+		# Now return coordinates. 
+		return transformed_global_positions
+
 	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
 
 		image_list = []
 
 		# Assume trajectory is number of timesteps x number_dimensions. 
 		# Convert to number_of_timesteps x number_of_joints x 3.
-		MocapVisualizationUtils.global_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
+		predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
+
+		# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
+		predicted_global_positions = self.get_global_positions(predicted_local_positions)
+
+		MocapVisualizationUtils.global_positions = predicted_global_positions
 
 		# Reset Image List. 
 		MocapVisualizationUtils.image_list = []
