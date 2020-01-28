@@ -619,9 +619,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.tf_logger.scalar_summary('Reinforce Encoder Loss', self.reinforce_encoder_loss.sum(), counter)
 			self.tf_logger.scalar_summary('Total Encoder Loss', self.total_encoder_loss.sum() ,counter)
 
-		# if self.args.regularize_pretraining:
-		# 	self.tf_logger.scalar_summary('Regularization Loss', torch.mean(self.regularization_loss), counter)
-
 		if self.args.entropy:
 			self.tf_logger.scalar_summary('SubPolicy Entropy', torch.mean(subpolicy_entropy), counter)
 
@@ -932,9 +929,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				else:
 					np.set_printoptions(suppress=True,precision=2)
 					print("###################", i)
-					# print("Trajectory: \n",trajectory_segment)
-					# print("Encoder Likelihood: \n", encoder_loglikelihood.detach().cpu().numpy())
-					# print("Policy Mean: \n", self.policy_network.get_actions(subpolicy_inputs, greedy=True).detach().cpu().numpy())
 					print("Policy loglikelihood:", loglikelihood)
 			
 			print("#########################################")	

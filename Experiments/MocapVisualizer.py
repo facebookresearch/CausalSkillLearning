@@ -18,8 +18,9 @@ global whether_to_render
 whether_to_render = False
 
 def init():
-	global whether_to_render, global_positions, counter, joint_parents
+	global whether_to_render, global_positions, counter, joint_parents, done_with_render
 	whether_to_render = False
+	done_with_render = False
 	global_positions = None
 	joint_parents = None
 	counter = 0
@@ -76,9 +77,10 @@ def idle_callback():
 	# 	# Call drawGL and savescreen. 
 	# 	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
 
-	global whether_to_render, counter, global_positions
-	# if whether_to_render and counter<global_positions.shape[0]:
-	if whether_to_render and counter<10:
+	global whether_to_render, counter, global_positions, done_with_render
+	done_with_render = False
+
+	if whether_to_render and counter<global_positions.shape[0]:	
 
 		print("Whether to render is actually true, with counter:",counter)
 		# render_callback_time_independent()
@@ -88,9 +90,9 @@ def idle_callback():
 		counter += 1
 
 		# Set whether to render to false if counter exceeded. 
-		# if counter>=global_positions.shape[0]:
-		if counter>=10:
+		if counter>=global_positions.shape[0]:
 			whether_to_render = False
+			done_with_render = True
 
 	# If whether to render is false, reset the counter.
 	else:
