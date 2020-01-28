@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# from TrialMocapViz import *
 import TrialMocapViz
 import threading, time, numpy as np
 
@@ -30,8 +29,5 @@ TrialMocapViz.global_positions, TrialMocapViz.joint_parents, TrialMocapViz.time_
 thread = threading.Thread(target=run_thread)
 thread.start()
 
-print("OKAY! PAY ATTENTION!")
-time.sleep(5)
+print("Going to actually call callback now.")
 TrialMocapViz.whether_to_render = True
-# time.sleep(5)
-# whether_to_render = False
