@@ -18,10 +18,12 @@ global whether_to_render
 whether_to_render = False
 
 def init():
-	global whether_to_render
+	global whether_to_render, global_positions, counter, joint_parents
 	whether_to_render = False
 	global_positions = None
-
+	joint_parents = None
+	counter = 0
+	
 # Define function to load animation file. 
 def load_animation(bvh_filename):
 	animation, joint_names, time_per_frame = BVH.load(bvh_filename)
@@ -75,7 +77,9 @@ def idle_callback():
 	# 	# Since this is an idle callback, drawGL won't call itself (only calls render callback).
 
 	global whether_to_render, counter, global_positions
-	if whether_to_render and counter<global_positions.shape[0]:
+	# if whether_to_render and counter<global_positions.shape[0]:
+	if whether_to_render and counter<10:
+
 		print("Whether to render is actually true, with counter:",counter)
 		# render_callback_time_independent()
 		viewer.drawGL()
@@ -83,62 +87,45 @@ def idle_callback():
 
 		counter += 1
 
+		# Set whether to render to false if counter exceeded. 
+		# if counter>=global_positions.shape[0]:
+		if counter>=10:
+			whether_to_render = False
+
 	# If whether to render is false, reset the counter.
 	else:
 		counter = 0
 
-def keyboard_callback(key):
-	print("Entering the keyboard callback.", key)
-	global filenames, file_num, global_positions, joint_parents, time_per_frame
+# bvh_filename = "/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
+# filenames = [bvh_filename]
+# file_num = 0
+# global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
 
-	if key == b'.':
-		file_num += 1
-		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
-		print(filenames[file_num])
-	if key == b',':
-		file_num -= 1
-		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
-		print(filenames[file_num])
+# print("About to run viewer.")
 
-	# This branch shows how to save the environment to file.
-	if key == b'm':
-		print("Entering Callback.")
-		global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
+# cam_cur = camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
+# 								origin=np.array([0.0, 0.0, 0.0]), 
+# 								vup=np.array([0.0, 0.0, 1.0]), 
+# 								fov=45.0)
 
-		viewer.drawGL()
-		viewer.save_screen("/home/tanmayshankar/Research/Code/","TRY_VIZ")
- 
-	return
+# def run_thread():
+# 	viewer.run(
+# 		title='BVH viewer',
+# 		cam=cam_cur,
+# 		size=(1280, 720),
+# 		keyboard_callback=None,
+# 		render_callback=render_callback_time_independent,
+# 		idle_callback=idle_callback,
+# 	)
 
-# bvh_filename = "/checkpoint/dgopinath/amass/CMU/01/01_01_poses.bvh"  
-bvh_filename = "/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
-filenames = [bvh_filename]
-file_num = 0
-global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
+# init()
 
-print("About to run viewer.")
+# thread = threading.Thread(target=run_thread)
+# thread.start()
 
-cam_cur = camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
-								origin=np.array([0.0, 0.0, 0.0]), 
-								vup=np.array([0.0, 0.0, 1.0]), 
-								fov=45.0)
+# print("OKAY! PAY ATTENTION!")
+# time.sleep(5)
+# whether_to_render = True
+# # time.sleep(5)
+# # whether_to_render = False
 
-
-def run_thread():
-	viewer.run(
-		title='BVH viewer',
-		cam=cam_cur,
-		size=(1280, 720),
-		keyboard_callback=keyboard_callback,
-		render_callback=render_callback_time_independent,
-		idle_callback=idle_callback,
-	)
-
-thread = threading.Thread(target=run_thread)
-thread.start()
-
-print("OKAY! PAY ATTENTION!")
-time.sleep(5)
-whether_to_render = True
-time.sleep(5)
-whether_to_render = False
