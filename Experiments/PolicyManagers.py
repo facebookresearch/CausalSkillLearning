@@ -3,7 +3,7 @@ from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
 from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
 from PolicyNetworks import ContinuousMLP, CriticMLP
-from Visualizers import BaxterVisualizer, SawyerVisualizer
+from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
 import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
