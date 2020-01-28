@@ -11,7 +11,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
-import time, threading, pyautogui
+import time, threading
 from IPython import embed
 
 global whether_to_render
@@ -23,7 +23,7 @@ def init():
 	global_positions = None
 	joint_parents = None
 	counter = 0
-	
+
 # Define function to load animation file. 
 def load_animation(bvh_filename):
 	animation, joint_names, time_per_frame = BVH.load(bvh_filename)
@@ -95,37 +95,3 @@ def idle_callback():
 	# If whether to render is false, reset the counter.
 	else:
 		counter = 0
-
-# bvh_filename = "/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
-# filenames = [bvh_filename]
-# file_num = 0
-# global_positions, joint_parents, time_per_frame = load_animation(filenames[file_num])
-
-# print("About to run viewer.")
-
-# cam_cur = camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
-# 								origin=np.array([0.0, 0.0, 0.0]), 
-# 								vup=np.array([0.0, 0.0, 1.0]), 
-# 								fov=45.0)
-
-# def run_thread():
-# 	viewer.run(
-# 		title='BVH viewer',
-# 		cam=cam_cur,
-# 		size=(1280, 720),
-# 		keyboard_callback=None,
-# 		render_callback=render_callback_time_independent,
-# 		idle_callback=idle_callback,
-# 	)
-
-# init()
-
-# thread = threading.Thread(target=run_thread)
-# thread.start()
-
-# print("OKAY! PAY ATTENTION!")
-# time.sleep(5)
-# whether_to_render = True
-# # time.sleep(5)
-# # whether_to_render = False
-
