@@ -219,7 +219,7 @@ class MocapVisualizer():
 		self.total_dimensions = self.number_joints*self.number_dimensions
 
 		# Run thread of viewer, so that callbacks start running. 
-		thread = threading.Thread(target=run_thread)
+		thread = threading.Thread(target=self.run_thread)
 		thread.start()
 
 		# Also create dummy animation object. 
