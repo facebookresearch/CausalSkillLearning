@@ -184,6 +184,8 @@ class PolicyManager_BaseClass():
 		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 			self.visualizer = SawyerVisualizer()
 			# self.state_dim = 8
+		elif self.args.data=='Mocap':
+			self.visualizer = MocapVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# These are lists because they're variable length individually.
@@ -962,7 +964,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		np.set_printoptions(suppress=True,precision=2)
 
-		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
 			print("Running Evaluation of State Distances on small test set.")
 			self.evaluate_metrics()
