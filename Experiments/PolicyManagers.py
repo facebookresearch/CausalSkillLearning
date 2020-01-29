@@ -1905,6 +1905,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 	def __init__(self, args):
 
+		super(PolicyManager_BaselineRL, self).__init__()
+
 		# Create environment, setup things, etc. 
 		self.args = args		
 
