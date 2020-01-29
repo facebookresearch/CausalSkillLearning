@@ -2382,7 +2382,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_DownstreamRL, self).__init__(number_policies=4, dataset=dataset, args=args):
+		super(PolicyManager_DownstreamRL, self).__init__(number_policies=4, dataset=dataset, args=args)
 
 	def setup(self):
 		# Create Mujoco environment. 
