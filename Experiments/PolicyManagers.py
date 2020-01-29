@@ -8,6 +8,7 @@ import TFLogger, DMP, RLUtils
 class PolicyManager_BaseClass():
 
 	def __init__(self):
+		print("Call init of Base.")
 		super(PolicyManager_BaseClass, self).__init__()
 
 	def setup(self):
@@ -448,6 +449,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
+		print("Calling init of Pretrain.")		
 		super(PolicyManager_Pretrain, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 
 		self.args = args
@@ -1905,6 +1907,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
+		print("Calling init of Baseline.")		
 		super(PolicyManager_BaselineRL, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 
 		# Create environment, setup things, etc. 
@@ -2831,6 +2834,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
+		print("Calling init of IL.")		
 		super(PolicyManager_Imitation, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 		# Explicitly run inits to make sure inheritance is good.
 		# PolicyManager_Pretrain.__init__(self, number_policies, dataset, args)
