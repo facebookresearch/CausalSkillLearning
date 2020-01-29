@@ -83,7 +83,11 @@ class PolicyManager_BaseClass():
 	
 		elif self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
-			data_element = self.dataset[i]
+			# If we're imitating... select demonstrations from the particular task.
+			if self.args.setting=='imitation' and self.args.data=='Roboturk':
+				data_element = self.dataset.get_task_demo(self.demo_task_index, i)
+			else:
+				data_element = self.dataset[i]
 
 			if not(data_element['is_valid']):
 				return None, None, None, None
@@ -140,7 +144,12 @@ class PolicyManager_BaseClass():
 				embed()
 
 			# For every item in the epoch:
-			for i in range(len(self.dataset)-self.test_set_size):
+			if self.args.setting=='imitation':
+				extent = self.dataset.get_number_task_demos(self.demo_task_index)
+			else:
+				extent = len(self.dataset)-self.test_set_size
+
+			for i in range(extent):
 
 				print("Epoch: ",e," Trajectory:",i, "Datapoint: ", self.index_list[i])
 				self.run_iteration(counter, self.index_list[i])				
@@ -2747,6 +2756,9 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 
 		# Set train only policy to true.
 		self.args.train_only_policy = 1
+
+		# Get task index from task name.
+		self.demo_task_index = np.where(np.array(self.dataset.environment_names)==self.args.environment)[0][0]
 
 	def create_networks(self):
 

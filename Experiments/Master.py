@@ -14,7 +14,7 @@ class Master():
 			self.dataset = DataLoaders.DeterministicGoalDirectedDataset(self.args.datadir)			
 		elif self.args.data=='MIME':
 			self.dataset = MIME_DataLoader.MIME_NewDataset()
-		elif self.args.data=='Roboturk':					
+		elif self.args.data=='Roboturk':		
 			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset(self.args)
 		elif self.args.data=='OrigRoboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_Dataset(self.args)
@@ -44,7 +44,7 @@ class Master():
 		self.policy_manager.setup()
 
 	def run(self):
-		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior':
+		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or self.args.setting=='imitation':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)

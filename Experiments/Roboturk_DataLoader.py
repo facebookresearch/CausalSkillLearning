@@ -59,8 +59,7 @@ class Roboturk_Dataset(Dataset):
 		# Load data from all tasks. 			
 		self.files = []
 		for i in range(len(self.task_list)):
-			self.files.append(h5py.File("{0}/{1}/demo.hdf5".format(self.dataset_directory,self.task_list[i]),'r'))
-		
+			self.files.append(h5py.File("{0}/{1}/demo.hdf5".format(self.dataset_directory,self.task_list[i]),'r'))	
 
 	def __len__(self):
 		return self.total_length
@@ -375,7 +374,6 @@ class Roboturk_NewSegmentedDataset(Dataset):
 
 	def __getitem__(self, index):
 
-
 		if index>=self.total_length:
 			print("Out of bounds of dataset.")
 			return None
@@ -398,6 +396,42 @@ class Roboturk_NewSegmentedDataset(Dataset):
 		else:
 			data_element['is_valid'] = True
 
+			if self.args.smoothen:
+				data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['robot-state'] = gaussian_filter1d(data_element['robot-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['object-state'] = gaussian_filter1d(data_element['object-state'],self.kernel_bandwidth,axis=0,mode='nearest')
+				data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')			
+
+			data_element['environment-name'] = self.environment_names[task_index]
+
+			if self.args.ds_freq>1:
+				data_element['demo'] = resample(data_element['demo'], resample_length)
+				data_element['robot-state'] = resample(data_element['robot-state'], resample_length)
+				data_element['object-state'] = resample(data_element['object-state'], resample_length)
+				data_element['flat-state'] = resample(data_element['flat-state'], resample_length)
+
+		return data_element
+
+	def get_number_task_demos(self, task_index):
+		return self.num_demos[task_index]
+
+	def get_task_demo(self, task_index, index):
+
+		if index>=self.num_demos[task_index]:
+			print("Out of bounds of dataset.")
+			return None		
+
+		data_element = self.files[task_index][index]
+
+		resample_length = len(data_element['demo'])//self.args.ds_freq
+		# print("Orig:", len(data_element['demo']),"New length:",resample_length)
+
+		self.kernel_bandwidth = self.args.smoothing_kernel_bandwidth
+
+		if resample_length<=1 or data_element['robot-state'].shape[0]==0:			
+			data_element['is_valid'] = False			
+		else:
+			data_element['is_valid'] = True
 
 			if self.args.smoothen:
 				data_element['demo'] = gaussian_filter1d(data_element['demo'],self.kernel_bandwidth,axis=0,mode='nearest')
