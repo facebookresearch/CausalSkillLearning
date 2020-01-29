@@ -2920,7 +2920,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
 		# Now concatenate info with... conditional_information
 		policy_inputs = np.concatenate([concatenated_traj, self.conditional_information], axis=1) 
-		embed()
+		
 		if sample_traj is not None:
 
 			# Add zeros to the last action, so that we evaluate likelihood correctly. 
