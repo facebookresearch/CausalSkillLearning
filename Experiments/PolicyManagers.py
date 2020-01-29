@@ -2831,10 +2831,10 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		# super(PolicyManager_Imitation, self).__init__(number_policies, dataset, args)
+		super(PolicyManager_Imitation, self).__init__(number_policies, dataset, args)
 		# Explicitly run inits to make sure inheritance is good.
-		PolicyManager_Pretrain.__init__(self, number_policies, dataset, args)
-		PolicyManager_BaselineRL.__init__(self, args)
+		# PolicyManager_Pretrain.__init__(self, number_policies, dataset, args)
+		# PolicyManager_BaselineRL.__init__(self, args)
 
 		# Set train only policy to true.
 		self.args.train_only_policy = 1
