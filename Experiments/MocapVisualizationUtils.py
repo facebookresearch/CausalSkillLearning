@@ -23,7 +23,7 @@ def init():
 	done_with_render = False
 	global_positions = None
 	joint_parents = None
-	save_path = "~/Research/Code/"
+	save_path = "/private/home/tanmayshankar/Research/Code/"
 	name_prefix = "Viz_Image"
 	image_list = []
 	counter = 0

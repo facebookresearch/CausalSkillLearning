@@ -3,7 +3,7 @@ import MocapVisualizationUtils
 import threading, time, numpy as np
 
 # bvh_filename = "/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
-bvh_filename = "~/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
+bvh_filename = "/private/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
 filenames = [bvh_filename]
 file_num = 0
 
