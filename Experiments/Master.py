@@ -31,7 +31,7 @@ class Master():
 		elif self.args.setting=='baselineRL':
 			self.policy_manager = PolicyManager_BaselineRL(args=self.args)
 		elif self.args.setting=='downstreamRL':
-			self.policy_manager = PolicyManager_DownstreamRL(self.args)
+			self.policy_manager = PolicyManager_DownstreamRL(args=self.args)
 		elif self.args.setting=='DMP':			
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='imitation':
