@@ -2918,10 +2918,10 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		############# (0) #############
 		# Get sample we're going to train on.		
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
-		# Now concatenate info with... conditional_information
-		policy_inputs = np.concatenate([concatenated_traj, self.conditional_information], axis=1) 
-		
+
 		if sample_traj is not None:
+			# Now concatenate info with... conditional_information
+			policy_inputs = np.concatenate([concatenated_traj, self.conditional_information], axis=1) 	
 
 			# Add zeros to the last action, so that we evaluate likelihood correctly. 
 			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
