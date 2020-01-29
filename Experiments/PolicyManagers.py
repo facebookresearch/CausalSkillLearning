@@ -184,7 +184,7 @@ class PolicyManager_BaseClass():
 			self.visualizer = SawyerVisualizer()
 			# self.state_dim = 8
 		elif self.args.data=='Mocap':
-			self.visualizer = MocapVisualizer()
+			self.visualizer = MocapVisualizer(args=self.args)
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# These are lists because they're variable length individually.
@@ -291,6 +291,7 @@ class PolicyManager_BaseClass():
 			unnorm_gt_trajectory = trajectory
 			unnorm_pred_trajectory = trajectory_rollout
 
+					
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
 		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True)
 		

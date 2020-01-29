@@ -9,7 +9,7 @@ def load_animation_data(bvh_filename):
     animation, joint_names, time_per_frame = BVH.load(bvh_filename)
     global_positions = Animation.positions_global(animation)
     # return global_positions, joint_parents, time_per_frame
-    return global_positions, animation.positions, animation.rotations
+    return global_positions, animation.positions, animation.rotations, animation
 
 # Set directory. 
 directory = "/checkpoint/dgopinath/amass/CMU"
@@ -27,7 +27,7 @@ for i in range(len(filelist)):
 	# Get filename. 
 	filename = os.path.join(directory, filelist[i])
 	# Actually load file. 
-	global_positions, local_positions, local_rotations = load_animation_data(filename)
+	global_positions, local_positions, local_rotations, animation = load_animation_data(filename)
 
 	# Create data element object.
 	data_element = {}
@@ -35,6 +35,7 @@ for i in range(len(filelist)):
 	data_element['local_positions'] = local_positions
 	# Get quaternion as array.
 	data_element['local_rotations'] = local_rotations.qs	
+	data_element['animation'] = animation
 
 	demo_list.append(data_element)
 

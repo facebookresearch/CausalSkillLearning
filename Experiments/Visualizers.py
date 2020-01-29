@@ -193,13 +193,18 @@ class BaxterVisualizer():
 
 class MocapVisualizer():
 
-	def __init__(self, has_display=False):
+	def __init__(self, has_display=False, args=None):
 
 		# Load some things from the MocapVisualizationUtils and set things up so that they're ready to go. 
 		# self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
 		# 						origin=np.array([0.0, 0.0, 0.0]), 
 		# 						vup=np.array([0.0, 0.0, 1.0]), 
 		# 						fov=45.0)
+
+		self.args = args
+
+		# Default is local data. 
+		self.global_data = False
 
 		self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([4.5, 0.0, 2.0]),
 								origin=np.array([0.0, 0.0, 0.0]), 
@@ -252,13 +257,20 @@ class MocapVisualizer():
 
 		image_list = []
 
-		# Assume trajectory is number of timesteps x number_dimensions. 
-		# Convert to number_of_timesteps x number_of_joints x 3.
-		predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
+		if self.global_data:
+			# If we predicted in the global setting, just reshape.
+			predicted_global_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions)) 
 
-		# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
-		predicted_global_positions = self.get_global_positions(predicted_local_positions)
+		else:
+			# If it's local data, then transform to global. 
+			# Assume trajectory is number of timesteps x number_dimensions. 
+			# Convert to number_of_timesteps x number_of_joints x 3.
+			predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
 
+			# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
+			predicted_global_positions = self.get_global_positions(predicted_local_positions)
+
+		# Copy into the global variable.
 		MocapVisualizationUtils.global_positions = predicted_global_positions
 
 		# Reset Image List. 
