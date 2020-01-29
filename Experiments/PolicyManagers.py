@@ -1919,7 +1919,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.max_timesteps = 250
 		self.gamma = 0.99
 		self.batch_size = 10
-		self.number_test_episodes = 10
+		self.number_test_episodes = 100
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
@@ -2856,7 +2856,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Create Mujoco environment. 
 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
-		
+
 		self.gripper_open = np.array([0.0115, -0.0115])
 		self.gripper_closed = np.array([-0.020833, 0.020833])
 
@@ -2934,7 +2934,6 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 			logprobabilities, _ = self.policy_network.forward(torch.tensor(policy_inputs).cuda().float(), padded_action_seq)
 
 			if self.args.train:
-
 				if self.args.debug:
 					if self.iter%self.args.debug==0:
 						print("Embedding in Train Function.")
