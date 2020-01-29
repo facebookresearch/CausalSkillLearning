@@ -29,7 +29,7 @@ class Master():
 		elif self.args.setting=='pretrain_sub':
 			self.policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='baselineRL':
-			self.policy_manager = PolicyManager_BaselineRL(self.args)
+			self.policy_manager = PolicyManager_BaselineRL(args=self.args)
 		elif self.args.setting=='downstreamRL':
 			self.policy_manager = PolicyManager_DownstreamRL(self.args)
 		elif self.args.setting=='DMP':			

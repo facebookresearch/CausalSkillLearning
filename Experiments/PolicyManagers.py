@@ -448,7 +448,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_Pretrain, self).__init__()
+		super(PolicyManager_Pretrain, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 
 		self.args = args
 		self.data = self.args.data
@@ -1903,9 +1903,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
-	def __init__(self, args):
+	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_BaselineRL, self).__init__()
+		super(PolicyManager_BaselineRL, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 
 		# Create environment, setup things, etc. 
 		self.args = args		
@@ -2831,7 +2831,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_Imitation, self).__init__(number_policies, dataset, args)
+		super(PolicyManager_Imitation, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 		# Explicitly run inits to make sure inheritance is good.
 		# PolicyManager_Pretrain.__init__(self, number_policies, dataset, args)
 		# PolicyManager_BaselineRL.__init__(self, args)
