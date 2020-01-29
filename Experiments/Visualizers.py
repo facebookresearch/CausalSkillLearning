@@ -2,14 +2,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import math
-import numpy as np
 from absl import flags, app
-import pdb
-import scipy.misc
-import imageio
-import copy
-import os
+import copy, os, imageio, scipy.misc, pdb, math, time, numpy as np
 
 import robosuite, threading
 from robosuite.wrappers import IKWrapper

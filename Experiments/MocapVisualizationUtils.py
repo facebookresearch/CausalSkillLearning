@@ -56,21 +56,22 @@ def render_pose_by_capsule(global_positions, frame_num, joint_parents, scale=1.0
 def render_callback_time_independent():	
 	global global_positions, joint_parents, counter
 
-	gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='z', origin=True, use_arrow=True)
+	if counter<global_positions.shape[0]:
+		gl_render.render_ground(size=[100, 100], color=[0.8, 0.8, 0.8], axis='z', origin=True, use_arrow=True)
 
-	# Render Shadow of Character
+		# Render Shadow of Character
 
-	glEnable(GL_DEPTH_TEST)
-	glDisable(GL_LIGHTING)
-	glPushMatrix()
-	glTranslatef(0, 0, 0.001)
-	glScalef(1, 1, 0)
-	render_pose_by_capsule(global_positions, counter, joint_parents, color=[0.5,0.5,0.5,1.0])	
-	glPopMatrix()
+		glEnable(GL_DEPTH_TEST)
+		glDisable(GL_LIGHTING)
+		glPushMatrix()
+		glTranslatef(0, 0, 0.001)
+		glScalef(1, 1, 0)
+		render_pose_by_capsule(global_positions, counter, joint_parents, color=[0.5,0.5,0.5,1.0])	
+		glPopMatrix()
 
-	# Render Character
-	glEnable(GL_LIGHTING)
-	render_pose_by_capsule(global_positions, counter, joint_parents, color=np.array([85, 160, 173, 255])/255.0)
+		# Render Character
+		glEnable(GL_LIGHTING)
+		render_pose_by_capsule(global_positions, counter, joint_parents, color=np.array([85, 160, 173, 255])/255.0)
 			
 # Callback that runs rendering when the global variable is set to true.
 def idle_callback():
