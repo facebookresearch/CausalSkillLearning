@@ -54,7 +54,7 @@ class SawyerVisualizer():
 		image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
 		return image
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
 
 		image_list = []
 		for t in range(trajectory.shape[0]):
@@ -171,7 +171,7 @@ class BaxterVisualizer():
 		image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
 		return image
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
 
 		image_list = []
 		for t in range(trajectory.shape[0]):
@@ -263,7 +263,7 @@ class MocapVisualizer():
 		# Now return coordinates. 
 		return transformed_global_positions
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
 
 		image_list = []
 

@@ -296,10 +296,10 @@ class PolicyManager_BaseClass():
 			animation_object = self.dataset[i]['animation']
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
-		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True)
+		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True, additional_info=animation_object)
 		
 		# 4) Run unnormalized rollout trajectory in visualizer. 
-		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
+		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True, additional_info=animation_object)
 		
 		self.gt_gif_list.append(copy.deepcopy(ground_truth_gif))
 		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
