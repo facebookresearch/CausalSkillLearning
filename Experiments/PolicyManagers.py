@@ -2002,7 +2002,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		return action, hidden
 
-	def get_OU_action(self, hidden=None, random=False, counter=0):
+	def get_OU_action(self, hidden=None, random=False, counter=0, evaluate=False):
 
 		if random==True:
 			action = 2*np.random.random((self.output_size))-1
@@ -2020,8 +2020,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		else:
 			action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
 
-		# Perturb action with noise. 			
-		perturbed_action = self.NoiseProcess.get_action(action, counter)
+		if evaluate:
+			perturbed_action = action
+		else:
+			# Perturb action with noise. 			
+			perturbed_action = self.NoiseProcess.get_action(action, counter)
 
 		return perturbed_action, hidden
 
@@ -2046,11 +2049,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			if test:
-				action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
-			else:
-				# action, hidden = self.get_action(hidden=hidden,random=random)
-				action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
+			# action, hidden = self.get_action(hidden=hidden,random=random)
+			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter, evaluate=test)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
@@ -2271,7 +2271,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 			episode_counter += 1			
 
-	def evaluate(self, model=None):		
+	def evaluate(self, model=None):
 
 		if model is not None:
 			print("Loading model in training.")
@@ -2282,8 +2282,22 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# For number of test episodes. 
 		for eps in range(self.number_test_episodes):
 			# Run an iteration (and rollout)...
-			self.run_iteration(eps)
+			self.run_iteration(eps, evaluate=True)
 			self.total_rewards[eps] = np.array(self.reward_trajectory).sum()
+
+		# Create save directory to save these results. 
+		upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+		if not(os.path.isdir(upper_dir_name)):
+			os.mkdir(upper_dir_name)
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		np.save(os.path.join(self.dir_name,"Total_Rewards_{0}.npy".format(self.args.name)),self.total_rewards)
+		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.mean_rewards)
 
 	def train(self, model=None):
 
@@ -2775,7 +2789,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 		embed()
 
-class PolicyManager_Imitation(PolicyManager_Pretrain):
+class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
@@ -2853,3 +2867,34 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 
 				# Update plots.
 				self.update_plots(counter, logprobabilities)
+
+	def evaluate(self, model=None):
+
+		if model is not None:
+			self.load_all_models(model)
+
+		self.total_rewards = np.zeros((self.number_test_episodes))
+
+		# Set parameters like epsilon.
+		self.set_parameters(0, evaluate=True)
+
+		# For number of test episodes. 
+		for eps in range(self.number_test_episodes):
+			# Now run a rollout. 
+			self.rollout(random=False, test=True)
+
+			self.total_rewards[eps] = np.array(self.reward_trajectory).sum()
+
+		# Create save directory to save these results. 
+		upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+		if not(os.path.isdir(upper_dir_name)):
+			os.mkdir(upper_dir_name)
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		np.save(os.path.join(self.dir_name,"Total_Rewards_{0}.npy".format(self.args.name)),self.total_rewards)
+		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.mean_rewards)
