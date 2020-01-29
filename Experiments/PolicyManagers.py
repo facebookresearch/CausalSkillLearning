@@ -1838,6 +1838,35 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				if self.args.debug:
 					embed()			
 
+	def evaluate_metrics(self):
+		self.distances = -np.ones((self.test_set_size))
+
+		# Get test set elements as last (self.test_set_size) number of elements of dataset.
+		for i in range(self.test_set_size):
+
+			index = i + len(self.dataset)-self.test_set_size
+			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
+
+			_, _, _ = self.rollout_variational_network(0, i)
+
+			self.distances[i] = ((sample_traj-self.variational_trajectory_rollout)**2).mean()	
+
+		self.mean_distance = self.distances[self.distances>0].mean()
+
+		# Create save directory:
+		upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+		if not(os.path.isdir(upper_dir_name)):
+			os.mkdir(upper_dir_name)
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
+		np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+
 	def evaluate(self, model):
 
 		self.set_epoch(0)
@@ -1846,6 +1875,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.load_all_models(model)
 
 		np.set_printoptions(suppress=True,precision=2)
+
+		print("Running Evaluation of State Distances on small test set.")
+		self.evaluate_metrics()
 
 		# Visualize space if the subpolicy has been trained...
 		if (self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk') and (self.args.fix_subpolicy==0):
@@ -1933,6 +1965,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.critic_network.load_state_dict(load_object['Critic_Network'])
 
 	def setup(self):
+		# Calling a special RL setup function. This is because downstream classes inherit (and may override setup), but will still inherit RL_setup intact.
+		self.RL_setup()
+
+	def RL_setup(self):
 		# Create Mujoco environment. 
 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
@@ -2800,6 +2836,9 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 		# Get task index from task name.
 		self.demo_task_index = np.where(np.array(self.dataset.environment_names)==self.args.environment)[0][0]
+
+		# Setup RL environment, etc. 
+		self.RL_setup()
 
 	def create_networks(self):
 
