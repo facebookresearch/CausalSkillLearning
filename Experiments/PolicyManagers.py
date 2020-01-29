@@ -157,8 +157,11 @@ class PolicyManager_BaseClass():
 		# Writing new automatic evaluation that parses arguments and creates an identical command loading the appropriate model. 
 		# Note: If the initial command loads a model, ignore that. 
 
-		command_args = self.args._get_kwargs()
+		command_args = self.args._get_kwargs()			
 		base_command = 'python Master.py --train=0 --model={0}'.format("Experiment_Logs/{0}/saved_models/Model_epoch{1}".format(self.args.name, e))
+
+		if self.args.data=='Mocap':
+			base_command = 'xvfb-run-safe' + base_command
 
 		# For every argument in the command arguments, add it to the base command with the value used, unless it's train or model. 
 		for ar in command_args:

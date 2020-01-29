@@ -270,7 +270,6 @@ class MocapVisualizer():
 		if self.global_data:
 			# If we predicted in the global setting, just reshape.
 			predicted_global_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions)) 
-
 		else:
 			# If it's local data, then transform to global. 
 			# Assume trajectory is number of timesteps x number_dimensions. 
