@@ -2843,17 +2843,29 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Get task index from task name.
 		self.demo_task_index = np.where(np.array(self.dataset.environment_names)==self.args.environment)[0][0]
 
+	def setup():
 		# Fixing seeds.
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
 		np.set_printoptions(suppress=True,precision=2)
 
-		# Setup RL environment, etc. 
-		self.RL_setup()
-
 		# Create index list.
 		extent = self.dataset.get_number_task_demos(self.demo_task_index)
 		self.index_list = np.arange(0,extent)	
+
+		# Create Mujoco environment. 
+		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
+		
+		# Get input and output sizes from these environments, etc. 
+		self.obs = self.environment.reset()		
+		# Create networks. 
+		self.create_networks()
+		self.create_training_ops()		
+		self.initialize_plots()
+
+		# Create Noise process. 
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+
 
 	def create_networks(self):
 
