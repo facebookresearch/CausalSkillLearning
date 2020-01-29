@@ -118,7 +118,7 @@ def idle_callback_return():
 	if whether_to_render and counter<global_positions.shape[0]:	
 	# if whether_to_render and counter<10:	
 
-		print("Whether to render is actually true, with counter:",counter)
+		# print("Whether to render is actually true, with counter:",counter)
 		# render_callback_time_independent()
 		viewer.drawGL()
 		name = "Image_{}_{}".format(name_prefix, counter)
