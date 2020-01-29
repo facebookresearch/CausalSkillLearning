@@ -2046,8 +2046,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			# action, hidden = self.get_action(hidden=hidden,random=random)
-			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
+			if test:
+				action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+			else:
+				# action, hidden = self.get_action(hidden=hidden,random=random)
+				action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
@@ -2273,7 +2276,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		if model is not None:
 			print("Loading model in training.")
 			self.load_all_models(model)
-			
+
 		self.total_rewards = np.zeros((self.number_test_episodes))
 
 		# For number of test episodes. 
@@ -2492,7 +2495,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		else:
 			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
-	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None):
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None, test=False):
 
 		# if random==True:
 		# 	action = 2*np.random.random((self.output_size))-1
@@ -2513,9 +2516,12 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 		# Numpy action
 		action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
-
-		# Perturb action with noise. 			
-		perturbed_action = self.NoiseProcess.get_action(action, counter)
+		
+		if test:
+			perturbed_action = action
+		else:	
+			# Perturb action with noise. 			
+			perturbed_action = self.NoiseProcess.get_action(action, counter)
 
 		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
 
@@ -2545,7 +2551,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		while not(terminal) and counter<self.max_timesteps:
 
 			# Get the action to execute, b, z, and hidden states. 
-			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z)
+			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z, test=test)
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
