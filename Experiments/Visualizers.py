@@ -260,7 +260,7 @@ class MocapVisualizer():
 		MocapVisualizationUtils.image_list = []
 		# Set save_path and prefix.
 		MocapVisualizationUtils.save_path = gif_path
-		MocapVisualizationUtils.name_prefix = gif_name
+		MocapVisualizationUtils.name_prefix = gif_name.rstrip('.gif')
 		# Now set the whether_to_render as true. 
 		MocapVisualizationUtils.whether_to_render = True
 
