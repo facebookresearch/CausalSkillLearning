@@ -54,7 +54,7 @@ class Master():
 				if self.args.setting=='pretrain_prior':
 					self.policy_manager.train(self.args.model)
 				else:
-					self.policy_manager.evaluate(self.args.model)		
+					self.policy_manager.evaluate(model=self.args.model)		
 				
 		elif self.args.setting=='learntsub':
 			if self.args.train:
@@ -100,7 +100,7 @@ def parse_arguments():
 	parser.add_argument('--data',dest='data',type=str,default='Continuous')
 	parser.add_argument('--setting',dest='setting',type=str,default='gtsub')
 	parser.add_argument('--test_code',dest='test_code',type=int,default=0)
-	parser.add_argument('--model',dest='model',type=str)	
+	parser.add_argument('--model',dest='model',type=str)
 	parser.add_argument('--logdir',dest='logdir',type=str,default='Experiment_Logs/')
 
 	# Training setting. 

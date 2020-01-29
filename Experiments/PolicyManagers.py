@@ -978,7 +978,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
-	def evaluate(self, model):
+	def evaluate(self, model=model):
 		if model:
 			self.load_all_models(model)
 
@@ -2310,7 +2310,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 			episode_counter += 1			
 
-	def evaluate(self, model=None):
+	def evaluate(self, epoch=None, model=None):
 
 		if model is not None:
 			print("Loading model in training.")
@@ -2372,7 +2372,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			print("Running Episode: ",e)
 
 			if e%self.args.eval_freq==0:
-				self.evaluate(e)
+				self.evaluate(epoch=e, model=None)
 
 class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
@@ -2912,7 +2912,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 				# Update plots.
 				self.update_plots(counter, logprobabilities)
 
-	def evaluate(self, model=None):
+	def evaluate(self, epoch=None, model=None):
 
 		if model is not None:
 			self.load_all_models(model)
@@ -2922,7 +2922,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Set parameters like epsilon.
 		self.set_parameters(0, evaluate=True)
 
-		# For number of test episodes. 
+		# For number of test episodes.
 		for eps in range(self.number_test_episodes):
 			# Now run a rollout. 
 			self.rollout(random=False, test=True)
