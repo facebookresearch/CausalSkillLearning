@@ -22,7 +22,12 @@ class PolicyManager_BaseClass():
 		# self.create_util_ops()
 		# self.initialize_gt_subpolicies()
 
-		self.index_list = np.arange(0,len(self.dataset)-self.test_set_size)	
+		if self.args.setting=='imitation':
+			extent = self.dataset.get_number_task_demos(self.demo_task_index)
+		else:
+			extent = len(self.dataset)-self.test_set_size
+
+		self.index_list = np.arange(0,extent)	
 		self.initialize_plots()
 
 	def initialize_plots(self):
@@ -2803,7 +2808,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 		self.iter = counter
 
 		############# (0) #############
-		# Get sample we're going to train on.
+		# Get sample we're going to train on.		
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
 
 		if sample_traj is not None:
