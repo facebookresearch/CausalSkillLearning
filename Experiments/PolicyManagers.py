@@ -114,7 +114,7 @@ class PolicyManager_BaseClass():
 				object_states = data_element['object-state']
 
 				# Don't set this if pretraining / baseline.
-				if self.args.setting=='learntsub':
+				if self.args.setting=='learntsub' or self.args.setting=='imitation':
 					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 					self.conditional_information[:,:self.cond_robot_state_size] = robot_states
 					# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
@@ -2858,6 +2858,11 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()		
+		self.output_size = self.environment.action_spec[0].shape[0]
+		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		# Input size.. state, action, conditional
+		self.input_size = self.state_size + self.output_size*2
+
 		# Create networks. 
 		self.create_networks()
 		self.create_training_ops()		
@@ -2865,7 +2870,6 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 		# Create Noise process. 
 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
-
 
 	def create_networks(self):
 
@@ -2912,6 +2916,8 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		############# (0) #############
 		# Get sample we're going to train on.		
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+		# Now concatenate info with... conditional_information
+		policy_inputs = np.concatenate([concatenated_traj, self.conditional_info], axis=1) 
 
 		if sample_traj is not None:
 
@@ -2919,7 +2925,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 
 			# Feed concatenated trajectory into the policy. 
-			logprobabilities, _ = self.policy_network.forward(torch.tensor(concatenated_traj).cuda().float(), padded_action_seq)
+			logprobabilities, _ = self.policy_network.forward(torch.tensor(policy_inputs).cuda().float(), padded_action_seq)
 
 			if self.args.train:
 
@@ -2933,6 +2939,40 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 				# Update plots.
 				self.update_plots(counter, logprobabilities)
+
+	def get_transformed_gripper_value(self, gripper_finger_values):
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+
+		finger_diff = gripper_values[1]-gripper_values[0]
+		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+		return gripper_value
+
+	def get_state_action_row(self, t=-1):
+
+		# The state that we want is ... joint state?
+		gripper_finger_values = self.state_trajectory[t]['gripper_qpos']
+
+		if len(self.action_trajectory)==0 or t==0:
+			return np.concatenate([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), np.zeros((1,1)), np.zeros((1,self.output_size))],axis=1)
+		elif t==-1:
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t].reshape((1,-1))],axis=1)
+		else: 
+			return np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[t-1].reshape((1,-1))],axis=1)
+
+	def get_current_input_row(self, t=-1):
+		# Rewrite this funciton so that the baselineRL Rollout class can still use it here...
+		# First get conditional information.
+
+		# Get robot and object state.
+		conditional_info = np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
+
+		# Get state actions..
+		state_action = self.get_state_action_row()
+
+		# Concatenate.
+		input_row = np.concatenate([state_action, conditional_info],axis=1)
+
+		return input_row
 
 	def evaluate(self, epoch=None, model=None):
 
