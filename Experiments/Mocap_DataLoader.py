@@ -18,7 +18,7 @@ class Mocap_Dataset(Dataset):
 		# Load the entire set of trajectories. 
 		self.data_list = np.load(os.path.join(self.dataset_directory, "Demo_Array.npy"),allow_pickle=True)
 		self.dataset_length = len(self.data_list)
-		self.ds_freq = 10	
+		self.ds_freq = 5
 	
 	def __len__(self):
 		# Return length of file list. 

@@ -196,7 +196,12 @@ class MocapVisualizer():
 	def __init__(self, has_display=False):
 
 		# Load some things from the MocapVisualizationUtils and set things up so that they're ready to go. 
-		self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
+		# self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
+		# 						origin=np.array([0.0, 0.0, 0.0]), 
+		# 						vup=np.array([0.0, 0.0, 1.0]), 
+		# 						fov=45.0)
+
+		self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([3.0, 0.0, 2.0]),
 								origin=np.array([0.0, 0.0, 0.0]), 
 								vup=np.array([0.0, 0.0, 1.0]), 
 								fov=45.0)
