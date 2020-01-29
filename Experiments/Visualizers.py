@@ -239,8 +239,7 @@ class MocapVisualizer():
 	def get_global_positions(self, positions):
 		# Function to get global positions corresponding to predicted or actual local positions.
 
-		traj_len = positions.shape[0]+1
-		embed()
+		traj_len = positions.shape[0]
 		# First create a dummy animation object. 
 		new_animation_object = Animation.Animation(self.animation_object.rotations[:traj_len], positions, self.animation_object.orients[:traj_len], self.animation_object.offsets[:traj_len], self.animation_object.parents[:traj_len])
 
