@@ -2856,6 +2856,10 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Create Mujoco environment. 
 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
+		
+		self.gripper_open = np.array([0.0115, -0.0115])
+		self.gripper_closed = np.array([-0.020833, 0.020833])
+
 		# Get input and output sizes from these environments, etc. 
 		self.obs = self.environment.reset()		
 		self.output_size = self.environment.action_spec[0].shape[0]
