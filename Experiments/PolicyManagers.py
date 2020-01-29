@@ -517,8 +517,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			# Max of robot_state + object_state sizes across all sawyer environments. 
 			# Robot size always 30. Max object state size is... 23. 
-			self.cond_robot_state_size = 30
-			self.cond_object_state_size = 23
+			self.cond_robot_state_size = 30			
+			self.cond_object_state_size = 23			
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 
 		elif self.args.data=='Mocap':
@@ -2860,6 +2860,8 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		self.obs = self.environment.reset()		
 		self.output_size = self.environment.action_spec[0].shape[0]
 		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+
+		self.conditional_info_size = self.state_size
 		# Input size.. state, action, conditional
 		self.input_size = self.state_size + self.output_size*2
 
