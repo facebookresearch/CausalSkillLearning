@@ -1983,8 +1983,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 		# Create networks. 
 		self.create_networks()
-		self.create_training_ops()
-		
+		self.create_training_ops()		
 		self.initialize_plots()
 
 		# Create Noise process. 
@@ -2844,8 +2843,17 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Get task index from task name.
 		self.demo_task_index = np.where(np.array(self.dataset.environment_names)==self.args.environment)[0][0]
 
+		# Fixing seeds.
+		np.random.seed(seed=0)
+		torch.manual_seed(0)
+		np.set_printoptions(suppress=True,precision=2)
+
 		# Setup RL environment, etc. 
 		self.RL_setup()
+
+		# Create index list.
+		extent = self.dataset.get_number_task_demos(self.demo_task_index)
+		self.index_list = np.arange(0,extent)	
 
 	def create_networks(self):
 
