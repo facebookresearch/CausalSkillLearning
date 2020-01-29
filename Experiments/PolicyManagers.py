@@ -2817,7 +2817,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 
 			# Feed concatenated trajectory into the policy. 
-			logprobabilities, _ = self.policy_network.forward(torch.tensor(concatenated_traj).cuda().float(), torch.tensor(padded_action_seq).cuda().float())
+			logprobabilities, _ = self.policy_network.forward(torch.tensor(concatenated_traj).cuda().float(), padded_action_seq)
 
 			if self.args.train:
 
