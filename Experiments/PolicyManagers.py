@@ -2799,7 +2799,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 		# Take a step. 
 		self.optimizer.step()
 
-	def update_plots(self, logprobabilities):
+	def update_plots(self, counter, logprobabilities):
 		self.tf_logger.scalar_summary('Policy LogLikelihood', torch.mean(logprobabilities), counter)
 
 	def run_iteration(self, counter, i):
@@ -2830,4 +2830,4 @@ class PolicyManager_Imitation(PolicyManager_Pretrain):
 				self.update_policies(logprobabilities)
 
 				# Update plots.
-				self.update_plots(logprobabilities)
+				self.update_plots(counter, logprobabilities)
