@@ -2843,7 +2843,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Get task index from task name.
 		self.demo_task_index = np.where(np.array(self.dataset.environment_names)==self.args.environment)[0][0]
 
-	def setup():
+	def setup(self):
 		# Fixing seeds.
 		np.random.seed(seed=0)
 		torch.manual_seed(0)
