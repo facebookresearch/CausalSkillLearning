@@ -978,7 +978,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
-	def evaluate(self, model=model):
+	def evaluate(self, model=None):
 		if model:
 			self.load_all_models(model)
 
