@@ -1903,7 +1903,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
-	def __init__(self, args):
+	def __init__(self, number_policies=4, dataset=None, args=None):
 
 		# Create environment, setup things, etc. 
 		self.args = args		
