@@ -7,8 +7,8 @@ import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
 
-	def __init__(self, number_policies=4, dataset=None, args=None):
-		super(PolicyManager_BaseClass, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+	def __init__(self):
+		super(PolicyManager_BaseClass, self).__init__()
 
 	def setup(self):
 
