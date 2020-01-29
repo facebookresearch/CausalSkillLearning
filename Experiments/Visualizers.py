@@ -54,7 +54,7 @@ class SawyerVisualizer():
 		image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
 		return image
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
 
 		image_list = []
 		for t in range(trajectory.shape[0]):
@@ -171,7 +171,7 @@ class BaxterVisualizer():
 		image = np.flipud(self.environment.sim.render(600, 600, camera_name='vizview1'))
 		return image
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
 
 		image_list = []
 		for t in range(trajectory.shape[0]):
@@ -240,12 +240,22 @@ class MocapVisualizer():
 			idle_callback=MocapVisualizationUtils.idle_callback_return,
 		) 
 
-	def get_global_positions(self, positions):
+	def get_global_positions(self, positions, animation_object=None):
 		# Function to get global positions corresponding to predicted or actual local positions.
 
 		traj_len = positions.shape[0]
-		# First create a dummy animation object. 
-		new_animation_object = Animation.Animation(self.animation_object.rotations[:traj_len], positions, self.animation_object.orients, self.animation_object.offsets, self.animation_object.parents)
+
+		def resample(original_trajectory, desired_number_timepoints):
+			original_traj_len = len(original_trajectory)
+			new_timepoints = np.linspace(0, original_traj_len-1, desired_number_timepoints, dtype=int)
+			return original_trajectory[new_timepoints]
+
+		if animation_object is not None:
+			# Now copy over from animation_object instead of just dummy animation object.
+			new_animation_object = Animation.Animation(resample(animation_object.rotations, traj_len), positions, animation_object.orients, animation_object.offsets, animation_object.parents)
+		else:	
+			# Create a dummy animation object. 
+			new_animation_object = Animation.Animation(self.animation_object.rotations[:traj_len], positions, self.animation_object.orients, self.animation_object.offsets, self.animation_object.parents)
 
 		# Then transform them.
 		transformed_global_positions = Animation.positions_global(new_animation_object)
@@ -253,7 +263,7 @@ class MocapVisualizer():
 		# Now return coordinates. 
 		return transformed_global_positions
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False):
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=False):
 
 		image_list = []
 
@@ -268,7 +278,7 @@ class MocapVisualizer():
 			predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
 
 			# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
-			predicted_global_positions = self.get_global_positions(predicted_local_positions)
+			predicted_global_positions = self.get_global_positions(predicted_local_positions, animation_object=additional_info)
 
 		# Copy into the global variable.
 		MocapVisualizationUtils.global_positions = predicted_global_positions

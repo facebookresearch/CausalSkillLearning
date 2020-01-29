@@ -35,6 +35,7 @@ class Mocap_Dataset(Dataset):
 			demo = resample(item['local_positions'], resample_length)
 			item['local_positions'] = demo
 			item['local_rotations'] = resample(item['local_rotations'], resample_length)
+			item['animation'] = resample(item['animation'], resample_length)
 						
 			# Replicate as demo for downstream dataloading. # Reshape to TxNumber of dimensions.
 			item['demo'] = demo.reshape((demo.shape[0],-1))
