@@ -1884,6 +1884,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.max_timesteps = 250
 		self.gamma = 0.99
 		self.batch_size = 10
+		self.number_test_episodes = 100
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
@@ -1950,8 +1951,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# Create Noise process. 
 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
 
-	def set_parameters(self, episode_counter):
-		if self.args.train:
+	def set_parameters(self, episode_counter, evaluate=False):
+		if self.args.train and not(evaluate):
 			if episode_counter<self.decay_episodes:
 				self.epsilon = self.initial_epsilon-self.decay_rate*episode_counter
 			else:
@@ -2224,22 +2225,23 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# Now that we've updated these into TB, reset stats. 
 		self.reset_statistics()
 
-	def run_iteration(self, counter):
+	def run_iteration(self, counter, evaluate=False):
 
 		# This is really a run episode function. Ignore the index, just use the counter. 
 		# 1) 	Rollout trajectory. 
 		# 2) 	Collect stats / append to memory and stuff.
 		# 3) 	Update policies. 
-		self.set_parameters(counter)
 
+		self.set_parameters(counter, evaluate=evaluate)
 		# Maintain counter to keep track of updating the policy regularly. 			
 
 		# cProfile.runctx('self.rollout()',globals(), locals(),sort='cumtime')
-		self.rollout(random=False)
+		self.rollout(random=False, test=evaluate)
 
-		self.memory.append_to_memory(self.episode)
+		if self.args.train and not(evaluate):
 
-		if self.args.train:
+			# If training, append to memory. 
+			self.memory.append_to_memory(self.episode)
 			# Update on batch. 
 			self.update_batch()
 			# Update plots. 
@@ -2265,6 +2267,20 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			self.memory.append_to_memory(self.episode)
 
 			episode_counter += 1			
+
+	def evaluate(self, model=None):		
+
+		if model is not None:
+			print("Loading model in training.")
+			self.load_all_models(model)
+			
+		self.total_rewards = np.zeros((self.number_test_episodes))
+
+		# For number of test episodes. 
+		for eps in range(self.number_test_episodes):
+			# Run an iteration (and rollout)...
+			self.run_iteration(eps)
+			self.total_rewards[eps] = np.array(self.reward_trajectory).sum()
 
 	def train(self, model=None):
 
@@ -2299,8 +2315,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			print("#############################")
 			print("Running Episode: ",e)
 
-			# if e%self.args.eval_freq==0:
-			# 	self.automatic_evaluation(e)
+			if e%self.args.eval_freq==0:
+				self.evaluate(e)
 
 class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 

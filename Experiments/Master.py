@@ -44,7 +44,7 @@ class Master():
 		self.policy_manager.setup()
 
 	def run(self):
-		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or self.args.setting=='imitation':
+		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or self.args.setting=='imitation' or self.args.setting=='baselineRL' or self.args.setting=='downstreamRL':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
@@ -69,12 +69,12 @@ class Master():
 				# self.policy_manager.train(self.args.model)
 				self.policy_manager.evaluate(self.args.model)
 
-		elif self.args.setting=='baselineRL' or self.args.setting=='downstreamRL':
-			if self.args.train:
-				if self.args.model:
-					self.policy_manager.train(self.args.model)
-				else:
-					self.policy_manager.train()			
+		# elif self.args.setting=='baselineRL' or self.args.setting=='downstreamRL':
+		# 	if self.args.train:
+		# 		if self.args.model:
+		# 			self.policy_manager.train(self.args.model)
+		# 		else:
+		# 			self.policy_manager.train()
 
 		elif self.args.setting=='DMP':
 			self.policy_manager.evaluate_across_testset()
