@@ -1908,7 +1908,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
 		print("Calling init of Baseline.")		
-		super(PolicyManager_BaselineRL, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+		# super(PolicyManager_BaselineRL, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+		super(PolicyManager_BaselineRL, self).__init__()
 
 		# Create environment, setup things, etc. 
 		self.args = args		
