@@ -2946,3 +2946,43 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 		np.save(os.path.join(self.dir_name,"Total_Rewards_{0}.npy".format(self.args.name)),self.total_rewards)
 		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.total_rewards.mean())
+
+	def train(self, model=None):
+
+		if model:
+			print("Loading model in training.")
+			self.load_all_models(model)		
+		counter = 0
+
+		# For number of training epochs. 
+		for e in range(self.number_epochs): 
+			
+			print("Starting Epoch: ",e)
+
+			if e%self.args.save_freq==0:
+				self.save_all_models("epoch{0}".format(e))
+
+			# self.automatic_evaluation(e)
+			np.random.shuffle(self.index_list)
+
+			if self.args.debug:
+				print("Embedding in Outer Train Function.")
+				embed()
+
+			# For every item in the epoch:
+			if self.args.setting=='imitation':
+				extent = self.dataset.get_number_task_demos(self.demo_task_index)
+			else:
+				extent = len(self.dataset)-self.test_set_size
+
+			for i in range(extent):
+
+				print("Epoch: ",e," Trajectory:",i, "Datapoint: ", self.index_list[i])
+				self.run_iteration(counter, self.index_list[i])				
+
+				counter = counter+1
+
+			if e%self.args.eval_freq==0:
+				self.evaluate(e)
+
+		self.write_and_close()
