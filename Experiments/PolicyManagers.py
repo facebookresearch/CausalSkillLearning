@@ -1919,7 +1919,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.max_timesteps = 250
 		self.gamma = 0.99
 		self.batch_size = 10
-		self.number_test_episodes = 100
+		self.number_test_episodes = 10
 
 		# Per step decay. 
 		self.decay_rate = (self.initial_epsilon-self.final_epsilon)/(self.decay_episodes)
