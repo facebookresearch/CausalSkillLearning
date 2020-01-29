@@ -448,7 +448,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 	def __init__(self, number_policies=4, dataset=None, args=None):
 
-		super(PolicyManager_Pretrain, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+		super(PolicyManager_Pretrain, self).__init__()
 
 		self.args = args
 		self.data = self.args.data
