@@ -2315,6 +2315,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		if model is not None:
 			print("Loading model in training.")
 			self.load_all_models(model)
+			model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		else:
+			model_epoch = epoch
 
 		self.total_rewards = np.zeros((self.number_test_episodes))
 
@@ -2330,7 +2333,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		if not(os.path.isdir(upper_dir_name)):
 			os.mkdir(upper_dir_name)
 
-		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
@@ -2916,7 +2918,10 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 		if model is not None:
 			self.load_all_models(model)
-
+			model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		else:
+			model_epoch = epoch
+			
 		self.total_rewards = np.zeros((self.number_test_episodes))
 
 		# Set parameters like epsilon.
@@ -2935,7 +2940,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		if not(os.path.isdir(upper_dir_name)):
 			os.mkdir(upper_dir_name)
 
-		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
