@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader, Mocap_DataLoader
-from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, PolicyManager_DMPBaselines, PolicyManager_BaselineRL
+from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, PolicyManager_DMPBaselines, PolicyManager_BaselineRL, PolicyManager_Imitation
 import TestClass
 
 class Master():
