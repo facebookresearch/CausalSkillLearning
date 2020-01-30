@@ -974,9 +974,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			if sample_traj is not None:
 
-				if self.conditional_viz_env:
-					self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
-
 				# Feed latent z to the rollout.
 				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
 				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
@@ -1853,6 +1850,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			index = i + len(self.dataset)-self.test_set_size
 			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
+
+			if self.conditional_viz_env:
+				self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
 
 			_, _, _ = self.rollout_variational_network(0, i)
 
