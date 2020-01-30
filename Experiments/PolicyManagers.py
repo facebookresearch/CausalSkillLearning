@@ -973,6 +973,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
 
 			if sample_traj is not None:
+
+				if self.conditional_viz_env:
+					self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
+
 				# Feed latent z to the rollout.
 				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
 				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
@@ -1046,7 +1050,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		if self.args.data=='MIME':
 			self.state_size = 16	
-			self.state_dim = 16		
+			self.state_dim = 16
 			self.input_size = 2*self.state_size
 			self.output_size = self.state_size			
 			self.traj_length = self.args.traj_length
@@ -3011,6 +3015,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
+
 
 		np.save(os.path.join(self.dir_name,"Total_Rewards_{0}.npy".format(self.args.name)),self.total_rewards)
 		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.total_rewards.mean())
