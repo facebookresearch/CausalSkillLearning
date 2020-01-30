@@ -2028,7 +2028,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.cummulative_rewards = None
 		self.episode = None
 
-	def get_action(self, hidden=None, random=True):
+	def get_action(self, hidden=None, random=True, counter=0, evaluate=False):
 
 		# Change this to epsilon greedy...
 		if random==False:
@@ -2043,7 +2043,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			# Using the incremental get actions. Still get action greedily, then add noise. 		
 			predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
-			if test:
+			if evaluate:
 				noise = torch.zeros_like(predicted_action).cuda().float()
 			else:
 				# Get noise from noise process. 					
@@ -2108,8 +2108,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 		while not(terminal) and counter<self.max_timesteps:
 
-			# action, hidden = self.get_action(hidden=hidden,random=random)
-			action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter, evaluate=test)
+			if self.args.OU:
+				action, hidden = self.get_OU_action(hidden=hidden,random=random,counter=counter, evaluate=test)
+			else:
+				action, hidden = self.get_action(hidden=hidden,random=random,counter=counter, evaluate=test)			
 				
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
