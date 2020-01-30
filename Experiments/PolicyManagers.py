@@ -2008,7 +2008,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.initialize_plots()
 
 		# Create Noise process. 
-		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
+		self.NoiseProcess = RLUtils.OUNoise(self.output_size, min_sigma=self.args.OU_min_sigma, max_sigma=self.args.OU_max_sigma)
 
 	def set_parameters(self, episode_counter, evaluate=False):
 		if self.args.train and not(evaluate):
