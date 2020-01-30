@@ -137,8 +137,9 @@ class Roboturk_Dataset(Dataset):
 
 	def preprocess_dataset(self):
 
-		for task_index in range(len(self.task_list)):
+		# for task_index in range(len(self.task_list)):
 		# for task_index in [3,5]:
+		for task_index in [0,1,2,4,6,7]:
 
 			print("#######################################")
 			print("Preprocessing task index: ", task_index)
