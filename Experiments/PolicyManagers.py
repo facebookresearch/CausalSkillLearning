@@ -140,6 +140,12 @@ class PolicyManager_BaseClass():
 
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
+			if e==0:
+
+				# Run special eval for debugging...
+				self.automatic_evaluation(e)
+
+
 
 			# self.automatic_evaluation(e)
 			np.random.shuffle(self.index_list)
@@ -1851,12 +1857,20 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			index = i + len(self.dataset)-self.test_set_size
 			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
 
-			if self.conditional_viz_env:
-				self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
+			# Collect inputs. 
+			sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
 
-			_, _, _ = self.rollout_variational_network(0, i)
+			# If valid
+			if sample_traj is not None:
 
-			self.distances[i] = ((sample_traj-self.variational_trajectory_rollout)**2).mean()	
+				# Create environment to get conditional info.
+				if self.conditional_viz_env:
+					self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
+
+				# Rollout variational. 
+				_, _, _ = self.rollout_variational_network(0, i)
+
+				self.distances[i] = ((sample_traj-self.variational_trajectory_rollout)**2).mean()	
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
