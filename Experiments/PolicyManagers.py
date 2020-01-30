@@ -2031,33 +2031,32 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def get_action(self, hidden=None, random=True, counter=0, evaluate=False):
 
 		# Change this to epsilon greedy...
-		if random==False:
-			whether_greedy = np.random.binomial(n=1,p=0.8)
-		else:
+		whether_greedy = np.random.binomial(n=1,p=0.8)
+
+		if random or not(whether_greedy):
 			action = 2*np.random.random((self.output_size))-1
+			return action, hidden	
 
-		if whether_greedy:
-			# Assemble states of current input row.
-			current_input_row = self.get_current_input_row()
+		# The rest of this will only be evaluated or run when random is false and when whether_greedy is true.
+		# Assemble states of current input row.
+		current_input_row = self.get_current_input_row()
 
-			# Using the incremental get actions. Still get action greedily, then add noise. 		
-			predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+		# Using the incremental get actions. Still get action greedily, then add noise. 		
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
-			if evaluate:
-				noise = torch.zeros_like(predicted_action).cuda().float()
-			else:
-				# Get noise from noise process. 					
-				noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
-
-			# Perturb action with noise. 			
-			perturbed_action = predicted_action + noise
-
-			if self.args.MLP_policy:
-				action = perturbed_action[-1].detach().cpu().numpy()
-			else:
-				action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
+		if evaluate:
+			noise = torch.zeros_like(predicted_action).cuda().float()
 		else:
-			action = 2*np.random.random((self.output_size))-1
+			# Get noise from noise process. 					
+			noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+
+		# Perturb action with noise. 			
+		perturbed_action = predicted_action + noise
+
+		if self.args.MLP_policy:
+			action = perturbed_action[-1].detach().cpu().numpy()
+		else:
+			action = perturbed_action[-1].squeeze(0).detach().cpu().numpy()		
 
 		return action, hidden
 
