@@ -125,9 +125,7 @@ class PolicyManager_BaseClass():
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
 
 			if self.args.setting=='imitation':
-				demo_action_sequence = RLUtils.resample(data_element['demonstrated_actions'],len(trajectory))
-				embed()
-				# action_sequence = 
+				action_sequence = RLUtils.resample(data_element['demonstrated_actions'],len(trajectory))
 				concatenated_traj = np.concatenate([trajectory, action_sequence],axis=1)
 
 			return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
@@ -2970,10 +2968,10 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Get sample we're going to train on.		
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
 
-		if sample_traj is not None:
+		if sample_traj is not None:			
 			# Now concatenate info with... conditional_information
 			policy_inputs = np.concatenate([concatenated_traj, self.conditional_information], axis=1) 	
-
+			embed()
 			# Add zeros to the last action, so that we evaluate likelihood correctly. 
 			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 
@@ -2993,11 +2991,8 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 				self.update_plots(counter, logprobabilities)
 
 	def get_transformed_gripper_value(self, gripper_finger_values):
-		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
-
-		
-		finger_diff = gripper_values[1]-gripper_values[0]
-		embed()
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)					
+		finger_diff = gripper_values[1]-gripper_values[0]	
 		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
 
 		return gripper_value
