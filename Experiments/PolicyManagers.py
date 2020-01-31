@@ -1211,7 +1211,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.epsilon = 0.
 			self.training_phase=1
 
-	def visualize_trajectory(self, trajectory, segmentations=None):
+	def visualize_trajectory(self, trajectory, segmentations=None, i=0, suffix='_Img'):
 
 		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
@@ -1220,7 +1220,23 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			else:
 				unnorm_trajectory = trajectory
 
-			return self.visualizer.visualize_joint_trajectory(unnorm_trajectory, return_gif=True, segmentations=segmentations)
+			if self.args.data=='Mocap':
+				# Create save directory:
+				upper_dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+
+				if not(os.path.isdir(upper_dir_name)):
+					os.mkdir(upper_dir_name)
+
+				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+				if not(os.path.isdir(self.dir_name)):
+					os.mkdir(self.dir_name)
+
+				animation_object = self.dataset[i]['animation']
+
+				return self.visualizer.visualize_joint_trajectory(unnorm_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_{1}.gif".format(i,suffix), return_and_save=True, additional_info=animation_object)
+			else:
+				return self.visualizer.visualize_joint_trajectory(unnorm_trajectory, return_gif=True, segmentations=segmentations)
 		else:
 			return self.visualize_2D_trajectory(trajectory)
 
@@ -1283,7 +1299,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.tf_logger.scalar_summary('Variational Trajectory Distance', var_dist, counter)
 			self.tf_logger.scalar_summary('Latent Trajectory Distance', latent_dist, counter)
 
-			gt_trajectory_image = np.array(self.visualize_trajectory(sample_traj))
+			gt_trajectory_image = np.array(self.visualize_trajectory(sample_traj, i=i, suffix='GT'))
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
 
@@ -1773,8 +1789,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		latent_segmentation = self.rollout_latent_policy(orig_assembled_inputs, orig_subpolicy_inputs)
 
 		if get_image==True:
-			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, latent_segmentation)
-			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=variational_segmentation.detach().cpu().numpy())	
+			latent_rollout_image = self.visualize_trajectory(self.latent_trajectory_rollout, segmentations=latent_segmentation, i=i, suffix='Latent')
+			variational_rollout_image = self.visualize_trajectory(self.variational_trajectory_rollout, segmentations=variational_segmentation.detach().cpu().numpy(), i=i, suffix='Variational')	
 
 			return variational_rollout_image, latent_rollout_image
 		else:
