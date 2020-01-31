@@ -2779,6 +2779,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		window = self.window
 		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
+		embed()
 		# Add start and end to peaks. 
 		if segmentation[0]<window:
 			segmentation[0] = 0
