@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 from headers import *
 
+def resample(original_trajectory, desired_number_timepoints):
+	original_traj_len = len(original_trajectory)
+	new_timepoints = np.linspace(0, original_traj_len-1, desired_number_timepoints, dtype=int)
+	return original_trajectory[new_timepoints]
+
 class Transition():
 
 	def __init__(self, state, action, next_state, onestep_reward, terminal, success):
