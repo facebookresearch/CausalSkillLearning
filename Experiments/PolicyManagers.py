@@ -1106,6 +1106,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.conditional_info_size = 0
 			self.conditional_viz_env = False
 
+			# Create visualizer object
+			self.visualizer = MocapVisualizer(args=self.args)
+
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = self.args.epochs
 		self.test_set_size = 500
@@ -1216,7 +1219,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def visualize_trajectory(self, trajectory, segmentations=None):
 
-		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
 			if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
 				unnorm_trajectory = (trajectory*self.norm_denom_value)+self.norm_sub_value
@@ -1833,7 +1836,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			else:
 
-				if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+				if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 					pass
 				else:
 					print("#############################################")			
@@ -1916,7 +1919,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.evaluate_metrics()
 
 		# Visualize space if the subpolicy has been trained...
-		if (self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk') and (self.args.fix_subpolicy==0):
+		if (self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap') and (self.args.fix_subpolicy==0):
 			print("Running Visualization on Robot Data.")	
 			self.pretrain_policy_manager = PolicyManager_Pretrain(self.args.number_policies, self.dataset, self.args)
 			self.pretrain_policy_manager.setup()
