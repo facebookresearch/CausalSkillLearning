@@ -2720,11 +2720,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
+	# Make it inherit joint policy manager init.
 	def __init__(self, number_policies=4, dataset=None, args=None):
 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
+	def setup_DMP_parameters(self):
 		self.number_kernels = 30
-		self.window = 8
+		self.window = 15
 		self.kernel_bandwidth = 1.5
 
 		self.number_kernels = self.args.baseline_kernels
@@ -2805,6 +2807,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 
 	def evaluate_across_testset(self):
 
+		self.setup_DMP_parameters()
 		# Create array for distances. 
 		self.FlatDMP_distances = -np.ones((self.test_set_size))
 		self.AccChangepointDMP_distances = -np.ones((self.test_set_size))
@@ -2830,8 +2833,11 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 					self.state_size = 14
 				elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 					sample_traj = sample_traj[:,:-1]
-					self.state_size = 7
+					self.state_size = 7					
 					# sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
+				# elif self.args.data=='Mocap':
+				# 	sample_traj = sample_traj
+
 					
 				self.lengths[i] = len(sample_traj)
 
