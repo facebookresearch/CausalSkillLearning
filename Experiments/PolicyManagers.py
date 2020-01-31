@@ -96,8 +96,7 @@ class PolicyManager_BaseClass():
 
 			if not(data_element['is_valid']):
 				return None, None, None, None
-				
-			self.conditional_information = np.zeros((self.conditional_info_size))
+							
 
 			trajectory = data_element['demo']
 
@@ -113,6 +112,7 @@ class PolicyManager_BaseClass():
 				robot_states = data_element['robot-state']
 				object_states = data_element['object-state']
 
+				self.conditional_information = np.zeros((self.conditional_info_size))
 				# Don't set this if pretraining / baseline.
 				if self.args.setting=='learntsub' or self.args.setting=='imitation':
 					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
@@ -541,6 +541,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			self.hidden_size = self.args.hidden_size
 			self.output_size = self.state_size
 			self.traj_length = self.args.traj_length			
+			self.conditional_info_size = 0
 
 		# Training parameters. 		
 		self.baseline_value = 0.
