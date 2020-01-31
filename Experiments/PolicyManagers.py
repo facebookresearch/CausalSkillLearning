@@ -1343,6 +1343,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.conditional_info_size)).cuda()
 			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size:self.input_size+self.latent_z_dimensionality] = latent_z_copy[:-1]
+			embed()
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality+1] = latent_b[:-1].float()	
 			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
