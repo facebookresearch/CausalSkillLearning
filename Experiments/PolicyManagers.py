@@ -1091,6 +1091,16 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
 			self.conditional_viz_env = True
 
+		elif self.args.data=='Mocap':
+			self.state_size = 22*3
+			self.state_dim = 22*3	
+			self.input_size = 2*self.state_size
+			self.hidden_size = self.args.hidden_size
+			self.output_size = self.state_size
+			self.traj_length = self.args.traj_length	
+			self.conditional_info_size = 0
+			self.conditional_viz_env = False
+
 		self.training_phase_size = self.args.training_phase_size
 		self.number_epochs = self.args.epochs
 		self.test_set_size = 500
@@ -2725,6 +2735,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		super(PolicyManager_DMPBaselines, self).__init__(number_policies, dataset, args)
 
 	def setup_DMP_parameters(self):
+		self.output_size 
 		self.number_kernels = 30
 		self.window = 15
 		self.kernel_bandwidth = 1.5
