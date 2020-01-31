@@ -140,6 +140,7 @@ class PolicyManager_BaseClass():
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 
 			
+			self.current_epoch_running = e
 			print("Starting Epoch: ",e)
 
 			if e%self.args.save_freq==0:
@@ -1227,7 +1228,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				if not(os.path.isdir(upper_dir_name)):
 					os.mkdir(upper_dir_name)
 
-				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+				if self.args.model is not None:
+					model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+				else:
+					model_epoch = self.current_epoch_running
+					
 				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
