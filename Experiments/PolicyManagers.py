@@ -2751,7 +2751,7 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 	def setup_DMP_parameters(self):
 		self.output_size 
 		self.number_kernels = 30
-		self.window = 15
+		self.window = 8
 		self.kernel_bandwidth = 1.5
 
 		self.number_kernels = self.args.baseline_kernels
