@@ -2779,17 +2779,19 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 		window = self.window
 		segmentation = find_peaks(acceleration_norm, distance=window)[0]
 		
-		embed()
-		# Add start and end to peaks. 
-		if segmentation[0]<window:
-			segmentation[0] = 0
+		if len(segmentation)==0:
+			segmentation = np.array([0,len(sample_traj)])
 		else:
-			segmentation = np.insert(segmentation, 0, 0)
-		# If end segmentation is within WINDOW of end, change segment to end. 
-		if (len(sample_traj) - segmentation[-1])<window:
-			segmentation[-1] = len(sample_traj)
-		else:
-			segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
+			# Add start and end to peaks. 
+			if segmentation[0]<window:
+				segmentation[0] = 0
+			else:
+				segmentation = np.insert(segmentation, 0, 0)
+			# If end segmentation is within WINDOW of end, change segment to end. 
+			if (len(sample_traj) - segmentation[-1])<window:
+				segmentation[-1] = len(sample_traj)
+			else:
+				segmentation = np.insert(segmentation, len(segmentation), sample_traj.shape[0])
 
 		trajectory_rollout = np.zeros_like(sample_traj)		
 
@@ -2849,7 +2851,6 @@ class PolicyManager_DMPBaselines(PolicyManager_Joint):
 					# sample_traj = gaussian_filter1d(sample_traj,3.5,axis=0,mode='nearest')
 				# elif self.args.data=='Mocap':
 				# 	sample_traj = sample_traj
-
 					
 				self.lengths[i] = len(sample_traj)
 
