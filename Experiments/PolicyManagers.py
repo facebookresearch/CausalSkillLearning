@@ -1104,6 +1104,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			self.output_size = self.state_size
 			self.traj_length = self.args.traj_length	
 			self.conditional_info_size = 0
+			self.conditional_information = None
 			self.conditional_viz_env = False
 
 			# Create visualizer object
@@ -1346,7 +1347,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
 			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
-			assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
+			if self.conditional_info_size>0:
+				assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
 
 			# Now assemble inputs for subpolicy.
 			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).cuda()
