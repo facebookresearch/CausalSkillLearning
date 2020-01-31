@@ -144,9 +144,7 @@ class PolicyManager_BaseClass():
 
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
-			if e==0:
 
-			# self.automatic_evaluation(e)
 			np.random.shuffle(self.index_list)
 
 			if self.args.debug:
