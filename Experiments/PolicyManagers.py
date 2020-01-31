@@ -1720,7 +1720,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			if self.conditional_viz_env:
 				self.set_env_conditional_info()
 
-			assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
+			if self.conditional_info_size>0:
+				assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
 
 			# Set z's to 0.
 			subpolicy_inputs[t, self.input_size:self.input_size+self.number_policies] = 0.
