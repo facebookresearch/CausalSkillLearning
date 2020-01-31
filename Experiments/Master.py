@@ -21,7 +21,7 @@ class Master():
 		elif self.args.data=='FullRoboturk':
 			self.dataset = Roboturk_DataLoader.Roboturk_FullDataset(self.args)
 		elif self.args.data=='Mocap':
-			self.dataset = Mocap_DataLoader.Mocap_Dataset()
+			self.dataset = Mocap_DataLoader.Mocap_Dataset(self.args)
 
 		# Now define policy manager.
 		if self.args.setting=='learntsub':

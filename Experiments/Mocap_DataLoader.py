@@ -12,9 +12,9 @@ def resample(original_trajectory, desired_number_timepoints):
 
 class Mocap_Dataset(Dataset):
 
-	def __init__(self, split='all'):
+	def __init__(self, args, split='all'):
 		self.dataset_directory = '/checkpoint/tanmayshankar/Mocap/'
-
+		self.args = args
 		# Load the entire set of trajectories. 
 		self.data_list = np.load(os.path.join(self.dataset_directory, "Demo_Array.npy"),allow_pickle=True)
 		self.dataset_length = len(self.data_list)
