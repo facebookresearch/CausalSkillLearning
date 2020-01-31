@@ -146,11 +146,6 @@ class PolicyManager_BaseClass():
 				self.save_all_models("epoch{0}".format(e))
 			if e==0:
 
-				# Run special eval for debugging...
-				self.automatic_evaluation(e)
-
-
-
 			# self.automatic_evaluation(e)
 			np.random.shuffle(self.index_list)
 
