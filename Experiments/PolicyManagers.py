@@ -1719,7 +1719,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 				assembled_inputs[t+1, self.input_size:self.input_size+self.latent_z_dimensionality] = selected_z[-1]
 			
-			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality+1] = selected_b[-1]
+			# This was also using wrong dimensions... oops :P 
+			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality] = selected_b[-1]
 
 			# Before copying over, set conditional_info from the environment at the current timestep.
 
