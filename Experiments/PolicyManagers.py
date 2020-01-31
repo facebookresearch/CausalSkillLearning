@@ -1232,7 +1232,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 					model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
 				else:
 					model_epoch = self.current_epoch_running
-					
+
 				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
@@ -1308,8 +1308,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			variational_rollout_image = np.array(variational_rollout_image)
 			latent_rollout_image = np.array(latent_rollout_image)
 
-			if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
-				# Feeding as list of image because gif_summary.
+			if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
+				# Feeding as list of image because gif_summary.				
 				self.tf_logger.gif_summary("GT Trajectory",[gt_trajectory_image],counter)
 				self.tf_logger.gif_summary("Variational Rollout",[variational_rollout_image],counter)
 				self.tf_logger.gif_summary("Latent Rollout",[latent_rollout_image],counter)
