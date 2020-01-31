@@ -2971,9 +2971,9 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		if sample_traj is not None:			
 			# Now concatenate info with... conditional_information
 			policy_inputs = np.concatenate([concatenated_traj, self.conditional_information], axis=1) 	
-			embed()
-			# Add zeros to the last action, so that we evaluate likelihood correctly. 
-			padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
+
+			# Add zeros to the last action, so that we evaluate likelihood correctly. Since we're using demo actions, no need.
+			# padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 
 			# Feed concatenated trajectory into the policy. 
 			logprobabilities, _ = self.policy_network.forward(torch.tensor(policy_inputs).cuda().float(), padded_action_seq)
