@@ -788,7 +788,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 
 		skill_time_limit = max_limit-1
 
-		if self.args.data=='MIME' or self.args.data=='Roboturk':
+		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 			# If allowing variable skill length, set length for this sample.				
 			if self.args.var_skill_length:
 				# Choose length of 12-16 with certain probabilities. 
