@@ -125,7 +125,7 @@ class PolicyManager_BaseClass():
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
 
 			if self.args.setting=='imitation':
-				action_sequence = RLUtils.resample(data_element['demonstrated_action'],len(trajectory))
+				action_sequence = RLUtils.resample(data_element['demonstrated_actions'],len(trajectory))
 				concatenated_traj = np.concatenate([trajectory, action_sequence],axis=1)
 
 			return trajectory, action_sequence, concatenated_traj, old_concatenated_traj
