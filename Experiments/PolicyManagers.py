@@ -2427,6 +2427,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		self.output_size = self.environment.action_spec[0].shape[0]
 		self.state_size = self.environment.action_spec[0].shape[0]
 		self.conditional_info_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
+		# If we are loading policies....
+		if self.args.model:
+			# Padded conditional info.
+			self.conditional_info_size = 53		
 		self.input_size = 2*self.state_size
 		
 		# Create networks. 
@@ -2493,7 +2497,11 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 	def get_conditional_information_row(self, t=-1):
 		# Get robot and object state.
-		return np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
+		conditional_info_row = np.zeros((1,self.conditional_info_size))
+		info_value = np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1)		
+		conditional_info_row[0,:info_value.shape[1]] = info_value
+
+		return conditional_info_row
 
 	def get_transformed_gripper_value(self, gripper_finger_values):
 		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
