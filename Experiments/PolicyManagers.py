@@ -2953,6 +2953,8 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		self.create_training_ops()		
 		self.initialize_plots()
 
+		self.total_rewards = 0.
+
 		# Create Noise process. 
 		self.NoiseProcess = RLUtils.OUNoise(self.output_size)
 
@@ -3088,9 +3090,11 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
 
-
 		np.save(os.path.join(self.dir_name,"Total_Rewards_{0}.npy".format(self.args.name)),self.total_rewards)
 		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.total_rewards.mean())
+
+		# Add average reward to tensorboard.
+		self.tf_logger.scalar_summary('Average Reward', self.total_rewards.mean(), e)
 
 	def train(self, model=None):
 
