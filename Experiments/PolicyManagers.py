@@ -2404,7 +2404,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 
 			print("Initializing Memory Episode: ", episode_counter)
 			# Rollout an episode.
-			self.rollout(random=True)
+			self.rollout(random=self.args.random_memory_burn_in)
 
 			# Add episode to memory.
 			self.memory.append_to_memory(self.episode)
