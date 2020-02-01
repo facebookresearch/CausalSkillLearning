@@ -2218,6 +2218,14 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	# 	else:
 	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
 
+	def get_transformed_gripper_value(self, gripper_finger_values):
+		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
+
+		finger_diff = gripper_values[1]-gripper_values[0]
+		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
+		return gripper_value
+
+
 	def get_current_input_row(self):
 		# Addiong joint states, gripper, actions, and conditional info in addition to just conditional and actions.
 		gripper_finger_values = self.state_trajectory[-1]['gripper_qpos']
