@@ -919,10 +919,10 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		# Prior loglikelihood
 		prior_loglikelihood = standard_distribution.log_prob(sampled_z_index)
 
-		# if self.args.debug:
-		# 	print("#################################")
-		# 	print("Embedding in Variational Network.")
-		# 	embed()
+		if self.args.debug:
+			print("#################################")
+			print("Embedding in Variational Network.")
+			embed()
 
 		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
