@@ -3108,7 +3108,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		np.save(os.path.join(self.dir_name,"Mean_Reward_{0}.npy".format(self.args.name)),self.total_rewards.mean())
 
 		# Add average reward to tensorboard.
-		self.tf_logger.scalar_summary('Average Reward', self.total_rewards.mean(), e)
+		self.tf_logger.scalar_summary('Average Reward', self.total_rewards.mean(), model_epoch)
 
 	def train(self, model=None):
 

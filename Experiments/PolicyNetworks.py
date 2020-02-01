@@ -129,7 +129,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 				if 'bias' in name:
 					torch.nn.init.constant_(param, 0.0)
 				elif 'weight' in name:
-					torch.nn.init.xavier_normal_(param,gain=0.001)
+					torch.nn.init.xavier_normal_(param,gain=0.0001)
 
 		self.activation_layer = torch.nn.Tanh()
 		self.variance_activation_layer = torch.nn.Softplus()
