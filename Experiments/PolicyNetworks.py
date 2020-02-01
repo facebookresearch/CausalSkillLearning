@@ -419,6 +419,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
 
 		if self.args.debug:
+			print("Embedding in Latent Policy.")
 			embed()
 		# Return log probabilities. 
 		return latent_b_logprobabilities, latent_b_probabilities, self.dists
