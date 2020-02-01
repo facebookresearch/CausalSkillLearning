@@ -2226,8 +2226,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		if len(self.action_trajectory)>0:				
 			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[-1].reshape((1,-1))],axis=1)
 		else:			
-			state_action = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
-
+			# state_action = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), np.zeros((1,self.output_size))],axis=1)
 		return np.concatenate([state_action, conditional],axis=1)
 
 	def assemble_inputs(self):
