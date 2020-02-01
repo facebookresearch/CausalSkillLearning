@@ -2631,6 +2631,11 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
 		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z)
 
+		# Perturb latent_z with some noise. 
+		z_noise = self.epsilon*torch.randn_like(latent_z)
+		# Add noise to z.
+		latent_z = latent_z + z_noise
+
 		# Now get subpolicy inputs.
 		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
 		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z=latent_z)
