@@ -2995,6 +2995,15 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 	def update_plots(self, counter, logprobabilities):
 		self.tf_logger.scalar_summary('Policy LogLikelihood', torch.mean(logprobabilities), counter)
 
+		if counter%self.args.display_freq==0:
+
+			# print("Embedding in Update Plots.")
+			
+			# Rollout policy.
+			self.rollout(random=False, test=True, visualize=True)
+			self.tf_logger.gif_summary("Rollout Trajectory", [np.array(self.image_trajectory)], counter)
+
+
 	def run_iteration(self, counter, i):
 
 		self.set_epoch(counter)	
