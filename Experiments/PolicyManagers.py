@@ -1728,8 +1728,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			# Feed z and b into subpolicy. 
 
-			# 
-
+			pass
 
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
