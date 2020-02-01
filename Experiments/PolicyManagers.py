@@ -95,8 +95,7 @@ class PolicyManager_BaseClass():
 				data_element = self.dataset[i]
 
 			if not(data_element['is_valid']):
-				return None, None, None, None
-							
+				return None, None, None, None							
 
 			trajectory = data_element['demo']
 
@@ -108,7 +107,9 @@ class PolicyManager_BaseClass():
 
 			self.current_traj_len = len(trajectory)
 
-			if self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+			if self.args.data=='MIME':
+				self.conditional_information = np.zeros((self.conditional_info_size))				
+			elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
 				robot_states = data_element['robot-state']
 				object_states = data_element['object-state']
 
