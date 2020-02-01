@@ -2067,7 +2067,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.obs = self.environment.reset()
 		self.output_size = self.environment.action_spec[0].shape[0]
 		self.state_size = self.obs['robot-state'].shape[0] + self.obs['object-state'].shape[0]
-		self.input_size = self.state_size + self.output_size		
+		# self.input_size = self.state_size + self.output_size		
+		self.input_size = self.state_size + self.output_size*2
 		
 		# Create networks. 
 		self.create_networks()
@@ -2211,11 +2212,23 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
+	# def get_current_input_row(self):
+	# 	if len(self.action_trajectory)>0:
+	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
+	# 	else:
+	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+
 	def get_current_input_row(self):
-		if len(self.action_trajectory)>0:
-			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
-		else:
-			return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+		# Addiong joint states, gripper, actions, and conditional info in addition to just conditional and actions.
+		gripper_finger_values = self.state_trajectory[-1]['gripper_qpos']
+		conditional = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1))],axis=1)
+
+		if len(self.action_trajectory)>0:				
+			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), self.action_trajectory[-1].reshape((1,-1))],axis=1)
+		else:			
+			state_action = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
+
+		return np.concatenate([state_action, conditional],axis=1)
 
 	def assemble_inputs(self):
 
