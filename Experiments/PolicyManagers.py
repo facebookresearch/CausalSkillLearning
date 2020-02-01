@@ -1723,7 +1723,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		for t in range(self.rollout_timesteps-1):
 
 			# First get input row for latent policy. 
-			
+
 			# Feed into latent policy and get z. 
 
 			# Feed z and b into subpolicy. 
@@ -2050,10 +2050,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-	def load_all_models(self, path):
+	def load_all_models(self, path, critic=False):
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		self.critic_network.load_state_dict(load_object['Critic_Network'])
+		if critic:
+			self.critic_network.load_state_dict(load_object['Critic_Network'])
 
 	def setup(self):
 		# Calling a special RL setup function. This is because downstream classes inherit (and may override setup), but will still inherit RL_setup intact.
