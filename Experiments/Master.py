@@ -163,9 +163,11 @@ def parse_arguments():
 	parser.add_argument('--var_loss_weight',dest='var_loss_weight',type=float,default=1.)
 	parser.add_argument('--prior_weight',dest='prior_weight',type=float,default=0.00001)
 
+	# Exploration and learning rate parameters. 
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.3)
 	parser.add_argument('--epsilon_to',dest='epsilon_to',type=float,default=0.05)
 	parser.add_argument('--epsilon_over',dest='epsilon_over',type=int,default=30)
+	parser.add_argument('--learning_rate',dest='learning_rate',type=float,default=1e-4)
 
 	# Baseline parameters. 
 	parser.add_argument('--baseline_kernels',dest='baseline_kernels',type=int,default=15)

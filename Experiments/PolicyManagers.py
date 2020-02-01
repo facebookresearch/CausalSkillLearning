@@ -541,7 +541,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Training parameters. 		
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
-		self.learning_rate = 1e-4
+		self. learning_rate = self.args.learning_rate
 		
 		self.initial_epsilon = self.args.epsilon_from
 		self.final_epsilon = self.args.epsilon_to
@@ -1111,7 +1111,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.baseline_value = 0.
 		self.beta_decay = 0.9
 
-		self.learning_rate = 1e-4
+		self. learning_rate = self.args.learning_rate
 
 		self.latent_b_loss_weight = self.args.lat_b_wt
 		self.latent_z_loss_weight = self.args.lat_z_wt
@@ -1703,6 +1703,34 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		return orig_assembled_inputs, orig_subpolicy_inputs, latent_b
 
+	def alternate_rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
+		assembled_inputs = orig_assembled_inputs.clone().detach()
+		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
+
+		# This version of rollout uses the incremental reparam get actions function. 		
+		hidden = None		
+
+		############# (0) #############
+		# Get sample we're going to train on. Single sample as of now.
+		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+		# Set rollout length.
+		if self.args.traj_length>0:
+			self.rollout_timesteps = self.args.traj_length
+		else:
+			self.rollout_timesteps = len(sample_traj)		
+
+		# For appropriate number of timesteps. 
+		for t in range(self.rollout_timesteps-1):
+
+			# First get input row for latent policy. 
+			
+			# Feed into latent policy and get z. 
+
+			# Feed z and b into subpolicy. 
+
+			# 
+
+
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
@@ -1975,7 +2003,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.final_epsilon = self.args.epsilon_to
 		self.decay_episodes = self.args.epsilon_over
 		self.baseline = None
-		self.learning_rate = 1e-4
+		self. learning_rate = self.args.learning_rate
 		self.max_timesteps = 250
 		self.gamma = 0.99
 		self.batch_size = 10
@@ -3007,7 +3035,6 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 			# Rollout policy.
 			self.rollout(random=False, test=True, visualize=True)
 			self.tf_logger.gif_summary("Rollout Trajectory", [np.array(self.image_trajectory)], counter)
-
 
 	def run_iteration(self, counter, i):
 
