@@ -2265,7 +2265,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		state_action_sequence = np.concatenate([state_action_sequence, initial_state_action],axis=0)
 
 		inputs = np.concatenate([state_action_sequence, conditional_sequence],axis=1)
-		embed()
+		
 		return inputs
 
 	def process_episode(self, episode):
