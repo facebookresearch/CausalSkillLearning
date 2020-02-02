@@ -2259,7 +2259,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		conditional_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
 
 		state_action_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(self.state_trajectory[t]['gripper_qpos']), self.action_trajectory[t-1].reshape((1,-1))],axis=1) for t in range(1,len(self.state_trajectory))],axis=0)		
-		initial_state_action = np.concatenated([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(self.state_trajectory[t]['gripper_qpos']), np.zeros((1, self.output_size))],axis=1)
+		initial_state_action = np.concatenate([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(self.state_trajectory[t]['gripper_qpos']), np.zeros((1, self.output_size))],axis=1)
 
 		# Copy initial state to front of state_action seq. 
 		state_action_sequence = np.concatenate([state_action_sequence, initial_state_action],axis=0)
