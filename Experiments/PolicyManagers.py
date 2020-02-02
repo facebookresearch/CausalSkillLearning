@@ -2016,7 +2016,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.theta = 0.15
 		self.sigma = 0.2		
 
-
 		self.gripper_open = np.array([0.0115, -0.0115])
 		self.gripper_closed = np.array([-0.020833, 0.020833])
 
@@ -2141,7 +2140,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 		# Assemble states of current input row.
 		current_input_row = self.get_current_input_row()
-
+		embed()
 		# Using the incremental get actions. Still get action greedily, then add noise. 		
 		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
@@ -2229,7 +2228,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		finger_diff = gripper_values[1]-gripper_values[0]
 		gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
 		return gripper_value
-
 
 	def get_current_input_row(self):
 		# Addiong joint states, gripper, actions, and conditional info in addition to just conditional and actions.
@@ -2994,7 +2992,6 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 		# Create Mujoco environment. 
 		self.environment = robosuite.make(self.args.environment, has_renderer=False, use_camera_obs=False, reward_shaping=self.args.shaped_reward)
 		
-
 		self.gripper_open = np.array([0.0115, -0.0115])
 		self.gripper_closed = np.array([-0.020833, 0.020833])
 
