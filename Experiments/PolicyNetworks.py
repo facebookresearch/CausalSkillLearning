@@ -148,10 +148,10 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
-		# if self.args.mean_nonlinearity:
-		# 	mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
-		# else:
-		mean_outputs = self.mean_output_layer(lstm_outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
+		else:
+			mean_outputs = self.mean_output_layer(lstm_outputs)
 		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 		# variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias) + epsilon
 
@@ -176,7 +176,10 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.mean_output_layer(lstm_outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
+		else:
+			mean_outputs = self.mean_output_layer(lstm_outputs)
 		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		if greedy:
@@ -197,7 +200,10 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.mean_output_layer(lstm_outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
+		else:
+			mean_outputs = self.mean_output_layer(lstm_outputs)
 		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		noise = torch.randn_like(variance_outputs)
@@ -218,7 +224,10 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs, hidden = self.lstm(format_input, hidden)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.mean_output_layer(lstm_outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(lstm_outputs))
+		else:
+			mean_outputs = self.mean_output_layer(lstm_outputs)
 		variance_outputs = (self.variance_activation_layer(self.variances_output_layer(lstm_outputs))+self.variance_activation_bias)
 
 		noise = torch.randn_like(variance_outputs)
@@ -244,12 +253,12 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		lstm_outputs_z2, _ = self.lstm(format_input_z2)
 
 		# Predict Gaussian means and variances. 
-		# if self.args.mean_nonlinearity:
-		# 	mean_outputs_z1 = self.activation_layer(self.mean_output_layer(lstm_outputs_z1))
-		# 	mean_outputs_z2 = self.activation_layer(self.mean_output_layer(lstm_outputs_z2))
-		# else:
-		mean_outputs_z1 = self.mean_output_layer(lstm_outputs_z1)
-		mean_outputs_z2 = self.mean_output_layer(lstm_outputs_z2)
+		if self.args.mean_nonlinearity:
+			mean_outputs_z1 = self.activation_layer(self.mean_output_layer(lstm_outputs_z1))
+			mean_outputs_z2 = self.activation_layer(self.mean_output_layer(lstm_outputs_z2))
+		else:
+			mean_outputs_z1 = self.mean_output_layer(lstm_outputs_z1)
+			mean_outputs_z2 = self.mean_output_layer(lstm_outputs_z2)
 		variance_outputs_z1 = self.variance_activation_layer(self.variances_output_layer(lstm_outputs_z1))+self.variance_activation_bias
 		variance_outputs_z2 = self.variance_activation_layer(self.variances_output_layer(lstm_outputs_z2))+self.variance_activation_bias
 
@@ -409,10 +418,10 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		latent_b_logprobabilities = self.batch_logsoftmax_layer(latent_b_preprobabilities).squeeze(1)
 			
 		# Predict Gaussian means and variances. 
-		# if self.args.mean_nonlinearity:
-		# 	mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
-		# else:
-		mean_outputs = self.mean_output_layer(outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
 		# This should be a SET of distributions. 
@@ -433,7 +442,10 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
 			
 		# Predict Gaussian means and variances. 		
-		mean_outputs = self.mean_output_layer(outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
 		# We should be multiply by self.variance_factor.
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 
@@ -461,7 +473,10 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		selected_b = self.select_greedy_action(latent_b_probabilities)
 
 		# Predict Gaussian means and variances. 		
-		mean_outputs = self.mean_output_layer(outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
 		# We should be multiply by self.variance_factor.
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + action_epsilon
 
@@ -689,7 +704,10 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		variational_b_logprobabilities = self.batch_logsoftmax_layer(variational_b_preprobabilities).squeeze(1)
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.mean_output_layer(outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
 		# Still need a softplus activation for variance because needs to be positive. 
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + var_epsilon
 
@@ -838,7 +856,10 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		variational_b_preprobabilities = self.termination_output_layer(outputs)*self.b_probability_factor
 
 		# Predict Gaussian means and variances. 
-		mean_outputs = self.mean_output_layer(outputs)
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
 		# Still need a softplus activation for variance because needs to be positive. 
 		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
 		# This should be a SET of distributions. 
