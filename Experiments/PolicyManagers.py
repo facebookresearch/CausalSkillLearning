@@ -2003,7 +2003,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.decay_episodes = self.args.epsilon_over
 		self.baseline = None
 		self. learning_rate = self.args.learning_rate
-		self.max_timesteps = 250
+		self.max_timesteps = 100
 		self.gamma = 0.99
 		self.batch_size = 10
 		self.number_test_episodes = 100
