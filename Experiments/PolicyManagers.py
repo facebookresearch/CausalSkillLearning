@@ -2016,6 +2016,11 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.theta = 0.15
 		self.sigma = 0.2		
 
+
+		self.gripper_open = np.array([0.0115, -0.0115])
+		self.gripper_closed = np.array([-0.020833, 0.020833])
+
+
 		self.reset_statistics()
 
 	def create_networks(self):
