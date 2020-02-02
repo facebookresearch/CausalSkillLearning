@@ -2265,7 +2265,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		state_action_sequence = np.concatenate([state_action_sequence, initial_state_action],axis=0)
 
 		inputs = np.concatenate([state_action_sequence, conditional_sequence],axis=1)
-
+		embed()
 		return inputs
 
 	def process_episode(self, episode):
@@ -2297,7 +2297,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
 
 		# Concatenate the states from policy inputs and the predicted actions. 
-		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.state_size], predicted_action],axis=1).cuda().float()
+		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.output_size], predicted_action, self.state_action_inputs[:,2*self.output_size:]],axis=1).cuda().float()
 
 	def update_policies(self):
 		######################################
