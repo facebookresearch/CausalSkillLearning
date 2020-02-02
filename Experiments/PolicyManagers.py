@@ -2140,7 +2140,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		
 		# Assemble states of current input row.
 		current_input_row = self.get_current_input_row()
-		embed()
 		# Using the incremental get actions. Still get action greedily, then add noise. 		
 		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
 
@@ -2241,18 +2240,31 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), np.zeros((1,self.output_size))],axis=1)
 		return np.concatenate([state_action, conditional],axis=1)
 
+	# def assemble_inputs(self):
+
+	# 	# Assemble states.
+	# 	state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
+	# 	if len(self.action_trajectory)>0:
+	# 		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
+	# 		# Appending 0 action to start of sequence.
+	# 		action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
+	# 	else:
+	# 		action_sequence = np.zeros((1,self.output_size))
+
+	# 	inputs = np.concatenate([state_sequence, action_sequence],axis=1)
+
+	# 	return inputs
+
 	def assemble_inputs(self):
+		conditional_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
 
-		# Assemble states.
-		state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
-		if len(self.action_trajectory)>0:
-			action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
-			# Appending 0 action to start of sequence.
-			action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
-		else:
-			action_sequence = np.zeros((1,self.output_size))
+		state_action_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(self.state_trajectory[t]['gripper_qpos']), self.action_trajectory[t].reshape((1,-1))],axis=1) for t in range(1,len(self.state_trajectory))],axis=0)		
+		initial_state_action = np.concatenated([self.state_trajectory[0]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(self.state_trajectory[t]['gripper_qpos']), np.zeros((1, self.output_size))],axis=1)
 
-		inputs = np.concatenate([state_sequence, action_sequence],axis=1)
+		# Copy initial state to front of state_action seq. 
+		state_action_sequence = np.concatenate([state_action_sequence, initial_state_action],axis=0)
+
+		inputs = np.concatenate([state_action_sequence, conditional_sequence],axis=1)
 
 		return inputs
 
