@@ -207,6 +207,8 @@ class PolicyManager_BaseClass():
 			# self.state_dim = 8
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
+			# Because there are just more invalid DP's in Mocap.
+			self.N = 200
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# These are lists because they're variable length individually.
