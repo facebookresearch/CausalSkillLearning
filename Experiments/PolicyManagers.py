@@ -2494,6 +2494,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.initialize_memory()
 
 		for e in range(self.number_episodes):
+			
+			# Reset the noise process! We forgot to do this! :( 
+			self.NoiseProcess.reset()
 
 			if e%self.args.save_freq==0:
 				self.save_all_models("epoch{0}".format(e))
