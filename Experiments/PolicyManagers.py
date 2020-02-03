@@ -415,7 +415,7 @@ class PolicyManager_BaseClass():
 		# Create a scatter plot of the embedding itself. The plot does not seem to work without this. 
 		ax.scatter(scaled_embedded_zs[:number_samples,0],scaled_embedded_zs[:number_samples,1])
 		ax.axis('off')
-		ax.set_title("Embedding of Latent Representation of Pre-trained Subpolicy",fontdict={'fontsize':40})
+		ax.set_title("Embedding of Latent Representation of our Model",fontdict={'fontsize':40})
 		artists = []
 		
 		# For number of samples in TSNE / Embedding, create a Image object for each of them. 

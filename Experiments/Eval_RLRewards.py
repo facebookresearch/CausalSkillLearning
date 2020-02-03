@@ -111,3 +111,27 @@ for i in range(a,b+1):
 		# rewards[j] = np.load("{0}{1}/MEval/m{2}/Mean_Reward_{0}{1}.npy".format(prefix,padded_indexi,model_range[j],prefix))
 	reward_list.append(rewards)
 
+##############################################
+# MOcap distances
+
+# Get distances
+a = 1
+b = 2
+prefix = 'Mocap00'
+increment = 20
+distance_list = []
+
+for i in range(a,b+1):
+
+	model_template = "{0}{1}/saved_models/Model_epoch*".format(prefix,i)
+	models = glob.glob(model_template)	
+	# number_models = [int((model.lstrip("RL{0}/saved_models/Model_epoch".format(i))).zfill(4)) for model in models]
+	max_model = int(models[-1].lstrip("{0}{1}/saved_models/Model_epoch".format(prefix,i)))
+	max_model = max_model-max_model%increment
+	model_range = np.arange(0,max_model+increment,increment)
+	distances = np.zeros((len(model_range)))
+
+	for j in range(len(model_range)):
+		distances[j] = np.load("{2}{0}/MEval/m{1}/Mean_Trajectory_Distance_{2}{0}.npy".format(i,model_range[j],prefix))
+
+	distance_list.append(distances)
