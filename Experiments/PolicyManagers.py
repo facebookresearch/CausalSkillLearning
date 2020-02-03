@@ -2165,6 +2165,8 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		terminal = False
 
 		self.reset_lists()
+		# Reset the noise process! We forgot to do this! :( 
+		self.NoiseProcess.reset()
 
 		if visualize:			
 			image = self.environment.sim.render(600,600, camera_name='frontview')
@@ -2424,6 +2426,9 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# While number of transitions is less than initial_transitions.
 		episode_counter = 0 
 		while episode_counter<self.initial_episodes:
+
+			# Reset the noise process! We forgot to do this! :( 
+			self.NoiseProcess.reset()
 
 			print("Initializing Memory Episode: ", episode_counter)
 			# Rollout an episode.
@@ -2720,6 +2725,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 	def rollout(self, random=False, test=False, visualize=False):
 		
+		# Reset the noise process! We forgot to do this! :( 
+		self.NoiseProcess.reset()
+
 		# Reset some data for the rollout. 
 		counter = 0		
 		eps_reward = 0.			
