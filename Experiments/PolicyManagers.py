@@ -2557,7 +2557,9 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		self.MSE_Loss = torch.nn.MSELoss(reduction='none')
 		
 		# If we are using reparameterization, use a global optimizer for both policies, and a global loss function.
-		parameter_list = list(self.policy_network.parameters()) + list(self.latent_policy.parameters())
+		parameter_list = list(self.latent_policy.parameters())
+		if not(self.args.fix_subpolicy):
+			parameter_list = parameter_list + list(self.policy_network.parameters())		
 		# The policy optimizer handles both the low and high level policies, as long as the z's being passed from the latent to sub policy are differentiable.
 		self.policy_optimizer = torch.optim.Adam(parameter_list, lr=self.learning_rate)
 		self.critic_optimizer = torch.optim.Adam(self.critic_network.parameters(), lr=self.learning_rate)
