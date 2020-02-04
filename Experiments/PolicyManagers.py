@@ -1610,6 +1610,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.conditional_information = np.zeros((self.conditional_info_size))
 		cond_state = np.concatenate([obs['robot-state'],obs['object-state']])
 		self.conditional_information[:cond_state.shape[-1]] = cond_state
+		# Also setting particular index in conditional information to 1 for task ID.
+		self.conditional_information[-self.number_tasks+self.task_id_for_cond_info] = 1
 
 	def take_rollout_step(self, subpolicy_input, t, use_env=False):
 
@@ -1653,10 +1655,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# return new_subpolicy_input
 		return action_to_execute, new_state
 
-	def create_RL_environment_for_rollout(self, environment_name, state=None):
+	def create_RL_environment_for_rollout(self, environment_name, state=None, task_id=None):
 
 		self.environment = robosuite.make(environment_name)
-
+		self.task_id_for_cond_info = task_id
 		if state is not None:
 			self.environment.sim.set_state_from_flattened(state)
 
@@ -1806,7 +1808,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		# if self.args.data=='Roboturk':
 		if self.conditional_viz_env:
-			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0])
+			self.create_RL_environment_for_rollout(self.dataset[i]['environment-name'], self.dataset[i]['flat-state'][0], self.dataset[i]['task-id'],)
 
 		# Rollout policy with 
 		# 	a) Latent variable samples from variational policy operating on dataset trajectories - Tests variational network and subpolicies. 
