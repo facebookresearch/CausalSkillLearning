@@ -121,7 +121,7 @@ class PolicyManager_BaseClass():
 					# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
 					self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states	
 					# Setting task ID too.		
-					self.conditional_information[:,-self.number_tasks+data_element['task_id']] = 1.
+					self.conditional_information[:,-self.number_tasks+data_element['task-id']] = 1.
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
