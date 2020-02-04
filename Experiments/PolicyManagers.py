@@ -1184,12 +1184,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		save_object['Variational_Policy'] = self.variational_policy.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-	def load_all_models(self, path, just_subpolicy=False):
+	def load_all_models(self, path):		
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		if not just_subpolicy:
+		if self.args.load_latent:
 			self.latent_policy.load_state_dict(load_object['Latent_Policy'])		
-			self.variational_policy.load_state_dict(load_object['Variational_Policy'])
+		self.variational_policy.load_state_dict(load_object['Variational_Policy'])
 
 	def set_epoch(self, counter):
 		if self.args.train:
