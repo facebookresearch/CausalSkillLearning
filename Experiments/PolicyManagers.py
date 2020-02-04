@@ -2584,7 +2584,8 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 	def load_all_models(self, path, critic=False):
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		self.latent_policy.load_state_dict(load_object['Latent_Policy'])
+		if self.args.load_latent:
+			self.latent_policy.load_state_dict(load_object['Latent_Policy'])
 		if critic:
 			self.critic_network.load_state_dict(load_object['Critic_Network'])
 
