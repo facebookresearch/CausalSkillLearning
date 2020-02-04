@@ -409,12 +409,14 @@ class Roboturk_NewSegmentedDataset(Dataset):
 				data_element['flat-state'] = gaussian_filter1d(data_element['flat-state'],self.kernel_bandwidth,axis=0,mode='nearest')			
 
 			data_element['environment-name'] = self.environment_names[task_index]
-
+			data_element['task_id'] = task_index
+			
 			if self.args.ds_freq>1:
 				data_element['demo'] = resample(data_element['demo'], resample_length)
 				data_element['robot-state'] = resample(data_element['robot-state'], resample_length)
 				data_element['object-state'] = resample(data_element['object-state'], resample_length)
 				data_element['flat-state'] = resample(data_element['flat-state'], resample_length)
+
 
 		return data_element
 

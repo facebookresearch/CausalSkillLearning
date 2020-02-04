@@ -119,8 +119,9 @@ class PolicyManager_BaseClass():
 					self.conditional_information = np.zeros((len(trajectory),self.conditional_info_size))
 					self.conditional_information[:,:self.cond_robot_state_size] = robot_states
 					# Doing this instead of self.cond_robot_state_size: because the object_states size varies across demonstrations.
-					self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states			
-
+					self.conditional_information[:,self.cond_robot_state_size:self.cond_robot_state_size+object_states.shape[-1]] = object_states	
+					# Setting task ID too.		
+					self.conditional_information[:,-self.number_tasks+data_element['task_id']] = 1.
 			# Concatenate
 			concatenated_traj = self.concat_state_action(trajectory, action_sequence)
 			old_concatenated_traj = self.old_concat_state_action(trajectory, action_sequence)
@@ -1090,7 +1091,8 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Robot size always 30. Max object state size is... 23. 
 			self.cond_robot_state_size = 30
 			self.cond_object_state_size = 23
-			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size
+			self.number_tasks = 8
+			self.conditional_info_size = self.cond_robot_state_size+self.cond_object_state_size+self.number_tasks
 			self.conditional_viz_env = True
 
 		elif self.args.data=='Mocap':
