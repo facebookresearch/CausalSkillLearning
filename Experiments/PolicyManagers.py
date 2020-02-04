@@ -137,7 +137,7 @@ class PolicyManager_BaseClass():
 		if model:
 			print("Loading model in training.")
 			self.load_all_models(model)		
-		counter = 0
+		counter = self.args.initial_counter_value
 
 		# For number of training epochs. 
 		for e in range(self.number_epochs): 

@@ -97,6 +97,7 @@ def parse_arguments():
 	parser.add_argument('--fake_batch_size',dest='fake_batch_size',type=int,default=1)
 	parser.add_argument('--batch_size',dest='batch_size',type=int,default=1)
 	parser.add_argument('--training_phase_size',dest='training_phase_size',type=int,default=500000)
+	parser.add_argument('--initial_counter_value',dest='initial_counter_value',type=int,default=0)
 	parser.add_argument('--data',dest='data',type=str,default='Continuous')
 	parser.add_argument('--setting',dest='setting',type=str,default='gtsub')
 	parser.add_argument('--test_code',dest='test_code',type=int,default=0)
