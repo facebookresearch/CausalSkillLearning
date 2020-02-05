@@ -528,6 +528,107 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		# NEED TO USE DIMENSION OF ARGMAX. 
 		return action_probabilities.argmax(dim=-1)
 
+class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetwork):
+
+	def __init__(self, input_size, hidden_size, args, number_layers=4):		
+
+		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
+		super(ContinuousLatentPolicyNetwork_ConstrainedBPrior, self).__init__()
+
+		# We can inherit the forward function from the above class... we just need to modify get actions.	
+
+		self.min_skill_time = 12
+		self.max_skill_time
+
+	def get_prior_value(self, elapsed_t, max_limit=5):
+
+		skill_time_limit = max_limit-1
+
+		if self.args.data=='MIME' or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
+			# If allowing variable skill length, set length for this sample.				
+			if self.args.var_skill_length:
+				# Choose length of 12-16 with certain probabilities. 
+				lens = np.array([12,13,14,15,16])
+				# probabilities = np.array([0.1,0.2,0.4,0.2,0.1])
+				prob_biases = np.array([[0.8,0.],[0.4,0.],[0.,0.],[0.,0.4]])				
+
+				max_limit = 16
+				skill_time_limit = 12
+
+			else:
+				max_limit = 20
+				skill_time_limit = max_limit-1	
+
+		prior_value = torch.zeros((1,2)).cuda().float()
+		# If at or over hard limit.
+		if elapsed_t>=max_limit:
+			prior_value[0,1]=1.
+
+		# If at or more than typical, less than hard limit:
+		elif elapsed_t>=skill_time_limit:
+	
+			if self.args.var_skill_length:
+				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).cuda().float()
+			else:
+				# Random
+				prior_value[0,1]=0. 
+
+		# If less than typical. 
+		else:
+			# Continue.
+			prior_value[0,0]=1.
+
+		return prior_value
+
+	def get_actions(self, input, greedy=False, epsilon=0.001, delta_t=0):
+
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+		hidden = None
+		outputs, hidden = self.lstm(format_input)
+	
+		latent_b_preprobabilities = self.termination_output_layer(outputs) + self.b_exploration_bias		
+			
+		# Predict Gaussian means and variances. 		
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
+		# We should be multiply by self.variance_factor.
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
+
+		# This should be a SET of distributions. 
+		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
+
+		# Now implementing hard constrained b selection.
+		if delta_t < self.min_skill_time:
+			# Continue. Set b to 0.
+			selected_b = 0.
+
+		elif (self.min_skill_time <= delta_t) and (delta_t < self.max_skill_time):
+
+			prior_value = self.get_prior_value(delta_t)
+
+			# Now... add prior value.
+			# Only need to do this to the last timestep... because the last sampled b is going to be copied into a different variable that is stored.
+			latent_b_preprobabilities[-1, :, :] += prior_value		
+			latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
+
+			# Sample b. 
+			selected_b = self.select_greedy_action(latent_b_probabilities)
+
+		else: 
+			# Stop and select a new z. Set b to 1. 
+			selected_b = 1.
+
+		# Also get z... assume higher level funciton handles the new z selection component. 
+		if greedy==True:
+			selected_z = mean_outputs
+		else:
+			selected_z = self.dists.sample()
+
+		return selected_b, selected_z
+
+
 class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
 	# Now we overwrite the init, forward functions. And define anything else that we need. 
@@ -872,6 +973,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
 		sampled_b = torch.zeros(input.shape[0]).cuda().int()
 		sampled_b[0] = 1
+		
 		for t in range(1,input.shape[0]):
 
 			# Compute prior value. 
@@ -947,6 +1049,138 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 
 		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
+
+class ContinuousVariationalPolicyNetwork_ConstrainedBPrior(ContinuousVariationalPolicyNetwork_BPrior):
+
+	def __init__(self, input_size, hidden_size, z_dimensions, args, number_layers=4):
+
+		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
+		super(ContinuousVariationalPolicyNetwork_ConstrainedBPrior, self).__init__(input_size, hidden_size, z_dimensions, args, number_layers)
+
+		self.min_skill_time = 12
+		self.max_skill_time = 16
+
+	def forward(self, input, epsilon, new_z_selection=True):
+
+		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
+		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
+		hidden = None
+		outputs, hidden = self.lstm(format_input)
+
+		# Damping factor for probabilities to prevent washing out of bias. 
+		variational_b_preprobabilities = self.termination_output_layer(outputs)*self.b_probability_factor
+
+		# Predict Gaussian means and variances. 
+		if self.args.mean_nonlinearity:
+			mean_outputs = self.activation_layer(self.mean_output_layer(outputs))
+		else:
+			mean_outputs = self.mean_output_layer(outputs)
+		# Still need a softplus activation for variance because needs to be positive. 
+		variance_outputs = self.variance_factor*(self.variance_activation_layer(self.variances_output_layer(outputs))+self.variance_activation_bias) + epsilon
+		# This should be a SET of distributions. 
+		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
+
+		# Create variables for prior and probabilities.
+		prior_values = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+
+		#######################################
+		################ Set B ################
+		#######################################
+
+		# Set the first b to 1, and the time b was == 1. 		
+		sampled_b = torch.zeros(input.shape[0]).cuda().int()
+		sampled_b[0] = 1
+		prev_time = 0
+
+		for t in range(1,input.shape[0]):
+			
+			# Compute time since the last b occurred. 			
+			delta_t = t-prev_time
+			# Compute prior value. 
+			prior_values[t] = self.get_prior_value(delta_t, max_limit=self.args.skill_length)
+
+			# Construct probabilities.
+			variational_b_probabilities[t,0,:] = self.batch_softmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+			variational_b_logprobabilities[t,0,:] = self.batch_logsoftmax_layer(variational_b_preprobabilities[t,0] + prior_values[t,0])
+	
+			# Now Implement Hard Restriction on Selection of B's. 
+			if delta_t < self.min_skill_time:
+				# Set B to 0. I.e. Continue. 
+				# variational_b_probabilities[t,0,:] = variational_b_probabilities[t,0,:]*0
+				# variational_b_probabilities[t,0,0] += 1
+				
+				sampled_b[t] = 0.
+
+			elif (self.min_skill_time <= delta_t) and (delta_t < self.max_skill_time):		
+				# Sample b. 			
+				sampled_b[t] = self.select_epsilon_greedy_action(variational_b_probabilities[t:t+1], epsilon)
+
+			elif self.max_skill_time <= delta_t:
+				# Set B to 1. I.e. select new z. 
+				sampled_b[t] = 1.
+
+			# If b is 1, set the previous time to now. 
+			if sampled_b[t]==1:
+				prev_time = t				
+
+		#######################################
+		################ Set Z ################
+		#######################################
+
+		# Now set the z's. If greedy, just return the means. 
+		if epsilon==0.:
+			sampled_z_index = mean_outputs.squeeze(1)
+		# If not greedy, then reparameterize. 
+		else:
+			# Whether to use reparametrization trick to retrieve the latent_z's.
+			if self.args.train:
+				noise = torch.randn_like(variance_outputs)
+
+				# Instead of *sampling* the latent z from a distribution, construct using mu + sig * eps (random noise).
+				sampled_z_index = mean_outputs + variance_outputs*noise
+				# Ought to be able to pass gradients through this latent_z now.
+
+				sampled_z_index = sampled_z_index.squeeze(1)
+
+			# If evaluating, greedily get action.
+			else:
+				sampled_z_index = mean_outputs.squeeze(1)
+		
+		# Modify z's based on whether b was 1 or 0. This part should remain the same.		
+		if new_z_selection:
+			
+			# Set initial b to 1. 
+			sampled_b[0] = 1
+
+			# Initial z is already trivially set. 
+			for t in range(1,input.shape[0]):
+				# If b_t==0, just use previous z. 
+				# If b_t==1, sample new z. Here, we've cloned this from sampled_z's, so there's no need to do anything. 
+				if sampled_b[t]==0:
+					sampled_z_index[t] = sampled_z_index[t-1]		
+
+		# Also compute logprobabilities of the latent_z's sampled from this net. 
+		variational_z_logprobabilities = self.dists.log_prob(sampled_z_index.unsqueeze(1))
+		variational_z_probabilities = None
+
+		# Set standard distribution for KL. 
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		# Compute KL.
+		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
+
+		# Prior loglikelihood
+		prior_loglikelihood = standard_distribution.log_prob(sampled_z_index)
+
+		if self.args.debug:
+			print("#################################")
+			print("Embedding in Variational Network.")
+			embed()
+
+		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
+		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
+
 
 class EncoderNetwork(PolicyNetwork_BaseClass):
 

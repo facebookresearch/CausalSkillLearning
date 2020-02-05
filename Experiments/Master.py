@@ -123,6 +123,7 @@ def parse_arguments():
 
 	parser.add_argument('--new_gradient',dest='new_gradient',type=int,default=1)
 	parser.add_argument('--b_prior',dest='b_prior',type=int,default=1)
+	parser.add_argument('--constrained_b_prior',dest='constrained_b_prior',type=int,default=1) # Whether to use constrained b prior var network or just normal b prior one.
 	parser.add_argument('--reparam',dest='reparam',type=int,default=1)	
 	parser.add_argument('--number_policies',dest='number_policies',type=int,default=4)
 	parser.add_argument('--fix_subpolicy',dest='fix_subpolicy',type=int,default=1)

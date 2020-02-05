@@ -1,6 +1,8 @@
 from headers import *
-from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, CriticNetwork
+from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
+from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
+from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, 
+from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
 from PolicyNetworks import ContinuousMLP, CriticMLP
 from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
 import TFLogger, DMP, RLUtils
@@ -1157,10 +1159,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).cuda()
 			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
 
-			if self.args.b_prior:
-				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+			if self.args.constrained_b_prior:
+				self.variational_policy = ContinuousVariationalPolicyNetwork_ConstrainedBPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
 			else:
-				self.variational_policy = ContinuousVariationalPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
 
 	def create_training_ops(self):
 		self.negative_log_likelihood_loss_function = torch.nn.NLLLoss(reduction='none')
@@ -1719,6 +1721,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		############# (0) #############
 		# Get sample we're going to train on. Single sample as of now.
 		sample_traj, sample_action_seq, concatenated_traj, old_concatenated_traj = self.collect_inputs(i)
+
 		# Set rollout length.
 		if self.args.traj_length>0:
 			self.rollout_timesteps = self.args.traj_length
@@ -1740,6 +1743,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
 
+		# Set the previous b time to 0.
+		delta_t = 0
+
 		# For number of rollout timesteps:
 		for t in range(self.rollout_timesteps-1):
 
@@ -1748,8 +1754,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			##########################################
 
 			# Pick latent_z and latent_b. 
-			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=True)
-			# selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)),greedy=False)
+			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)), greedy=True, delta_t=delta_t)
 
 			if t==0:
 				selected_b = torch.ones_like(selected_b).cuda().float()
@@ -1757,6 +1762,12 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			if selected_b[-1]==1:
 				# Copy over ALL z's. This is okay to do because we're greedily selecting, and hte latent policy is hence deterministic.
 				selected_z = torch.tensor(new_selected_z).cuda().float()
+
+				# If b was == 1, then... reset b to 0.
+				delta_t = 0
+			else:
+				# Increment counter since last time b was 1.
+				delta_t += 1
 
 			# Set z's to 0. 
 			assembled_inputs[t+1, self.input_size:self.input_size+self.number_policies] = 0.
