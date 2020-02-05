@@ -383,11 +383,11 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
 
 		# # # Try initializing the network to something, so that we can escape the stupid constant output business.
-		# for name, param in self.lstm.named_parameters():
-		# 	if 'bias' in name:
-		# 		torch.nn.init.constant_(param, 0.0)
-		# 	elif 'weight' in name:
-		# 		torch.nn.init.xavier_normal_(param,gain=5)
+		for name, param in self.lstm.named_parameters():
+			if 'bias' in name:
+				torch.nn.init.constant_(param, 0.001)
+			elif 'weight' in name:
+				torch.nn.init.xavier_normal_(param,gain=5)
 
 		# Transform to output space - Latent z and Latent b. 
 		# self.subpolicy_output_layer = torch.nn.Linear(self.hidden_size,self.output_size)
