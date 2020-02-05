@@ -1208,18 +1208,23 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			if counter<self.training_phase_size:
 				self.training_phase=1
 			elif self.training_phase_size<=counter and counter<2*self.training_phase_size:
-				self.training_phase=2
-			else:
-				self.training_phase=3
+				self.training_phase=2	
+				print("In Phase 2.")			
 
+			else:
+				
+				self.training_phase=3
+				self.latent_z_loss_weight = 0.1*self.args.lat_b_wt
 				# For training phase = 3, set latent_b_loss weight to 1 and latent_z_loss weight to something like 0.1 or 0.01. 
 				# After another double training_phase... (i.e. counter>3*self.training_phase_size), 
 				# This should be run when counter > 2*self.training_phase_size, and less than 3*self.training_phase_size.
 				if counter>3*self.training_phase_size:
-					self.latent_z_loss_weight = self.args.lat_z_wt
-				if counter>4*self.training_phase_size:
-					# Set equal after 4. 
+					# Set equal after 3. 
+					print("In Phase 4.")
 					self.latent_z_loss_weight = self.args.lat_b_wt
+				else:
+					print("In Phase 3.")
+
 		else:
 			self.epsilon = 0.
 			self.training_phase=1
