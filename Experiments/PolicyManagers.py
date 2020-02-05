@@ -2725,7 +2725,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		else:
 			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
-	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None, test=False):
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None, test=False, delta_t=delta_t):
 
 		# if random==True:
 		# 	action = 2*np.random.random((self.output_size))-1
@@ -2735,12 +2735,17 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		latent_policy_inputs = self.assemble_latent_input_row()
 		
 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
-		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z)
+		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z, delta_t=delta_t)
 
 		# Perturb latent_z with some noise. 
 		z_noise = self.epsilon*torch.randn_like(latent_z)
 		# Add noise to z.
 		latent_z = latent_z + z_noise
+
+		if latent_b[-1]==1:
+			delta_t = 0
+		else:
+			delta_t += 1
 
 		# Now get subpolicy inputs.
 		# subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z.detach().cpu().numpy())
@@ -2758,7 +2763,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# Perturb action with noise. 			
 			perturbed_action = self.NoiseProcess.get_action(action, counter)
 
-		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden
+		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden, delta_t
 
 	def rollout(self, random=False, test=False, visualize=False):
 		
@@ -2785,12 +2790,14 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		latent_hidden = None
 		latent_z = None
 
+		delta_t = 0		
+
 		# For number of steps / while we don't terminate:
 		while not(terminal) and counter<self.max_timesteps:
 
 			# Get the action to execute, b, z, and hidden states. 
-			action, latent_z, latent_b, policy_hidden, latent_hidden = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z, test=test)
-				
+			action, latent_z, latent_b, policy_hidden, latent_hidden, delta_t = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z, test=test, delta_t=delta_t)
+
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
 			
