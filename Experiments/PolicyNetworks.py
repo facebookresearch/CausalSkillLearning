@@ -533,7 +533,7 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 	def __init__(self, input_size, hidden_size, args, number_layers=4):		
 
 		# Ensures inheriting from torch.nn.Module goes nicely and cleanly. 	
-		super(ContinuousLatentPolicyNetwork_ConstrainedBPrior, self).__init__()
+		super(ContinuousLatentPolicyNetwork_ConstrainedBPrior, self).__init__(input_size, hidden_size, args, number_layers)
 
 		# We can inherit the forward function from the above class... we just need to modify get actions.	
 
@@ -627,7 +627,6 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 			selected_z = self.dists.sample()
 
 		return selected_b, selected_z
-
 
 class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 	# Policy Network inherits from torch.nn.Module. 
@@ -1180,7 +1179,6 @@ class ContinuousVariationalPolicyNetwork_ConstrainedBPrior(ContinuousVariational
 
 		return sampled_z_index, sampled_b, variational_b_logprobabilities.squeeze(1), \
 		 variational_z_logprobabilities, variational_b_probabilities.squeeze(1), variational_z_probabilities, kl_divergence, prior_loglikelihood
-
 
 class EncoderNetwork(PolicyNetwork_BaseClass):
 
