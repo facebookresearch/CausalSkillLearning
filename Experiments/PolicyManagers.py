@@ -2725,7 +2725,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		else:
 			return torch.cat([self.assemble_state_action_row(t=t) for t in range(len(self.state_trajectory))],dim=0)
 
-	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None, test=False, delta_t=delta_t):
+	def get_OU_action_latents(self, policy_hidden=None, latent_hidden=None, random=False, counter=0, previous_z=None, test=False, delta_t=0):
 
 		# if random==True:
 		# 	action = 2*np.random.random((self.output_size))-1
