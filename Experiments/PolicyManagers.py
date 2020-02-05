@@ -1537,8 +1537,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		# If continuous latent_z, just calculate loss as negative log likelihood of the latent_z's selected by variational network.
 		else:
 			self.latent_z_loss = -latent_z_logprobabilities.squeeze(1)
-	
-		embed()
 
 		# Compute total latent loss as weighted sum of latent_b_loss and latent_z_loss.
 		self.total_latent_loss = (self.latent_b_loss_weight*self.latent_b_loss+self.latent_z_loss_weight*self.latent_z_loss)[:-1]
