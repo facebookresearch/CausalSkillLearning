@@ -538,7 +538,7 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 		# We can inherit the forward function from the above class... we just need to modify get actions.	
 
 		self.min_skill_time = 12
-		self.max_skill_time
+		self.max_skill_time = 16
 
 	def get_prior_value(self, elapsed_t, max_limit=5):
 
