@@ -1,7 +1,7 @@
 from headers import *
 from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
 from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior, 
+from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
 from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
 from PolicyNetworks import ContinuousMLP, CriticMLP
 from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
