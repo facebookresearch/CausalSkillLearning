@@ -607,7 +607,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		save_object['Encoder_Network'] = self.encoder_network.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-	def load_all_models(self, path, only_policy=False):
+	def load_all_models(self, path, only_policy=False, just_subpolicy=False):
 		load_object = torch.load(path)
 		if self.args.train_only_policy and self.args.train: 		
 			self.encoder_network.load_state_dict(load_object['Encoder_Network'])
@@ -1189,12 +1189,14 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		save_object['Variational_Policy'] = self.variational_policy.state_dict()
 		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
 
-	def load_all_models(self, path):		
+	def load_all_models(self, path, just_subpolicy=False):		
 		load_object = torch.load(path)
 		self.policy_network.load_state_dict(load_object['Policy_Network'])
-		if self.args.load_latent:
-			self.latent_policy.load_state_dict(load_object['Latent_Policy'])		
-		self.variational_policy.load_state_dict(load_object['Variational_Policy'])
+
+		if not(just_subpolicy):
+			if self.args.load_latent:
+				self.latent_policy.load_state_dict(load_object['Latent_Policy'])		
+			self.variational_policy.load_state_dict(load_object['Variational_Policy'])
 
 	def set_epoch(self, counter):
 		if self.args.train:
