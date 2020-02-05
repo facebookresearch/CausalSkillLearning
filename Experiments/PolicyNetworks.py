@@ -599,26 +599,29 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 		# This should be a SET of distributions. 
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))	
 
+		############################################
+		prior_value = self.get_prior_value(delta_t)
+
+		# Now... add prior value.
+		# Only need to do this to the last timestep... because the last sampled b is going to be copied into a different variable that is stored.
+		latent_b_preprobabilities[-1, :, :] += prior_value		
+		latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
+
+		# Sample b. 
+		selected_b = self.select_greedy_action(latent_b_probabilities)
+		############################################
+
 		# Now implementing hard constrained b selection.
 		if delta_t < self.min_skill_time:
 			# Continue. Set b to 0.
-			selected_b = 0.
+			selected_b[-1] = 0.
 
 		elif (self.min_skill_time <= delta_t) and (delta_t < self.max_skill_time):
-
-			prior_value = self.get_prior_value(delta_t)
-
-			# Now... add prior value.
-			# Only need to do this to the last timestep... because the last sampled b is going to be copied into a different variable that is stored.
-			latent_b_preprobabilities[-1, :, :] += prior_value		
-			latent_b_probabilities = self.batch_softmax_layer(latent_b_preprobabilities).squeeze(1)	
-
-			# Sample b. 
-			selected_b = self.select_greedy_action(latent_b_probabilities)
+			pass
 
 		else: 
 			# Stop and select a new z. Set b to 1. 
-			selected_b = 1.
+			selected_b[-1] = 1.
 
 		# Also get z... assume higher level funciton handles the new z selection component. 
 		if greedy==True:
