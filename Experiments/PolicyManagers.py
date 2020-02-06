@@ -1748,7 +1748,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Feed z and b into subpolicy. 
 
 			pass
-		
+
 
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
@@ -2765,7 +2765,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			perturbed_action = action
 		else:	
 			# Perturb action with noise. 			
-			perturbed_action = self.NoiseProcess.get_action(action, counter)
+			if self.args.OU:
+				perturbed_action = self.NoiseProcess.get_action(action, counter)
+			else:
+				perturbed_action = action + self.epislon*np.random.randn(action.shape[-1])
 
 		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden, delta_t
 

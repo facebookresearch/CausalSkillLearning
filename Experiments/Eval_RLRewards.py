@@ -135,3 +135,106 @@ for i in range(a,b+1):
 		distances[j] = np.load("{2}{0}/MEval/m{1}/Mean_Trajectory_Distance_{2}{0}.npy".format(i,model_range[j],prefix))
 
 	distance_list.append(distances)
+
+##############################################
+
+################################################
+# Env list. 
+environment_names = ["SawyerPickPlaceBread","SawyerPickPlaceCan","SawyerPickPlaceCereal","SawyerPickPlaceMilk","SawyerNutAssemblyRound","SawyerNutAssemblySquare"]
+
+
+def remove_start(inputstring, word_to_remove):
+	return inputstring[len(word_to_remove):] if inputstring.startswith(word_to_remove) else inputstring
+
+# Evaluate baselineRL methods. 
+a = 23
+b = 28
+
+
+prefix = 'downRL_pi'
+increment = 20
+reward_list = []
+
+for i in range(a,b+1):
+
+	padded_index = str(i).zfill(3)
+
+	model_template = "{1}{0}/saved_models/Model_epoch*".format(padded_index,prefix)
+	models = glob.glob(model_template)	
+	# number_models = [int((model.lstrip("RL{0}/saved_models/Model_epoch".format(i))).zfill(4)) for model in models]
+	# max_model = int(models[-1].lstrip("{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+	max_model = int(remove_start(models[-1],"{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+
+	max_model = max_model-max_model%increment
+	model_range = np.arange(0,max_model+increment,increment)
+	rewards = np.zeros((len(model_range)))
+
+	for j in range(len(model_range)-1):
+		rewards[j] = np.load("{2}{0}/MEval/m{1}/Mean_Reward_{2}{0}.npy".format(padded_index,model_range[j],prefix))
+		# rewards[j] = np.load("{0}{1}/MEval/m{2}/Mean_Reward_{0}{1}.npy".format(prefix,padded_indexi,model_range[j],prefix))
+	reward_list.append(rewards)
+
+for i in range(a,b+1):
+
+	print("For environment: ", environment_names[i-a])
+	print("Average reward:", np.array(reward_list[i-a]).max())
+
+def evalrl(a,b):
+
+	prefix = 'downRL_pi'
+	increment = 20
+	reward_list = []
+
+	for i in range(a,b+1):
+
+		padded_index = str(i).zfill(3)
+
+		model_template = "{1}{0}/saved_models/Model_epoch*".format(padded_index,prefix)
+		models = glob.glob(model_template)	
+		# number_models = [int((model.lstrip("RL{0}/saved_models/Model_epoch".format(i))).zfill(4)) for model in models]
+		# max_model = int(models[-1].lstrip("{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+		max_model = int(remove_start(models[-1],"{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+
+		max_model = max_model-max_model%increment
+		model_range = np.arange(0,max_model+increment,increment)
+		rewards = np.zeros((len(model_range)))
+
+		for j in range(len(model_range)-1):
+			rewards[j] = np.load("{2}{0}/MEval/m{1}/Mean_Reward_{2}{0}.npy".format(padded_index,model_range[j],prefix))
+			# rewards[j] = np.load("{0}{1}/MEval/m{2}/Mean_Reward_{0}{1}.npy".format(prefix,padded_indexi,model_range[j],prefix))
+		reward_list.append(rewards)
+
+	for i in range(a,b+1):
+
+		print("For environment: ", environment_names[i-a])
+		print("Average reward:", np.array(reward_list[i-a]).max())
+
+def evalrl(a,b):
+	
+	prefix = 'RL'
+	increment = 20
+	reward_list = []
+
+	for i in range(a,b+1):
+
+		padded_index = str(i).zfill(2)
+
+		model_template = "{1}{0}/saved_models/Model_epoch*".format(padded_index,prefix)
+		models = glob.glob(model_template)	
+		# number_models = [int((model.lstrip("RL{0}/saved_models/Model_epoch".format(i))).zfill(4)) for model in models]
+		# max_model = int(models[-1].lstrip("{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+		max_model = int(remove_start(models[-1],"{1}{0}/saved_models/Model_epoch".format(padded_index,prefix)))
+
+		max_model = max_model-max_model%increment
+		model_range = np.arange(0,max_model+increment,increment)
+		rewards = np.zeros((len(model_range)))
+
+		for j in range(len(model_range)-1):
+			rewards[j] = np.load("{2}{0}/MEval/m{1}/Mean_Reward_{2}{0}.npy".format(padded_index,model_range[j],prefix))
+			# rewards[j] = np.load("{0}{1}/MEval/m{2}/Mean_Reward_{0}{1}.npy".format(prefix,padded_indexi,model_range[j],prefix))
+		reward_list.append(rewards)
+
+	for i in range(a,b+1):
+
+		print("For environment: ", environment_names[i-a])
+		print("Average reward:", np.array(reward_list[i-a]).max())
