@@ -1820,6 +1820,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		concatenated_selected_b = np.concatenate([selected_b.detach().cpu().numpy(),np.zeros((1))],axis=-1)
 
+		if self.args.debug:
+			print("Embedding in Latent Policy Rollout.")
+			embed()
+
 		# Clear these variables from memory.
 		del subpolicy_inputs, assembled_inputs
 
