@@ -382,13 +382,6 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		# Define LSTM. 
 		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
 
-		# # # Try initializing the network to something, so that we can escape the stupid constant output business.
-		for name, param in self.lstm.named_parameters():
-			if 'bias' in name:
-				torch.nn.init.constant_(param, 0.001)
-			elif 'weight' in name:
-				torch.nn.init.xavier_normal_(param,gain=5)
-
 		# Transform to output space - Latent z and Latent b. 
 		# self.subpolicy_output_layer = torch.nn.Linear(self.hidden_size,self.output_size)
 		self.termination_output_layer = torch.nn.Linear(self.hidden_size,2)
@@ -406,6 +399,20 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.variance_activation_bias = 0.
 			
 		self.variance_factor = 0.01
+
+		# # # Try initializing the network to something, so that we can escape the stupid constant output business.
+		for name, param in self.lstm.named_parameters():
+			if 'bias' in name:
+				torch.nn.init.constant_(param, 0.001)
+			elif 'weight' in name:
+				torch.nn.init.xavier_normal_(param,gain=5)
+
+		# Also initializing mean_output_layer to something large...
+		for name, param in self.mean_output_layer.named_parameters():
+			if 'bias' in name:
+				torch.nn.init.constant_(param, 0.)
+			elif 'weight' in name:
+				torch.nn.init.xavier_normal_(param,gain=5)
 
 	def forward(self, input, epsilon=0.001):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	

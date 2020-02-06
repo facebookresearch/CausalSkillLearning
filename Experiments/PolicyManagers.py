@@ -1721,7 +1721,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		return orig_assembled_inputs, orig_subpolicy_inputs, latent_b
 
-	def alternate_rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
+	def alternate_rollout_latent_policy(self, counter, i, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
 
@@ -1748,6 +1748,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Feed z and b into subpolicy. 
 
 			pass
+		
 
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
@@ -2800,6 +2801,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 
 			# Get the action to execute, b, z, and hidden states. 
 			action, latent_z, latent_b, policy_hidden, latent_hidden, delta_t = self.get_OU_action_latents(policy_hidden=policy_hidden, latent_hidden=latent_hidden, random=random, counter=counter, previous_z=latent_z, test=test, delta_t=delta_t)
+
+			if self.args.debug:
+				print("Embed in Trajectory Rollout.")
+				embed()
 
 			# Take a step in the environment. 	
 			next_state, onestep_reward, terminal, success = self.environment.step(action)
