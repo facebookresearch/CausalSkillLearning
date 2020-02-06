@@ -1763,10 +1763,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			#### CODE FOR NEW Z SELECTION ROLLOUT ####
 			##########################################
 
-			# if self.args.debug:
-			# 	print("Embedding in Latent Policy Rollout.")
-			# 	embed()
-
 			# Pick latent_z and latent_b. 
 			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)), greedy=True, delta_t=delta_t)
 
@@ -1822,6 +1818,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.latent_trajectory_rollout = copy.deepcopy(subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy())
 
 		concatenated_selected_b = np.concatenate([selected_b.detach().cpu().numpy(),np.zeros((1))],axis=-1)
+
+		if self.args.debug:
+			print("Embedding in Latent Policy Rollout.")
+			embed()
 
 		# Clear these variables from memory.
 		del subpolicy_inputs, assembled_inputs
