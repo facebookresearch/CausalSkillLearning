@@ -412,7 +412,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 			if 'bias' in name:
 				torch.nn.init.constant_(param, 0.)
 			elif 'weight' in name:
-				torch.nn.init.xavier_normal_(param,gain=5)
+				torch.nn.init.xavier_normal_(param,gain=2)
 
 	def forward(self, input, epsilon=0.001):
 		# Input Format must be: Sequence_Length x 1 x Input_Size. 	
