@@ -2767,8 +2767,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# Perturb action with noise. 			
 			if self.args.OU:
 				perturbed_action = self.NoiseProcess.get_action(action, counter)
+
 			else:
-				perturbed_action = action + self.epislon*np.random.randn(action.shape[-1])
+				# Just regular epsilon
+				perturbed_action = action + self.epsilon*np.random.randn(action.shape[-1])
 
 		return perturbed_action, latent_z, latent_b, policy_hidden, latent_hidden, delta_t
 
