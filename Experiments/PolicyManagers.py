@@ -1763,10 +1763,9 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			#### CODE FOR NEW Z SELECTION ROLLOUT ####
 			##########################################
 
-			if self.args.debug:
-				print("Embedding in Latent Policy Rollout.")
-				embed()
-
+			# if self.args.debug:
+			# 	print("Embedding in Latent Policy Rollout.")
+			# 	embed()
 
 			# Pick latent_z and latent_b. 
 			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)), greedy=True, delta_t=delta_t)
@@ -1790,11 +1789,10 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			if self.args.discrete_z:
 				assembled_inputs[t+1, self.input_size+selected_z[-1]] = 1.
 			else:
-
 				assembled_inputs[t+1, self.input_size:self.input_size+self.latent_z_dimensionality] = selected_z[-1]
 			
 			# This was also using wrong dimensions... oops :P 
-			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality] = selected_b[-1]
+			assembled_inputs[t+1, self.input_size+self.latent_z_dimensionality]	 = selected_b[-1]
 
 			# Before copying over, set conditional_info from the environment at the current timestep.
 
