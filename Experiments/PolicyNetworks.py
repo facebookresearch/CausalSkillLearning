@@ -1490,3 +1490,38 @@ class CriticMLP(torch.nn.Module):
 		critic_value = self.output_layer(h4)		
 
 		return critic_value
+
+class DiscreteMLP(torch.nn.Module):
+
+	def __init__(self, input_size, hidden_size, output_size, args=None, number_layers=4):
+
+		super(DiscreteMLP, self).__init__()
+
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.output_size = output_size
+
+		self.input_layer = torch.nn.Linear(self.input_size, self.hidden_size)
+		self.hidden_layer = torch.nn.Linear(self.hidden_size, self.hidden_size)
+		self.output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
+
+		# Remember, since this is just an MLP, it isn't LSTM, so last dimension is 1. 
+		self.batch_logsoftmax_layer = torch.nn.LogSoftmax(dim=1)
+		self.batch_softmax_layer = torch.nn.Softmax(dim=1)		
+
+	def forward(self, input):
+
+		# Assumes input is Batch_Size x Input_Size.
+		h1 = self.relu_activation(self.input_layer(input))
+		h2 = self.relu_activation(self.hidden_layer(h1))
+		h3 = self.relu_activation(self.hidden_layer(h2))
+		h4 = self.relu_activation(self.hidden_layer(h3))
+
+		# Compute preprobability with output layer.
+		preprobability_outputs = self.output_layer(h4)
+		
+		# Compute probabilities and logprobabilities.
+		log_probabilities = self.batch_logsoftmax_layer(preprobability_outputs)
+		probabilities = self.batch_softmax_layer(preprobability_outputs)
+
+		return outputs, hidden, log_probabilities, probabilities
