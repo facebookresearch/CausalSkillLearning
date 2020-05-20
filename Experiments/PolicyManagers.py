@@ -1,9 +1,10 @@
 from headers import *
-from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
-from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
-from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
-from PolicyNetworks import ContinuousMLP, CriticMLP
+# from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
+# from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
+# from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
+# from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
+# from PolicyNetworks import ContinuousMLP, CriticMLP, DiscreteMLP
+from PolicyNetworks import *
 from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
 import TFLogger, DMP, RLUtils
 
@@ -3284,14 +3285,26 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		super(PolicyManager_Transfer, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
 
 		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 
-		self.source_args = args
+		self.source_args = copy.deepcopy(args)
 		self.source_args.data = source_domain
-		self.target_args = args
+		self.target_args = copy.deepcopy(args)
 		self.target_args.data = target_domain
 
 		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
 		self.source_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.source_args)
 		self.target_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.target_args)
 
+	def setup(self):
+
 		# Now setup networks for these PolicyManagers. 		
+		self.source_manager.setup()
+		self.target_manager.setup()
+
+	def create_networks(self):
+
+		# Call create networks from each of the policy managers. 
+		self.source_manager.create_networks()
+		self.target_manager.create_networks()
+
+		# Now must also create discriminator.
 
