@@ -592,10 +592,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# When you instantiate it, you call backward on that instantiation. That's why you know what loss to optimize when computing gradients. 		
 
 		if self.args.train_only_policy:
-			parameter_list = self.policy_network.parameters()
+			self.parameter_list = self.policy_network.parameters()
 		else:
-			parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
-		self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
+			self.parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
+		
+		self.optimizer = torch.optim.Adam(self.parameter_list,lr=self.learning_rate)
 
 	def save_all_models(self, suffix):
 
@@ -661,7 +662,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if counter%self.args.display_freq==0:
 			self.tf_logger.image_summary("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
-	
+
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq):
 
 		if self.args.discrete_z:
@@ -971,7 +972,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			print("#########################################")	
 		else: 
 			return None, None, None
-		
+
 	def evaluate_metrics(self):
 
 		self.distances = -np.ones((self.test_set_size))
@@ -3307,4 +3308,18 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.target_manager.create_networks()
 
 		# Now must also create discriminator.
+		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.number_policies).cuda()
 
+	def create_training_ops(self):
+
+		# Call create training ops from each of the policy managers. 
+		self.source_manager.create_training_ops()
+		self.target_manager.create_training_ops()
+
+		# Now create optimizer that has parameters of the discriminator, and the networks of both source and target domains. 
+		parameter_list = self.source_manager.parameter_list + self.target_manager.parameter_list + list(self.discriminator_network.parameters())
+		
+		# Create common optimizer for source, target, and discriminator networks. 
+		self.optimizer = torch.optim.Adam(self.parameter_list,lr=self.learning_rate)
+
+	
