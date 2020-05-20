@@ -3276,3 +3276,22 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 				self.evaluate(e)
 
 		self.write_and_close()
+
+class PolicyManager_Transfer(PolicyManager_BaseClass):
+
+	def __init__(self, dataset=None, args=None, source_domain=None, target_domain=None):
+
+		super(PolicyManager_Transfer, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+
+		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 
+		self.source_args = args
+		self.source_args.data = source_domain
+		self.target_args = args
+		self.target_args.data = target_domain
+
+		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
+		self.source_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.source_args)
+		self.target_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.target_args)
+
+		# Now setup networks for these PolicyManagers. 		
+
