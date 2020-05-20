@@ -1,9 +1,4 @@
 from headers import *
-# from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
-# from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-# from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
-# from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
-# from PolicyNetworks import ContinuousMLP, CriticMLP, DiscreteMLP
 from PolicyNetworks import *
 from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
 import TFLogger, DMP, RLUtils
@@ -3322,4 +3317,4 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Create common optimizer for source, target, and discriminator networks. 
 		self.optimizer = torch.optim.Adam(self.parameter_list,lr=self.learning_rate)
 
-	
+
