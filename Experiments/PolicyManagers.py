@@ -3288,7 +3288,10 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
 		self.source_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.source_args)
-		self.target_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.target_args)
+		self.target_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.target_args)		
+
+		self.source_dataset_size = len(self.source_manager.dataset) - self.source_manager.test_set_size
+		self.target_dataset_size = len(self.target_manager.dataset) - self.target_manager.test_set_size
 
 	def setup(self):
 
@@ -3307,14 +3310,92 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 	def create_training_ops(self):
 
-		# Call create training ops from each of the policy managers. 
-		self.source_manager.create_training_ops()
-		self.target_manager.create_training_ops()
+		# Don't actually call the policy manager create_training_ops functions.
+		# # Call create training ops from each of the policy managers. 
+		# self.source_manager.create_training_ops()
+		# self.target_manager.create_training_ops()
+
+		# Create BCE loss object. 
+		self.BCE_loss = torch.nn.BCELoss(reduction='None')		
 
 		# Now create optimizer that has parameters of the discriminator, and the networks of both source and target domains. 
 		parameter_list = self.source_manager.parameter_list + self.target_manager.parameter_list + list(self.discriminator_network.parameters())
 		
 		# Create common optimizer for source, target, and discriminator networks. 
 		self.optimizer = torch.optim.Adam(self.parameter_list,lr=self.learning_rate)
+
+	def get_domain_managers(self, source_domain, target_domain):
+
+		# Create a list, and just index into this list. 
+		domain_manager_list = [self.source_manager, self.target_manager]
+		return domain_manager_list[source_domain], domain_manager_list[target_domain]
+
+	def get_trajectory_segment_tuple(self, source_manager, target_manager):
+
+		# Sample indices. 
+		source_index = np.random.randint(0, high=self.source_dataset_size)
+		target_index = np.random.randint(0, high=self.target_dataset_size)
+
+		# Get trajectory segments. 
+		source_trajectory_segment, source_action_seq, _ = source_manager.get_trajectory_segment(source_manager.index_list[source_index])
+		target_trajectory_segment, target_action_seq, _ = target_manager.get_trajectory_segment(target_manager.index_list[target_index])
+
+		return source_trajectory_segment, source_action_seq, target_trajectory_segment, target_action_seq
+
+	def encode_decode_trajectory(self, policy_manager, trajectory_segment, sample_action_seq):
+
+		# This should basically replicate the encode-decode steps in run_iteration of the Pretrain_PolicyManager. 
+
+		############# (1) #############
+		# Torchify trajectory segment.
+		torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
+		# Encode trajectory segment into latent z. 		
+		latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = policy_manager.encoder_network.forward(torch_traj_seg, policy_manager.epislon)
+
+		########## (2) & (3) ##########
+		# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
+		latent_z_seq, latent_b = policy_manager.construct_dummy_latents(latent_z)
+
+		_, subpolicy_inputs, sample_action_seq = policy_manager.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
+
+		# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
+		loglikelihoods, _ = policy_manager.policy_network.forward(subpolicy_inputs, sample_action_seq)
+		loglikelihood = loglikelihoods[:-1].mean()
+
+		return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
+
+	def run_iteration(self):
+
+		# Phases: 
+		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
+		# Phase 2:  Train encoder, decoder for each domain, and discriminator concurrently. 
+
+		# Algorithm: 
+		# For every epoch:
+		# 	# For every datapoint: 
+		# 		# 1) Select which source and target domains to use. (i.e. with 50% chance, select either domain for source and for target; Ends up being 50% the same, 50% transfer). 
+		# 		# 2) Get trajectory segments from source and target domains. 
+		# 		# 3) Encode trajectory segments into latent z's and compute likelihood of trajectory actions under the decoder(s). 
+		# 		# 4) Feed into discriminator, get likelihood of same / transfer.  		
+		# 		# 5) Compute and apply gradient updates. 
+
+		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
+
+		# (1) Select source and target domains. 
+		source_domain, target_domain = np.random.binomial(1,0.5,size=2)
+
+		# (1.5) Get source and target domain policy managers. 
+		source_manager, target_manager = self.get_domain_managers(source_domain, target_domain)
+
+		# (2) Get trajectory segments for each domain.
+		source_trajectory_segment, source_action_seq, target_trajectory_segment, target_action_seq = self.get_trajectory_segment_tuple(source_manager, target_manager)
+
+		# (3) Run individual manager encodings. 
+		source_inputs, source_latent_z, source_loglikelihood, source_kl = self.encode_decode_trajectory(source_manager, source_trajectory_segment, source_action_seq)
+		target_inputs, target_latent_z, target_loglikelihood, target_kl = self.encode_decode_trajectory(target_manager, target_trajectory_segment, target_action_seq)
+
+		# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
+		discriminator_logprob, discriminator_prob = self.discriminator_network(source)
+		
 
 
