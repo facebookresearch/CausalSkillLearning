@@ -1524,4 +1524,4 @@ class DiscreteMLP(torch.nn.Module):
 		log_probabilities = self.batch_logsoftmax_layer(preprobability_outputs)
 		probabilities = self.batch_softmax_layer(preprobability_outputs)
 
-		return outputs, hidden, log_probabilities, probabilities
+		return log_probabilities, probabilities
