@@ -3435,7 +3435,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			loglikelihoods, _ = policy_manager.policy_network.forward(subpolicy_inputs, sample_action_seq)
 			loglikelihood = loglikelihoods[:-1].mean()
 
-		return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
+			return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
+
+		return None, None, None, None
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood):
 
@@ -3512,8 +3514,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# (2) & (3) Get trajectory segment and encode and decode. 
 		subpolicy_inputs, latent_z, loglikelihood, kl_divergence = self.encode_decode_trajectory(policy_manager, i)
 
-		# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
-		discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
+		if latent_z is not None:
+			# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
+			discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
 
-		# (5) Compute and apply gradient updates. 
-		self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob)
+			# (5) Compute and apply gradient updates. 
+			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob)
