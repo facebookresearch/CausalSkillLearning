@@ -3412,7 +3412,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		############# (0) #############
 		# Sample trajectory segment from dataset. 			
 
-		# Check if the index is too big. If yes, just smaple randomly.
+		# Check if the index is too big. If yes, just sample randomly.
 		if i >= len(policy_manager.dataset):
 			i = np.random.randint(0, len(policy_manager.dataset))
 
