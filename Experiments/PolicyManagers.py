@@ -3423,7 +3423,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Torchify trajectory segment.
 			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
 			# Encode trajectory segment into latent z. 		
-			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = policy_manager.encoder_network.forward(torch_traj_seg, policy_manager.epislon)
+			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = policy_manager.encoder_network.forward(torch_traj_seg, policy_manager.epsilon)
 
 			########## (2) & (3) ##########
 			# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
