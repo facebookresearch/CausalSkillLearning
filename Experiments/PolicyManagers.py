@@ -22,12 +22,12 @@ class PolicyManager_BaseClass():
 
 		if self.args.setting=='imitation':
 			extent = self.dataset.get_number_task_demos(self.demo_task_index)
-		if self.args.setting=='transfer':
-			extent = self.extent
+		if self.args.setting=='transfer' and isinstance(self, PolicyManager_Transfer):
+				extent = self.extent
 		else:
 			extent = len(self.dataset)-self.test_set_size
 
-		self.index_list = np.arange(0,extent)	
+		self.index_list = np.arange(0,extent)
 		self.initialize_plots()
 
 	def initialize_plots(self):
