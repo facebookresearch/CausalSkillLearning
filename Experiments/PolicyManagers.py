@@ -3278,7 +3278,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 	def __init__(self, args=None, source_dataset=None, target_dataset=None):
 
-		super(PolicyManager_Transfer, self).__init__(args=args)
+		super(PolicyManager_Transfer, self).__init__()
 
 		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 		
 		self.source_args = copy.deepcopy(args)
