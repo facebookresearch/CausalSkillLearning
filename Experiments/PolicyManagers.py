@@ -155,6 +155,8 @@ class PolicyManager_BaseClass():
 			# For every item in the epoch:
 			if self.args.setting=='imitation':
 				extent = self.dataset.get_number_task_demos(self.demo_task_index)
+			if self.args.setting=='transfer':
+				extent = self.extent
 			else:
 				extent = len(self.dataset)-self.test_set_size
 
@@ -3299,6 +3301,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.source_dataset_size = len(self.source_manager.dataset) - self.source_manager.test_set_size
 		self.target_dataset_size = len(self.target_manager.dataset) - self.target_manager.test_set_size
 
+		# Now create variables that we need. 
+		self.number_epochs = 100
+		self.test_set_size = 500
+		self.extent = min(self.source_dataset_size)
+
 	def setup(self):
 
 		# Now setup networks for these PolicyManagers. 		
@@ -3399,7 +3406,12 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		############# (0) #############
 		# Sample trajectory segment from dataset. 			
-		trajectory_segment, sample_action_seq, sample_traj  = self.get_trajectory_segment(i)
+
+		# Check if the index is too big. If yes, just smaple randomly.
+		if i >= len(policy_manager.dataset):
+			i = np.random.randint(0, len(policy_manager.dataset))
+
+		trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
 
 		if trajectory_segment is not None:
 			############# (1) #############
