@@ -3303,8 +3303,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Now create variables that we need. 
 		self.number_epochs = 100
-		self.test_set_size = 500
-		self.extent = min(self.source_dataset_size)
+		self.extent = max(self.source_dataset_size, self.target_dataset_size)
 
 	def setup(self):
 
