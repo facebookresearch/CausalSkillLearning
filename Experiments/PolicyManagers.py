@@ -3282,11 +3282,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 		
 		self.source_args = copy.deepcopy(args)
-		self.source_args.data = source_domain
+		self.source_args.data = self.source_args.source_domain
 		self.source_dataset = source_dataset
 
 		self.target_args = copy.deepcopy(args)
-		self.target_args.data = target_domain
+		self.target_args.data = self.target_args.target_domain
 		self.target_dataset = target_dataset
 
 		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
