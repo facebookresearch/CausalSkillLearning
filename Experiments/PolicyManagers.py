@@ -3309,6 +3309,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.source_manager.setup()
 		self.target_manager.setup()
 
+		# Now define other parameters that will be required for the discriminator, etc. 
+		self.input_size = self.args.z_dimensions
+		self.hidden_size = self.args.hidden_size
+		self.output_size = 2
+
 	def set_iteration(self, counter):
 
 		# Based on what phase of training we are in, set discriminability loss weight, etc. 
@@ -3335,7 +3340,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.target_manager.create_networks()
 
 		# Now must also create discriminator.
-		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.number_policies).cuda()
+		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.output_size).cuda()
 
 	def create_training_ops(self):
 
