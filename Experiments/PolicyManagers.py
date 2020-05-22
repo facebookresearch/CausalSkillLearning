@@ -3343,6 +3343,36 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Create common optimizer for source, target, and discriminator networks. 
 		self.discriminator_optimizer = torch.optim.Adam(self.discriminator_network.parameters(),lr=self.learning_rate)
 
+	def save_all_models(self, suffix):
+		logdir = os.path.join(self.args.logdir, self.args.name)
+		savedir = os.path.join(logdir,"saved_models")
+		if not(os.path.isdir(savedir)):
+			os.mkdir(savedir)
+		save_object = {}
+
+		# Source
+		save_object['Source_Policy_Network'] = self.source_manager.policy_network.state_dict()
+		save_object['Source_Encoder_Network'] = self.source_manager.encoder_network.state_dict()
+		# Target
+		save_object['Target_Policy_Network'] = self.target_manager.policy_network.state_dict()
+		save_object['Target_Encoder_Network'] = self.target_manager.encoder_network.state_dict()
+		# Discriminator
+		save_object['Discriminator_Network'] = self.discriminator_network.state_dict()				
+
+		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+
+	def load_all_models(self, path):
+		load_object = torch.load(path)
+
+		# Source
+		self.source_manager.policy_network.load_state_dict(load_object['Source_Policy_Network'])
+		self.source_manager.encoder_network.load_state_dict(load_object['Source_Encoder_Network'])
+		# Target
+		self.target_manager.policy_network.load_state_dict(load_object['Target_Policy_Network'])
+		self.target_manager.encoder_network.load_state_dict(load_object['Target_Encoder_Network'])
+		# Discriminator
+		self.discriminator_network.load_state_dict(load_object['Discriminator_Network'])
+
 	def get_domain_manager(self, domain):
 		# Create a list, and just index into this list. 
 		domain_manager_list = [self.source_manager, self.target_manager]
