@@ -1504,6 +1504,7 @@ class DiscreteMLP(torch.nn.Module):
 		self.input_layer = torch.nn.Linear(self.input_size, self.hidden_size)
 		self.hidden_layer = torch.nn.Linear(self.hidden_size, self.hidden_size)
 		self.output_layer = torch.nn.Linear(self.hidden_size, self.output_size)
+		self.relu_activation = torch.nn.ReLU()
 
 		# Remember, since this is just an MLP, it isn't LSTM, so last dimension is 1. 
 		self.batch_logsoftmax_layer = torch.nn.LogSoftmax(dim=1)
