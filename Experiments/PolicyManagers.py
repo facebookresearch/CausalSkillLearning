@@ -3276,19 +3276,22 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 class PolicyManager_Transfer(PolicyManager_BaseClass):
 
-	def __init__(self, dataset=None, args=None, source_domain=None, target_domain=None):
+	def __init__(self, args=None, source_dataset=None, target_dataset=None):
 
-		super(PolicyManager_Transfer, self).__init__(number_policies=number_policies, dataset=dataset, args=args)
+		super(PolicyManager_Transfer, self).__init__(args=args)
 
-		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 
+		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 		
 		self.source_args = copy.deepcopy(args)
 		self.source_args.data = source_domain
+		self.source_dataset = source_dataset
+
 		self.target_args = copy.deepcopy(args)
 		self.target_args.data = target_domain
+		self.target_dataset = target_dataset
 
 		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
-		self.source_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.source_args)
-		self.target_manager = PolicyManager_Pretrain(dataset=self.dataset, args=self.target_args)		
+		self.source_manager = PolicyManager_Pretrain(dataset=self.source_dataset, args=self.source_args)
+		self.target_manager = PolicyManager_Pretrain(dataset=self.target_dataset, args=self.target_args)		
 
 		self.source_dataset_size = len(self.source_manager.dataset) - self.source_manager.test_set_size
 		self.target_dataset_size = len(self.target_manager.dataset) - self.target_manager.test_set_size
@@ -3463,5 +3466,3 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# (5) Compute and apply gradient updates. 
 		self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob)
-
-

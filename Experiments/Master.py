@@ -4,24 +4,35 @@ import DataLoaders, MIME_DataLoader, Roboturk_DataLoader, Mocap_DataLoader
 from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, PolicyManager_DMPBaselines, PolicyManager_BaselineRL, PolicyManager_Imitation
 import TestClass
 
+def return_dataset(args, data=None):
+	
+	# The data parameter overrides the data in args.data. 
+	# This is so that we can call return_dataset with source and target data for transfer setting.
+	if data is not None:
+		args.data = data
+
+	# Define Data Loader. 
+	if args.data=='DeterGoal':
+		dataset = DataLoaders.DeterministicGoalDirectedDataset(args.datadir)			
+	elif args.data=='MIME':
+		dataset = MIME_DataLoader.MIME_NewDataset()
+	elif args.data=='Roboturk':		
+		dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset(args)
+	elif args.data=='OrigRoboturk':
+		dataset = Roboturk_DataLoader.Roboturk_Dataset(args)
+	elif args.data=='FullRoboturk':
+		dataset = Roboturk_DataLoader.Roboturk_FullDataset(args)
+	elif args.data=='Mocap':
+		dataset = Mocap_DataLoader.Mocap_Dataset(args)
+
+	return dataset
+
 class Master():
 
 	def __init__(self, arguments):
 		self.args = arguments 
 
-		# Define Data Loader. 
-		if self.args.data=='DeterGoal':
-			self.dataset = DataLoaders.DeterministicGoalDirectedDataset(self.args.datadir)			
-		elif self.args.data=='MIME':
-			self.dataset = MIME_DataLoader.MIME_NewDataset()
-		elif self.args.data=='Roboturk':		
-			self.dataset = Roboturk_DataLoader.Roboturk_NewSegmentedDataset(self.args)
-		elif self.args.data=='OrigRoboturk':
-			self.dataset = Roboturk_DataLoader.Roboturk_Dataset(self.args)
-		elif self.args.data=='FullRoboturk':
-			self.dataset = Roboturk_DataLoader.Roboturk_FullDataset(self.args)
-		elif self.args.data=='Mocap':
-			self.dataset = Mocap_DataLoader.Mocap_Dataset(self.args)
+		self.dataset = return_dataset(args)
 
 		# Now define policy manager.
 		if self.args.setting=='learntsub':
@@ -36,6 +47,12 @@ class Master():
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='imitation':
 			self.policy_manager = PolicyManager_Imitation(self.args.number_policies, self.dataset, self.args)
+		elif self.args.setting=='transfer':			
+
+			source_dataset = return_dataset(self.args, data=self.args.source_domain)
+			target_dataset = return_dataset(self.args, data=self.args.target_domain)
+
+			self.policy_manager = PolicyManager_Transfer(args=self.args, source_dataset=source_dataset, target_dataset=target_dataset)
 
 		if self.args.debug:
 			embed()
@@ -144,7 +161,7 @@ def parse_arguments():
 	
 	parser.add_argument('--pretrain_bias_sampling',type=float,default=0.) # Defines percentage of trajectory within which to sample trajectory segments for pretraining.
 	parser.add_argument('--pretrain_bias_sampling_prob',type=float,default=0.)
-	parser.add_argument('--action_scale_factor',type=float,default=1)
+	parser.add_argument('--action_scale_factor',type=float,default=1)	
 
 	parser.add_argument('--z_exploration_bias',dest='z_exploration_bias',type=float,default=0.)
 	parser.add_argument('--b_exploration_bias',dest='b_exploration_bias',type=float,default=0.)
@@ -165,6 +182,7 @@ def parse_arguments():
 	parser.add_argument('--kl_weight',dest='kl_weight',type=float,default=0.01)
 	parser.add_argument('--var_loss_weight',dest='var_loss_weight',type=float,default=1.)
 	parser.add_argument('--prior_weight',dest='prior_weight',type=float,default=0.00001)
+	parser.add_argument('--discriminability_weight',dest='discriminability_weight',type=float,default=1.) # Weight of discriminability loss in cross domain skill transfer.
 
 	# Exploration and learning rate parameters. 
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.3)
@@ -189,6 +207,9 @@ def parse_arguments():
 	parser.add_argument('--shaped_reward',dest='shaped_reward',type=int,default=0) # Whether or not to use shaped rewards.
 	parser.add_argument('--memory_size',dest='memory_size',type=int,default=2000) # Size of replay memory. 2000 is okay, but is still kind of short sighted. 
 
+	# Transfer learning domains, etc. 
+	parser.add_argument('--source_domain',dest='source_domain',type=str,help='What the source domain is in transfer.')
+	parser.add_argument('--target_domain',dest='target_domain',type=str,help='What the target domain is in transfer.')
 
 	return parser.parse_args()
 
