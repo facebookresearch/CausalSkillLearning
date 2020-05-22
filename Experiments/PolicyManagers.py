@@ -3455,8 +3455,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
 		# I.e. train encoder to make discriminator maximize likelihood of wrong label.
 
-		embed()
-
 		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
 
 		# Total encoder loss: 
