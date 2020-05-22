@@ -3313,6 +3313,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.input_size = self.args.z_dimensions
 		self.hidden_size = self.args.hidden_size
 		self.output_size = 2
+		self.learning_rate = self.args.learning_rate
 
 	def set_iteration(self, counter):
 
