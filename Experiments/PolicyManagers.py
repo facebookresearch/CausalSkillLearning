@@ -3280,6 +3280,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		super(PolicyManager_Transfer, self).__init__()
 
+		# The inherited functions refer to self.args. Also making this to make inheritance go smooth.
+		self.args = args
+
 		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 		
 		self.source_args = copy.deepcopy(args)
 		self.source_args.data = self.source_args.source_domain
