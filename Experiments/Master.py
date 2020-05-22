@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from headers import *
 import DataLoaders, MIME_DataLoader, Roboturk_DataLoader, Mocap_DataLoader
-from PolicyManagers import PolicyManager_Joint, PolicyManager_Pretrain, PolicyManager_DownstreamRL, 
-from PolicyManagers import PolicyManager_DMPBaselines, PolicyManager_BaselineRL, PolicyManager_Imitation, PolicyManager_Transfer
+from PolicyManagers import *
+
 import TestClass
 
 def return_dataset(args, data=None):
