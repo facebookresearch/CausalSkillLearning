@@ -22,6 +22,8 @@ class PolicyManager_BaseClass():
 
 		if self.args.setting=='imitation':
 			extent = self.dataset.get_number_task_demos(self.demo_task_index)
+		if self.args.setting=='transfer':
+			pass
 		else:
 			extent = len(self.dataset)-self.test_set_size
 
