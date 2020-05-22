@@ -3305,8 +3305,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.number_epochs = 100
 		self.extent = max(self.source_dataset_size, self.target_dataset_size)
 
-	def setup(self):
-
 		# Now setup networks for these PolicyManagers. 		
 		self.source_manager.setup()
 		self.target_manager.setup()
