@@ -3439,6 +3439,18 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return None, None, None, None
 
+	def update_plots(self, counter):
+
+		# VAE Losses. 
+		self.tf_logger.scalar_summary('Policy LogLikelihood', self.likelihood_loss, counter)
+		self.tf_logger.scalar_summary('Discriminability Loss', self.discriminability_loss, counter)
+		self.tf_logger.scalar_summary('Encoder KL', self.encoder_KL, counter)
+		self.tf_logger.scalar_summary('VAE Loss', self.VAE_loss, counter)
+		self.tf_logger.scalar_summary('Total VAE Loss', self.total_VAE_loss, counter)		
+
+		# Discriminator Loss. 
+		self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
+
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood):
 
 		#######################
@@ -3520,3 +3532,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			# (5) Compute and apply gradient updates. 
 			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob)
+
+			# Now update Plots. 
+			self.update_plots(counter)
