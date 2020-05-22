@@ -3452,7 +3452,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Discriminator Loss. 
 			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
 
-	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood):
+	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
 		#######################
 		# Update VAE portion. 
@@ -3532,7 +3532,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
 
 			# (5) Compute and apply gradient updates. 
-			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob)
+			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
 
 			# Now update Plots. 
 			self.update_plots(counter)
