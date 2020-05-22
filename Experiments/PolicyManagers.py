@@ -3448,8 +3448,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.tf_logger.scalar_summary('VAE Loss', self.VAE_loss, counter)
 		self.tf_logger.scalar_summary('Total VAE Loss', self.total_VAE_loss, counter)		
 
-		# Discriminator Loss. 
-		self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
+		if not(self.skip_discriminator):
+			# Discriminator Loss. 
+			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood):
 
