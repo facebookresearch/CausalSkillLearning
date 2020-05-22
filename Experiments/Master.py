@@ -32,7 +32,7 @@ class Master():
 	def __init__(self, arguments):
 		self.args = arguments 
 
-		self.dataset = return_dataset(args)
+		self.dataset = return_dataset(self.args)
 
 		# Now define policy manager.
 		if self.args.setting=='learntsub':
