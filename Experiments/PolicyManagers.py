@@ -3439,7 +3439,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return None, None, None, None
 
-	def update_plots(self, counter):
+	def update_plots(self, counter, discriminator_probs):
 
 		# VAE Losses. 
 		self.tf_logger.scalar_summary('Policy LogLikelihood', self.likelihood_loss, counter)
@@ -3451,6 +3451,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		if not(self.skip_discriminator):
 			# Discriminator Loss. 
 			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
+
+			# Compute discriminator prob of right action for logging. 
+			self.tf_logger.scalar_summary('Discriminator Probability', discriminator_probs[domain], counter)
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
@@ -3492,7 +3495,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z.detach())
 
 			# Compute discriminator loss for discriminator. 
-			self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))
+			self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+			
 
 			# Now go backward and take a step.
 			self.discriminator_loss.backward()
@@ -3535,4 +3539,4 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
 
 			# Now update Plots. 
-			self.update_plots(counter)
+			self.update_plots(counter, discriminator_prob)
