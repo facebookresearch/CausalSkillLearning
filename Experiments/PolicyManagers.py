@@ -3453,7 +3453,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
 
 			# Compute discriminator prob of right action for logging. 
-			self.tf_logger.scalar_summary('Discriminator Probability', discriminator_probs, counter)
+			self.tf_logger.scalar_summary('Discriminator Probability', discriminator_probs.squeeze(0).squeeze(0)[domain].detach().cpu().numpy(), counter)
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
