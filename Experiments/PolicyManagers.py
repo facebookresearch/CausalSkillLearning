@@ -3325,13 +3325,24 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Don't train discriminator at all, set discriminability loss weight to 0.
 		if counter<self.args.training_phase_size:
 			self.discriminability_loss_weight = 0.
+			self.vae_loss_weight = 1.
 			self.skip_discriminator = True
 
 		# Phase 2 of training: 
 		# Train the discriminator, and set discriminability loss weight to original.
 		else:
 			self.discriminability_loss_weight = self.args.discriminability_weight
-			self.skip_discriminator = False		
+			self.vae_loss_weight = self.args.vae_loss_weight
+
+			# Now make discriminator and vae train in alternating fashion. 
+			# If even epoch, train VAE.
+			if (counter/self.extent)%2==0:				
+				self.skip_discriminator = False
+				self.skip_vae = True
+			# Otherwise train discriminator.
+			else:
+				self.skip_discriminator = True
+				self.skip_vae = False		
 
 		self.source_manager.set_epoch(counter)
 		self.target_manager.set_epoch(counter)
@@ -3461,26 +3472,27 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Update VAE portion. 
 		#######################
 		
-		# Zero out gradients of encoder and decoder (policy).
-		policy_manager.optimizer.zero_grad()		
+		if not(self.skip_vae):
+			# Zero out gradients of encoder and decoder (policy).
+			policy_manager.optimizer.zero_grad()		
 
-		# Compute VAE loss on the current domain as likelihood plus weighted KL.  
-		self.likelihood_loss = -policy_loglikelihood.mean()
-		self.encoder_KL = encoder_KL.mean()
-		self.VAE_loss = self.likelihood_loss + self.args.kl_weight*self.encoder_KL
+			# Compute VAE loss on the current domain as likelihood plus weighted KL.  
+			self.likelihood_loss = -policy_loglikelihood.mean()
+			self.encoder_KL = encoder_KL.mean()
+			self.VAE_loss = self.likelihood_loss + self.args.kl_weight*self.encoder_KL
 
-		# Compute discriminability loss for encoder (implicitly ignores decoder).
-		# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
-		# I.e. train encoder to make discriminator maximize likelihood of wrong label.
+			# Compute discriminability loss for encoder (implicitly ignores decoder).
+			# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
+			# I.e. train encoder to make discriminator maximize likelihood of wrong label.
 
-		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+			self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
 
-		# Total encoder loss: 
-		self.total_VAE_loss = self.args.vae_loss_weight*self.VAE_loss + self.args.discriminability_weight*self.discriminability_loss
+			# Total encoder loss: 
+			self.total_VAE_loss = self.vae_loss_weight*self.VAE_loss + self.discriminability_loss_weight*self.discriminability_loss
 
-		# Go backward through the generator (encoder / decoder), and take a step. 
-		self.total_VAE_loss.backward()
-		policy_manager.optimizer.step()
+			# Go backward through the generator (encoder / decoder), and take a step. 
+			self.total_VAE_loss.backward()
+			policy_manager.optimizer.step()
 
 		#######################
 		# Update Discriminator. 
@@ -3501,7 +3513,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
 
-	def run_iteration(self, counter, i):
+	def run_iteration(self, counter, i, epoch):
 
 		# Phases: 
 		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
@@ -3519,7 +3531,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
 
 		# (0) Setup things like training phases, epislon values, etc.
-		self.set_iteration(counter)
+		self.set_iteration(counter, epoch)
 
 		# (1) Select which domain to run on. This is supervision of discriminator.
 		domain = np.random.binomial(1,0.5)
