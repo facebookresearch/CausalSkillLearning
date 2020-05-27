@@ -391,7 +391,7 @@ class PolicyManager_BaseClass():
 
 		print("Time taken to write this embedding: ",t2-t1)
 
-	def get_robot_embedding(self):
+	def get_robot_embedding(self, return_tsne_object=False):
 
 		# Mean and variance normalize z.
 		mean = self.latent_z_set.mean(axis=0)
@@ -404,7 +404,10 @@ class PolicyManager_BaseClass():
 		scale_factor = 1
 		scaled_embedded_zs = scale_factor*embedded_zs
 
-		return scaled_embedded_zs
+		if return_tsne_object:
+			return scaled_embedded_zs, tsne
+		else:
+			return scaled_embedded_zs
 
 	def visualize_robot_embedding(self, scaled_embedded_zs, gt=False):
 
@@ -3327,6 +3330,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.discriminability_loss_weight = 0.
 			self.vae_loss_weight = 1.
 			self.skip_discriminator = True
+			self.training_phase = 1
 
 		# Phase 2 of training: 
 		# Train the discriminator, and set discriminability loss weight to original.
@@ -3343,6 +3347,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			else:
 				self.skip_discriminator = True
 				self.skip_vae = False		
+
+			self.training_phase = 2
 
 		self.source_manager.set_epoch(counter)
 		self.target_manager.set_epoch(counter)
@@ -3450,46 +3456,49 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return None, None, None, None
 
-	def update_plots(self, counter, discriminator_probs):
+	def update_plots(self, counter, viz_dict):
 
 		# VAE Losses. 
 		self.tf_logger.scalar_summary('Policy LogLikelihood', self.likelihood_loss, counter)
 		self.tf_logger.scalar_summary('Discriminability Loss', self.discriminability_loss, counter)
 		self.tf_logger.scalar_summary('Encoder KL', self.encoder_KL, counter)
 		self.tf_logger.scalar_summary('VAE Loss', self.VAE_loss, counter)
-		self.tf_logger.scalar_summary('Total VAE Loss', self.total_VAE_loss, counter)		
+		self.tf_logger.scalar_summary('Total VAE Loss', self.total_VAE_loss, counter)
+		self.tf_logger.scalar_summary('Domain', viz_dict['domain'], counter)
 
-		if not(self.skip_discriminator):
+		# Plot discriminator values after we've started training it. 
+		if self.training_phase>1:
+
 			# Discriminator Loss. 
 			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
 
 			# Compute discriminator prob of right action for logging. 
-			self.tf_logger.scalar_summary('Discriminator Probability', discriminator_probs, counter)
+			self.tf_logger.scalar_summary('Discriminator Probability', viz_dict['discriminator_probs'], counter)
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
 		#######################
 		# Update VAE portion. 
 		#######################
-		
+
+		# Zero out gradients of encoder and decoder (policy).
+		policy_manager.optimizer.zero_grad()		
+
+		# Compute VAE loss on the current domain as likelihood plus weighted KL.  
+		self.likelihood_loss = -policy_loglikelihood.mean()
+		self.encoder_KL = encoder_KL.mean()
+		self.VAE_loss = self.likelihood_loss + self.args.kl_weight*self.encoder_KL
+
+		# Compute discriminability loss for encoder (implicitly ignores decoder).
+		# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
+		# I.e. train encoder to make discriminator maximize likelihood of wrong label.
+
+		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+
+		# Total encoder loss: 
+		self.total_VAE_loss = self.vae_loss_weight*self.VAE_loss + self.discriminability_loss_weight*self.discriminability_loss	
+
 		if not(self.skip_vae):
-			# Zero out gradients of encoder and decoder (policy).
-			policy_manager.optimizer.zero_grad()		
-
-			# Compute VAE loss on the current domain as likelihood plus weighted KL.  
-			self.likelihood_loss = -policy_loglikelihood.mean()
-			self.encoder_KL = encoder_KL.mean()
-			self.VAE_loss = self.likelihood_loss + self.args.kl_weight*self.encoder_KL
-
-			# Compute discriminability loss for encoder (implicitly ignores decoder).
-			# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
-			# I.e. train encoder to make discriminator maximize likelihood of wrong label.
-
-			self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
-
-			# Total encoder loss: 
-			self.total_VAE_loss = self.vae_loss_weight*self.VAE_loss + self.discriminability_loss_weight*self.discriminability_loss
-
 			# Go backward through the generator (encoder / decoder), and take a step. 
 			self.total_VAE_loss.backward()
 			policy_manager.optimizer.step()
@@ -3498,17 +3507,17 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Update Discriminator. 
 		#######################
 
+		# Zero gradients of discriminator.
+		self.discriminator_optimizer.zero_grad()
+
+		# If we tried to zero grad the discriminator and then use NLL loss on it again, Pytorch would cry about going backward through a part of the graph that we already \ 
+		# went backward through. Instead, just pass things through the discriminator again, but this time detaching latent_z. 
+		discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z.detach())
+
+		# Compute discriminator loss for discriminator. 
+		self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+		
 		if not(self.skip_discriminator):
-			# Zero gradients of discriminator.
-			self.discriminator_optimizer.zero_grad()
-
-			# If we tried to zero grad the discriminator and then use NLL loss on it again, Pytorch would cry about going backward through a part of the graph that we already \ 
-			# went backward through. Instead, just pass things through the discriminator again, but this time detaching latent_z. 
-			discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z.detach())
-
-			# Compute discriminator loss for discriminator. 
-			self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
-			
 			# Now go backward and take a step.
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
@@ -3550,4 +3559,5 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
 
 			# Now update Plots. 
-			self.update_plots(counter, discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy())
+			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
+			self.update_plots(counter, viz_dict)
