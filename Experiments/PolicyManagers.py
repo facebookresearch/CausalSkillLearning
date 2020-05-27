@@ -3331,6 +3331,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.vae_loss_weight = 1.
 			self.skip_discriminator = True
 			self.training_phase = 1
+			self.skip_vae = False
+			self.skip_discriminator = True
 
 		# Phase 2 of training: 
 		# Train the discriminator, and set discriminability loss weight to original.
