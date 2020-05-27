@@ -3540,7 +3540,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
 
 		# (0) Setup things like training phases, epislon values, etc.
-		self.set_iteration(counter, epoch)
+		self.set_iteration(counter)
 
 		# (1) Select which domain to run on. This is supervision of discriminator.
 		domain = np.random.binomial(1,0.5)
