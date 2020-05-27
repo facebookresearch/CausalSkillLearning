@@ -3341,8 +3341,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.vae_loss_weight = self.args.vae_loss_weight
 
 			# Now make discriminator and vae train in alternating fashion. 
-			# If even epoch, train VAE.
-			if (counter/self.extent)%2==0:				
+			# If odd epoch, train VAE.
+			if (counter/self.extent)%2==1:			
 				self.skip_discriminator = False
 				self.skip_vae = True
 			# Otherwise train discriminator.
