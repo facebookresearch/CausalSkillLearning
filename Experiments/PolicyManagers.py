@@ -3478,6 +3478,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Total encoder loss: 
 		self.total_VAE_loss = self.VAE_loss + self.args.discriminability_weight*self.discriminability_loss
 
+		embed()
+
 		# Go backward through the generator (encoder / decoder), and take a step. 
 		self.total_VAE_loss.backward()
 		policy_manager.optimizer.step()
