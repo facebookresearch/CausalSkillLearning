@@ -182,7 +182,8 @@ def parse_arguments():
 	parser.add_argument('--kl_weight',dest='kl_weight',type=float,default=0.01)
 	parser.add_argument('--var_loss_weight',dest='var_loss_weight',type=float,default=1.)
 	parser.add_argument('--prior_weight',dest='prior_weight',type=float,default=0.00001)
-	parser.add_argument('--discriminability_weight',dest='discriminability_weight',type=float,default=1.) # Weight of discriminability loss in cross domain skill transfer.
+	parser.add_argument('--discriminability_weight',dest='discriminability_weight',type=float,default=1.,help='Weight of discriminability loss in cross domain skill transfer.') 
+	parser.add_argument('--vae_loss_weight',dest='vae_loss_weight',type=float,default=1.,help='Weight of VAE loss in cross domain skill transfer.') 	
 
 	# Exploration and learning rate parameters. 
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.3)

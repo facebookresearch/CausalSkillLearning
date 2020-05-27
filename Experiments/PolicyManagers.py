@@ -3476,9 +3476,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
 
 		# Total encoder loss: 
-		self.total_VAE_loss = self.VAE_loss + self.args.discriminability_weight*self.discriminability_loss
-
-		embed()
+		self.total_VAE_loss = self.args.vae_loss_weight*self.VAE_loss + self.args.discriminability_weight*self.discriminability_loss
 
 		# Go backward through the generator (encoder / decoder), and take a step. 
 		self.total_VAE_loss.backward()
@@ -3499,7 +3497,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Compute discriminator loss for discriminator. 
 			self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
 			
-
 			# Now go backward and take a step.
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
