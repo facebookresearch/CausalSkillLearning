@@ -3522,7 +3522,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
 
-	def run_iteration(self, counter, i, epoch):
+	def run_iteration(self, counter, i):
 
 		# Phases: 
 		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
