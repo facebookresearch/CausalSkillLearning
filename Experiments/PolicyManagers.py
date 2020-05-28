@@ -3579,6 +3579,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 	def get_trajectory_visuals(self):
 
+		i = np.random.randint(0,high=self.extent)
+
 		# First get a trajectory, starting point, and latent z.
 		source_trajectory, source_latent_z = self.encode_decode_trajectory(self.source_manager, i, return_trajectory=True)
 		# Reconstruct using the source domain manager. 
