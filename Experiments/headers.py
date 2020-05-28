@@ -21,6 +21,7 @@ from matplotlib.figure import Figure
 from IPython import embed
 import pdb
 import sklearn.manifold as skl_manifold
+from sklearn.decomposition import PCA
 from matplotlib.offsetbox import (TextArea, DrawingArea, OffsetImage,
                                   AnnotationBbox)
 from matplotlib.animation import FuncAnimation
