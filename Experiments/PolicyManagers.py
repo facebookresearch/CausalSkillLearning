@@ -52,6 +52,9 @@ class PolicyManager_BaseClass():
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
 
+		self.rollout_gif_list = []
+		self.gt_gif_list = []
+		
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
