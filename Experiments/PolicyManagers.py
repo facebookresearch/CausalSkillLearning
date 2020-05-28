@@ -3533,8 +3533,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Function to visualize source, target, and combined embeddings: 
 
 		self.N = 100
-		self.source_latent_zs = np.zeros((self.N,self.args.latent_z_dimensionality))
-		self.target_latent_zs = np.zeros((self.N,self.args.latent_z_dimensionality))
+		self.source_latent_zs = np.zeros((self.N,self.args.z_dimensions))
+		self.target_latent_zs = np.zeros((self.N,self.args.z_dimensions))
 
 		# For N data points:
 		for i in range(self.N):
