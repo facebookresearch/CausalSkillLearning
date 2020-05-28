@@ -3550,9 +3550,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
 		target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
 	
-		source_image = plot_embedding(source_embedded_zs, "Source_Embedding")
-		target_image = plot_embedding(target_embedded_zs, "Target_Embedding")
-		combined_image = plot_embedding(source_embedded_zs, "Combined_Embedding", second_embedded_zs=target_embedded_zs)
+		source_image = self.plot_embedding(source_embedded_zs, "Source_Embedding")
+		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
+		combined_image = self.plot_embedding(source_embedded_zs, "Combined_Embedding", second_embedded_zs=target_embedded_zs)
 
 		return source_image, target_image, combined_image
 
