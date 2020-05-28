@@ -3540,8 +3540,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		for i in range(self.N):
 
 			# Get corresponding latent z's of source and target domains.
-			_, self.source_latent_zs[i], _, _ = self.encode_decode_trajectory(self.source_manager, i)
-			_, self.target_latent_zs[i], _, _ = self.encode_decode_trajectory(self.target_manager, i)
+			_, source_z, _, _ = self.encode_decode_trajectory(self.source_manager, i)
+			_, target_z, _, _ = self.encode_decode_trajectory(self.target_manager, i)
+
+		self.source_latent_zs[i] = source_z.detach().cpu().numpy()
+		self.target_latent_zs[i] = target_z.detach().cpu().numpy()
 
 		# Now fit PCA to source.
 		source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
