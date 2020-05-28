@@ -43,6 +43,15 @@ class PolicyManager_BaseClass():
 		else:
 			self.tf_logger = TFLogger.Logger()
 
+		if self.args.data=='MIME':
+			self.visualizer = BaxterVisualizer()
+			# self.state_dim = 16
+		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+			self.visualizer = SawyerVisualizer()
+			# self.state_dim = 8
+		elif self.args.data=='Mocap':
+			self.visualizer = MocapVisualizer(args=self.args)
+
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
 		self.writer.close()
