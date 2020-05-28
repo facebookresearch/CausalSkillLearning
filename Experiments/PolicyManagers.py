@@ -3565,7 +3565,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		ax.scatter(embedded_zs[:self.N,0],embedded_zs[:self.N,1],c=np.zeros((self.N)))		
 
 		# If shared embedding, plot both.
-		if second_embedded_zs:
+		if second_embedded_zs is not None:
 			ax.scatter(second_embedded_zs[:self.N,0],second_embedded_zs[:self.N,1],c=np.ones((self.N)))		
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
