@@ -3484,7 +3484,10 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			else:
 				return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
 
-		return None, None, None, None
+		if return_trajectory:
+			return None, None
+		else:
+			return None, None, None, None
 
 	def update_plots(self, counter, viz_dict):
 
@@ -3518,11 +3521,12 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Should be able to use the policy manager's functions to do this.
 			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
 
-			# Now actually plot the images.
-			self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
-			self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
-			self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
-			self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
+			if source_trajectory is not None:
+				# Now actually plot the images.
+				self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
+				self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
+				self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
+				self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
 
 	def get_transform(self, latent_z_set):
 		mean = latent_z_set.mean(axis=0)
@@ -3601,15 +3605,19 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# First get a trajectory, starting point, and latent z.
 		source_trajectory, source_latent_z = self.encode_decode_trajectory(self.source_manager, i, return_trajectory=True)
 
-		# Reconstruct using the source domain manager. 
-		_, source_trajectory_image, source_reconstruction_image = self.source_manager.get_robot_visuals(0, source_latent_z, source_trajectory, return_image=True)		
+		if source_trajectory is not None:
+			# Reconstruct using the source domain manager. 
+			_, source_trajectory_image, source_reconstruction_image = self.source_manager.get_robot_visuals(0, source_latent_z, source_trajectory, return_image=True)		
 
-		# Now repeat the same for target domain - First get a trajectory, starting point, and latent z.
-		target_trajectory, target_latent_z = self.encode_decode_trajectory(self.target_manager, i, return_trajectory=True)
-		# Reconstruct using the target domain manager. 
-		_, target_trajectory_image, target_reconstruction_image = self.target_manager.get_robot_visuals(0, target_latent_z, target_trajectory, return_image=True)		
+			# Now repeat the same for target domain - First get a trajectory, starting point, and latent z.
+			target_trajectory, target_latent_z = self.encode_decode_trajectory(self.target_manager, i, return_trajectory=True)
+			# Reconstruct using the target domain manager. 
+			_, target_trajectory_image, target_reconstruction_image = self.target_manager.get_robot_visuals(0, target_latent_z, target_trajectory, return_image=True)		
 
-		return np.array(source_trajectory_image), np.array(source_reconstruction_image), np.array(target_trajectory_image), np.array(target_reconstruction_image)
+			return np.array(source_trajectory_image), np.array(source_reconstruction_image), np.array(target_trajectory_image), np.array(target_reconstruction_image)
+		
+		else: 
+			return None, None, None, None
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
