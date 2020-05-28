@@ -52,6 +52,11 @@ class PolicyManager_BaseClass():
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
 
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
 		self.writer.close()
