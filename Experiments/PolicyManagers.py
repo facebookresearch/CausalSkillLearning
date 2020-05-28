@@ -3509,6 +3509,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# If we are displaying things: 
 		if counter%self.args.display_freq==0:
 
+			self.gt_gif_list = []
+			self.rollout_gif_list = []
+			
 			# Plot source, target, and shared embeddings via PCA. 
 			source_embedding, target_embedding, combined_embeddings = self.get_embeddings()
 
