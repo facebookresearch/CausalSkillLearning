@@ -3562,11 +3562,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		ax = fig.gca()
 
 		# Create a scatter plot of the embedding.
-		ax.scatter(embedded_zs[:self.N,0],embedded_zs[:self.N,1],c=0)		
+		ax.scatter(embedded_zs[:self.N,0],embedded_zs[:self.N,1],c=np.zeros((self.N)))		
 
 		# If shared embedding, plot both.
 		if second_embedded_zs:
-			ax.scatter(second_embedded_zs[:self.N,0],second_embedded_zs[:self.N,1],c=1)		
+			ax.scatter(second_embedded_zs[:self.N,0],second_embedded_zs[:self.N,1],c=np.ones((self.N)))		
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
 		fig.canvas.draw()
