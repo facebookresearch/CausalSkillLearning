@@ -3603,6 +3603,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# First get a trajectory, starting point, and latent z.
 		source_trajectory, source_latent_z = self.encode_decode_trajectory(self.source_manager, i, return_trajectory=True)
 
+		embed()
+
+		
 		# Reconstruct using the source domain manager. 
 		_, source_trajectory_image, source_reconstruction_image = self.source_manager.get_robot_visuals(0, source_latent_z, source_trajectory, return_image=True)		
 
