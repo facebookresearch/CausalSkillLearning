@@ -3519,8 +3519,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
 
 			# Now actually plot the images.
-
-			embed()
 			self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
 			self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
 			self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
@@ -3603,9 +3601,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# First get a trajectory, starting point, and latent z.
 		source_trajectory, source_latent_z = self.encode_decode_trajectory(self.source_manager, i, return_trajectory=True)
 
-		embed()
-
-		
 		# Reconstruct using the source domain manager. 
 		_, source_trajectory_image, source_reconstruction_image = self.source_manager.get_robot_visuals(0, source_latent_z, source_trajectory, return_image=True)		
 
@@ -3614,7 +3609,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Reconstruct using the target domain manager. 
 		_, target_trajectory_image, target_reconstruction_image = self.target_manager.get_robot_visuals(0, target_latent_z, target_trajectory, return_image=True)		
 
-		return source_trajectory_image, source_reconstruction_image, target_trajectory_image, target_reconstruction_image
+		return np.array(source_trajectory_image), np.array(source_reconstruction_image), np.array(target_trajectory_image), np.array(target_reconstruction_image)
 
 	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
 
