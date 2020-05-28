@@ -54,7 +54,7 @@ class PolicyManager_BaseClass():
 
 		self.rollout_gif_list = []
 		self.gt_gif_list = []
-		
+
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
@@ -3519,6 +3519,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
 
 			# Now actually plot the images.
+
+			embed()
 			self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
 			self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
 			self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
