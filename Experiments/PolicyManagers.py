@@ -3463,7 +3463,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			loglikelihood = loglikelihoods[:-1].mean()
 
 			if return_trajectory:
-				return trajectory, latent_z
+				return trajectory_segment, latent_z
 			else:
 				return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
 
