@@ -91,29 +91,6 @@ class Logger(object):
         summary = tf.Summary(value=img_summaries)
         self.writer.add_summary(summary, step)
 
-    def image_summary_alt(self, tag, images, step):
-        """Log a list of images."""
-
-        img_summaries = []
-        for i, img in enumerate(images):
-            # Write the image to a string
-            try:
-                s = StringIO()
-            except:
-                s = BytesIO()
-            scipy.misc.toimage(img, channel_axis=0).save(s, format="png")
-            
-            # Create an Image object - assumes image dimensions are [3xHxW]
-            img_sum = tf.Summary.Image(encoded_image_string=s.getvalue(),
-                                       height=img.shape[1],
-                                       width=img.shape[2])
-            # Create a Summary value
-            img_summaries.append(tf.Summary.Value(tag='%s/%d' % (tag, i), image=img_sum))
-
-        # Create and write Summary
-        summary = tf.Summary(value=img_summaries)
-        self.writer.add_summary(summary, step)
-
     def histo_summary(self, tag, values, step, bins=1000):
         """Log a histogram of the tensor of values."""
 
