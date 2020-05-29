@@ -3531,6 +3531,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 				self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
 				self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
 
+			embed()
+
 	def get_transform(self, latent_z_set):
 		mean = latent_z_set.mean(axis=0)
 		std = latent_z_set.std(axis=0)
@@ -3619,7 +3621,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
 		image = np.transpose(image, axes=[2,0,1])
 
-		embed()
 		return image
 
 	def get_trajectory_visuals(self):
@@ -3639,7 +3640,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			_, target_trajectory_image, target_reconstruction_image = self.target_manager.get_robot_visuals(0, target_latent_z, target_trajectory, return_image=True)		
 
 			return np.array(source_trajectory_image), np.array(source_reconstruction_image), np.array(target_trajectory_image), np.array(target_reconstruction_image)
-		
+			
 		else: 
 			return None, None, None, None
 
