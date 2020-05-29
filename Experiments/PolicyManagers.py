@@ -3518,9 +3518,12 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Now actually plot the images.			
 			self.tf_logger.image_summary("Source Embedding", source_embedding, counter)
 			self.tf_logger.image_summary("Target Embedding", target_embedding, counter)
-			self.tf_logger.image_summary("Combined Embeddings", combined_embeddings, counter)
-			self.tf_logger.image_summary("Combined Embeddings 2", combined_embeddings.transpose([2,1,0]), counter)
-
+			self.tf_logger.image_summary("Combined Embeddings", combined_embeddings, counter)			
+			self.tf_logger.image_summary("Combined Embeddings 2", combined_embeddings.transpose([2,0,1]), counter)
+			self.tf_logger.image_summary("Combined Embeddings 3", combined_embeddings.transpose([2,1,0]), counter)
+			self.tf_logger.image_summary_alt("Alt Combined Embeddings", combined_embeddings, counter)			
+			self.tf_logger.image_summary_alt("Alt Combined Embeddings 2", combined_embeddings.transpose([2,0,1]), counter)
+			self.tf_logger.image_summary_alt("Alt Combined Embeddings 3", combined_embeddings.transpose([2,1,0]), counter)
 			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 
 			# Should be able to use the policy manager's functions to do this.
 			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
@@ -3613,7 +3616,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Create a scatter plot of the embedding.
 		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
-
+		plt.colorbar()
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
 		fig.canvas.draw()
