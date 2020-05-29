@@ -3595,7 +3595,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
 		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)
 
-		return source_image, target_image, combined_image
+		return source_image, target_image, shared_image
 
 	def plot_embedding(self, embedded_zs, title, shared=False):
 	
