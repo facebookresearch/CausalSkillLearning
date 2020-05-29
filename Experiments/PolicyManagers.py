@@ -3511,7 +3511,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			self.gt_gif_list = []
 			self.rollout_gif_list = []
-			
+
 			# Plot source, target, and shared embeddings via PCA. 
 			source_embedding, target_embedding, combined_embeddings = self.get_embeddings()
 
@@ -3536,18 +3536,20 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		std = latent_z_set.std(axis=0)
 		normed_z = (latent_z_set-mean)/std
 		
-		# tsne = skl_manifold.TSNE(n_components=2,random_state=0)
-		# embedded_zs = tsne.fit_transform(normed_z)
+		# Use TSNE to project the data:
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		embedded_zs = tsne.fit_transform(normed_z)
 
-		# scale_factor = 1
-		# scaled_embedded_zs = scale_factor*embedded_zs
+		scale_factor = 1
+		scaled_embedded_zs = scale_factor*embedded_zs
 
-		# return scaled_embedded_zs, tsne
+		return scaled_embedded_zs, tsne
 
-		pca_object = PCA(n_components=2)
-		embedded_zs = pca_object.fit_transform(normed_z)
+		# Use PCA to project the data:
+		# pca_object = PCA(n_components=2)
+		# embedded_zs = pca_object.fit_transform(normed_z)
 
-		return embedded_zs, pca_object
+		# return embedded_zs, pca_object
 
 	def transform_zs(self, latent_z_set, transforming_object):
 		# Simply just transform according to a fit transforming_object.
@@ -3559,6 +3561,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.N = 100
 		self.source_latent_zs = np.zeros((self.N,self.args.z_dimensions))
 		self.target_latent_zs = np.zeros((self.N,self.args.z_dimensions))
+		self.shared_latent_zs = np.zeros((2*self.N,self.args.z_dimensions))
 
 		# For N data points:
 		for i in range(self.N):
@@ -3570,27 +3573,33 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.source_latent_zs[i] = source_z.detach().cpu().numpy()
 		self.target_latent_zs[i] = target_z.detach().cpu().numpy()
 
-		# Now fit PCA to source.
-		source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
-		target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
+		# Use TSNE to transform data.
+		source_embedded_zs, _ = self.get_transform(self.source_latent_zs)
+		target_embedded_zs, _ = self.get_transform(self.target_latent_zs)
+		shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs)
+
+		# # Now fit PCA to source.
+		# source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
+		# target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
 	
 		source_image = self.plot_embedding(source_embedded_zs, "Source_Embedding")
 		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
-		combined_image = self.plot_embedding(source_embedded_zs, "Combined_Embedding", second_embedded_zs=target_embedded_zs)
+		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)
 
 		return source_image, target_image, combined_image
 
-	def plot_embedding(self, embedded_zs, title, second_embedded_zs=None):
+	def plot_embedding(self, embedded_zs, title, shared=True):
 	
 		fig = plt.figure()
 		ax = fig.gca()
 
-		# Create a scatter plot of the embedding.
-		ax.scatter(embedded_zs[:self.N,0],embedded_zs[:self.N,1],c=np.zeros((self.N)))		
+		colors = np.zeros((2*self.N))
+		if shared:
+			colors[self.N:] = 1
 
-		# If shared embedding, plot both.
-		if second_embedded_zs is not None:
-			ax.scatter(second_embedded_zs[:self.N,0],second_embedded_zs[:self.N,1],c=np.ones((self.N)))		
+		# Create a scatter plot of the embedding.
+		ax.scatter(embedded_zs[:self.N,0],embedded_zs[:self.N,1],c=colors)		
+
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
 		fig.canvas.draw()
@@ -3708,3 +3717,27 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Now update Plots. 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
+
+
+# def test_transform_before_fit():
+#     # transform() cannot be called before fit().
+#     random_state = check_random_state(0)
+#     X = random_state.randn(100, 2)
+#     tsne = TSNE(n_components=2, perplexity=2, learning_rate=100.0,
+#                 random_state=0, method='barnes_hut')
+#     m = "Cannot call `transform` unless `fit` has"
+#     assert_raises_regexp(ValueError, m, tsne.transform, X)
+
+
+# def test_transform_warning():
+#     # Raise a warning if fit and transform encountered the same data.
+#     with warnings.catch_warnings(record=True) as w:
+#         warnings.simplefilter("always")
+#         random_state = check_random_state(0)
+#         X = random_state.randn(100, 2)
+#         tsne = TSNE(n_components=2, perplexity=2, learning_rate=100.0,
+#                     random_state=0, method='barnes_hut')
+#         tsne.fit(X)
+#         tsne.transform(X)
+#         m = str(w[0].message)
+#     assert "The transform input appears to be similar" in m
