@@ -3603,13 +3603,13 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		ax = fig.gca()
 		
 		if shared:
-			colors = np.zeros((2*self.N))
-			colors[self.N:] = 1
+			colors = 0.2*np.ones((2*self.N))
+			colors[self.N:] = 0.8
 		else:
-			colors = np.zeros((self.N))
+			colors = 0.2*np.ones((self.N))
 
 		# Create a scatter plot of the embedding.
-		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors)		
+		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors, vmax=1, vmin=0, cmap='jet')
 
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
