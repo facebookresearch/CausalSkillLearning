@@ -3597,7 +3597,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return source_image, target_image, combined_image
 
-	def plot_embedding(self, embedded_zs, title, shared=True):
+	def plot_embedding(self, embedded_zs, title, shared=False):
 	
 		fig = plt.figure()
 		ax = fig.gca()
