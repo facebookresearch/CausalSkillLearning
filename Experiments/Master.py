@@ -187,6 +187,7 @@ def parse_arguments():
 	parser.add_argument('--discriminability_weight',dest='discriminability_weight',type=float,default=1.,help='Weight of discriminability loss in cross domain skill transfer.') 
 	parser.add_argument('--vae_loss_weight',dest='vae_loss_weight',type=float,default=1.,help='Weight of VAE loss in cross domain skill transfer.') 	
 	parser.add_argument('--projection',dest='projection',type=str,default='tsne',help='What type of projection to use for visualizations; tsne or pca.')
+	parser.add_argument('--alternating_phase_size',dest='alternating_phase_size',type=int,default=2, help='Factor by which to scale dataset size to get alternating phase size.')
 
 	# Exploration and learning rate parameters. 
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.3)
