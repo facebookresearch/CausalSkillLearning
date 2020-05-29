@@ -3364,7 +3364,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			# Now make discriminator and vae train in alternating fashion. 
 			# Set number of iterations of alteration. 
-			self.alterating_phase_size = self.args.alterating_phase_size*self.extent
+			self.alternating_phase_size = self.args.alternating_phase_size*self.extent
 
 			# If odd epoch, train VAE.
 			if (counter/self.alterating_phase_size)%2==1:			
