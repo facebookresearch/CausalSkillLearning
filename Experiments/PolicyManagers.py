@@ -3332,7 +3332,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.target_dataset_size = len(self.target_manager.dataset) - self.target_manager.test_set_size
 
 		# Now create variables that we need. 
-		self.number_epochs = 100
+		self.number_epochs = 200
 		self.extent = max(self.source_dataset_size, self.target_dataset_size)
 
 		# Now setup networks for these PolicyManagers. 		
