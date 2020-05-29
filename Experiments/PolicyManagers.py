@@ -3536,20 +3536,22 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		std = latent_z_set.std(axis=0)
 		normed_z = (latent_z_set-mean)/std
 		
-		# Use TSNE to project the data:
-		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
-		embedded_zs = tsne.fit_transform(normed_z)
+		if self.args.projection=='tsne':
+			# Use TSNE to project the data:
+			tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+			embedded_zs = tsne.fit_transform(normed_z)
 
-		scale_factor = 1
-		scaled_embedded_zs = scale_factor*embedded_zs
+			scale_factor = 1
+			scaled_embedded_zs = scale_factor*embedded_zs
 
-		return scaled_embedded_zs, tsne
+			return scaled_embedded_zs, tsne
 
-		# Use PCA to project the data:
-		# pca_object = PCA(n_components=2)
-		# embedded_zs = pca_object.fit_transform(normed_z)
+		elif self.args.projection=='pca':
+			# Use PCA to project the data:
+			pca_object = PCA(n_components=2)
+			embedded_zs = pca_object.fit_transform(normed_z)
 
-		# return embedded_zs, pca_object
+			return embedded_zs, pca_object
 
 	def transform_zs(self, latent_z_set, transforming_object):
 		# Simply just transform according to a fit transforming_object.
@@ -3570,18 +3572,25 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			_, source_z, _, _ = self.encode_decode_trajectory(self.source_manager, i)
 			_, target_z, _, _ = self.encode_decode_trajectory(self.target_manager, i)
 
-		self.source_latent_zs[i] = source_z.detach().cpu().numpy()
-		self.target_latent_zs[i] = target_z.detach().cpu().numpy()
+			if source_z is not None:
+				self.source_latent_zs[i] = source_z.detach().cpu().numpy()
+				self.shared_latent_zs[i] = source_z.detach().cpu().numpy()
+			if target_z is not None:
+				self.target_latent_zs[i] = target_z.detach().cpu().numpy()
+				self.shared_latent_zs[self.N+i] = target_z.detach().cpu().numpy()
 
-		# Use TSNE to transform data.
-		source_embedded_zs, _ = self.get_transform(self.source_latent_zs)
-		target_embedded_zs, _ = self.get_transform(self.target_latent_zs)
-		shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs)
+		if self.args.projection=='tsne':
+			# Use TSNE to transform data.		
+			source_embedded_zs, _ = self.get_transform(self.source_latent_zs)
+			target_embedded_zs, _ = self.get_transform(self.target_latent_zs)
+			shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs)		
 
-		# # Now fit PCA to source.
-		# source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
-		# target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
-	
+		elif self.args.projection=='pca':
+			# Now fit PCA to source.
+			source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
+			target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
+			shared_embedded_zs = np.concatenate([source_embedded_zs, target_embedded_zs],axis=0)
+
 		source_image = self.plot_embedding(source_embedded_zs, "Source_Embedding")
 		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
 		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)
