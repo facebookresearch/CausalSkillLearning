@@ -3616,7 +3616,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Create a scatter plot of the embedding.
 		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
-		plt.colorbar()
+		
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
 		fig.canvas.draw()
