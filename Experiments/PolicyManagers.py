@@ -3349,25 +3349,25 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Based on what phase of training we are in, set discriminability loss weight, etc. 
 		
-		# Phase 1 of training: 
-		# Don't train discriminator at all, set discriminability loss weight to 0.
+		# Phase 1 of training: Don't train discriminator at all, set discriminability loss weight to 0.
 		if counter<self.args.training_phase_size:
 			self.discriminability_loss_weight = 0.
 			self.vae_loss_weight = 1.
-			self.skip_discriminator = True
 			self.training_phase = 1
 			self.skip_vae = False
 			self.skip_discriminator = True
 
-		# Phase 2 of training: 
-		# Train the discriminator, and set discriminability loss weight to original.
+		# Phase 2 of training: Train the discriminator, and set discriminability loss weight to original.
 		else:
 			self.discriminability_loss_weight = self.args.discriminability_weight
 			self.vae_loss_weight = self.args.vae_loss_weight
 
 			# Now make discriminator and vae train in alternating fashion. 
+			# Set number of iterations of alteration. 
+			self.alterating_phase_size = self.args.alterating_phase_size*self.extent
+
 			# If odd epoch, train VAE.
-			if (counter/self.extent)%2==1:			
+			if (counter/self.alterating_phase_size)%2==1:			
 				self.skip_discriminator = False
 				self.skip_vae = True
 			# Otherwise train discriminator.
@@ -3728,27 +3728,3 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Now update Plots. 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
-
-
-# def test_transform_before_fit():
-#     # transform() cannot be called before fit().
-#     random_state = check_random_state(0)
-#     X = random_state.randn(100, 2)
-#     tsne = TSNE(n_components=2, perplexity=2, learning_rate=100.0,
-#                 random_state=0, method='barnes_hut')
-#     m = "Cannot call `transform` unless `fit` has"
-#     assert_raises_regexp(ValueError, m, tsne.transform, X)
-
-
-# def test_transform_warning():
-#     # Raise a warning if fit and transform encountered the same data.
-#     with warnings.catch_warnings(record=True) as w:
-#         warnings.simplefilter("always")
-#         random_state = check_random_state(0)
-#         X = random_state.randn(100, 2)
-#         tsne = TSNE(n_components=2, perplexity=2, learning_rate=100.0,
-#                     random_state=0, method='barnes_hut')
-#         tsne.fit(X)
-#         tsne.transform(X)
-#         m = str(w[0].message)
-#     assert "The transform input appears to be similar" in m
