@@ -3609,7 +3609,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			colors = 0.2*np.ones((self.N))
 
 		# Create a scatter plot of the embedding.
-		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors, vmax=1, vmin=0, cmap='jet')
+		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
 
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
@@ -3619,6 +3619,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
 		image = np.transpose(image, axes=[2,0,1])
 
+		embed()
 		return image
 
 	def get_trajectory_visuals(self):
