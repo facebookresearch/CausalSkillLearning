@@ -3367,7 +3367,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.alternating_phase_size = self.args.alternating_phase_size*self.extent
 
 			# If odd epoch, train VAE.
-			if (counter/self.alterating_phase_size)%2==1:			
+			if (counter/self.alternating_phase_size)%2==1:			
 				self.skip_discriminator = False
 				self.skip_vae = True
 			# Otherwise train discriminator.
