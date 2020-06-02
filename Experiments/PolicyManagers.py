@@ -3366,16 +3366,26 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Set number of iterations of alteration. 
 			self.alternating_phase_size = self.args.alternating_phase_size*self.extent
 
-			# If odd epoch, train VAE.
-			if (counter/self.alternating_phase_size)%2==1:			
+			# # If odd epoch, train discriminator. (Just so that we start training discriminator first).
+			# if (counter/self.alternating_phase_size)%2==1:			
+			# 	self.skip_discriminator = False
+			# 	self.skip_vae = True
+			# # Otherwise train VAE.
+			# else:
+			# 	self.skip_discriminator = True
+			# 	self.skip_vae = False		
+
+			# Train discriminator for k times as many steps as VAE. Set args.alternating_phase_size as 1 for this. 
+			if (counter/self.alternating_phase_size)%self.args.discriminator_phase_size>=1:
 				self.skip_discriminator = False
 				self.skip_vae = True
-			# Otherwise train discriminator.
+			# Otherwise train VAE.
 			else:
 				self.skip_discriminator = True
 				self.skip_vae = False		
 
 			self.training_phase = 2
+
 
 		self.source_manager.set_epoch(counter)
 		self.target_manager.set_epoch(counter)
