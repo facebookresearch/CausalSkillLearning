@@ -3376,7 +3376,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# 	self.skip_vae = False		
 
 			# Train discriminator for k times as many steps as VAE. Set args.alternating_phase_size as 1 for this. 
-			if (counter/self.alternating_phase_size)%self.args.discriminator_phase_size>=1:
+			if (counter/self.alternating_phase_size)%(self.args.discriminator_phase_size+1)>=1:
 				self.skip_discriminator = False
 				self.skip_vae = True
 			# Otherwise train VAE.
