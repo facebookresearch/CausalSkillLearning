@@ -3364,7 +3364,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			# Now make discriminator and vae train in alternating fashion. 
 			# Set number of iterations of alteration. 
-			self.alternating_phase_size = self.args.alternating_phase_size*self.extent
+			# self.alternating_phase_size = self.args.alternating_phase_size*self.extent
 
 			# # If odd epoch, train discriminator. (Just so that we start training discriminator first).
 			# if (counter/self.alternating_phase_size)%2==1:			
@@ -3376,7 +3376,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# 	self.skip_vae = False		
 
 			# Train discriminator for k times as many steps as VAE. Set args.alternating_phase_size as 1 for this. 
-			if (counter/self.alternating_phase_size)%(self.args.discriminator_phase_size+1)>=1:
+			if (counter/self.args.alternating_phase_size)%(self.args.discriminator_phase_size+1)>=1:
 				print("Training Discriminator.")
 				self.skip_discriminator = False
 				self.skip_vae = True
