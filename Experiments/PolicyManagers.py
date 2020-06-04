@@ -3524,13 +3524,22 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.gt_gif_list = []
 			self.rollout_gif_list = []
 
-			# Plot source, target, and shared embeddings via PCA. 
-			source_embedding, target_embedding, combined_embeddings = self.get_embeddings()
+			# Now using both TSNE and PCA. 
+			# Plot source, target, and shared embeddings via TSNE.
+			tsne_source_embedding, tsne_target_embedding, tsne_combined_embeddings = self.get_embeddings(projection='tsne')
 
 			# Now actually plot the images.			
-			self.tf_logger.image_summary("Source Embedding", [source_embedding], counter)
-			self.tf_logger.image_summary("Target Embedding", [target_embedding], counter)
-			self.tf_logger.image_summary("Combined Embeddings", [combined_embeddings], counter)			
+			self.tf_logger.image_summary("TSNE Source Embedding", [tsne_source_embedding], counter)
+			self.tf_logger.image_summary("TSNE Target Embedding", [tsne_target_embedding], counter)
+			self.tf_logger.image_summary("TSNE Combined Embeddings", [tsne_combined_embeddings], counter)			
+
+			# Plot source, target, and shared embeddings via PCA. 
+			pca_source_embedding, pca_target_embedding, pca_combined_embeddings = self.get_embeddings(projection='pca')
+
+			# Now actually plot the images.			
+			self.tf_logger.image_summary("PCA Source Embedding", [pca_source_embedding], counter)
+			self.tf_logger.image_summary("PCA Target Embedding", [pca_target_embedding], counter)
+			self.tf_logger.image_summary("PCA Combined Embeddings", [pca_combined_embeddings], counter)			
 
 			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 
 			# Should be able to use the policy manager's functions to do this.
@@ -3543,12 +3552,27 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 				self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
 				self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
 
-	def get_transform(self, latent_z_set):
-		mean = latent_z_set.mean(axis=0)
-		std = latent_z_set.std(axis=0)
-		normed_z = (latent_z_set-mean)/std
+	def get_transform(self, latent_z_set, projection='tsne', shared=False):
+
+		if shared:
+			# If this set of z's contains z's from both source and target domains, mean-std normalize them independently. 
+			normed_z = np.zeros_like(latent_z_set)
+			# Normalize source.
+			source_mean = latent_z_set[:self.N].mean(axis=0)
+			source_std = latent_z_set[:self.N].std(axis=0)
+			normed_z[:self.N] = (latent_z_set[:self.N]-source_mean)/source_std
+			# Normalize target.
+			target_mean = latent_z_set[self.N:].mean(axis=0)
+			target_std = latent_z_set[self.N:].std(axis=0)
+			normed_z[self.N:] = (latent_z_set[self.N:]-target_mean)/target_std			
+
+		else:
+			# Just normalize z's.
+			mean = latent_z_set.mean(axis=0)
+			std = latent_z_set.std(axis=0)
+			normed_z = (latent_z_set-mean)/std
 		
-		if self.args.projection=='tsne':
+		if projection=='tsne':
 			# Use TSNE to project the data:
 			tsne = skl_manifold.TSNE(n_components=2,random_state=0)
 			embedded_zs = tsne.fit_transform(normed_z)
@@ -3558,7 +3582,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			return scaled_embedded_zs, tsne
 
-		elif self.args.projection=='pca':
+		elif projection=='pca':
 			# Use PCA to project the data:
 			pca_object = PCA(n_components=2)
 			embedded_zs = pca_object.fit_transform(normed_z)
@@ -3569,7 +3593,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Simply just transform according to a fit transforming_object.
 		return transforming_object.transform(latent_z_set)
 
-	def get_embeddings(self):
+	def get_embeddings(self, projection='tsne'):
 		# Function to visualize source, target, and combined embeddings: 
 
 		self.N = 100
@@ -3591,15 +3615,15 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 				self.target_latent_zs[i] = target_z.detach().cpu().numpy()
 				self.shared_latent_zs[self.N+i] = target_z.detach().cpu().numpy()
 
-		if self.args.projection=='tsne':
+		if projection=='tsne':
 			# Use TSNE to transform data.		
-			source_embedded_zs, _ = self.get_transform(self.source_latent_zs)
-			target_embedded_zs, _ = self.get_transform(self.target_latent_zs)
-			shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs)		
+			source_embedded_zs, _ = self.get_transform(self.source_latent_zs, projection)
+			target_embedded_zs, _ = self.get_transform(self.target_latent_zs, projection)
+			shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs, projection, shared=True)		
 
-		elif self.args.projection=='pca':
+		elif projection=='pca':
 			# Now fit PCA to source.
-			source_embedded_zs, pca = self.get_transform(self.source_latent_zs)
+			source_embedded_zs, pca = self.get_transform(self.source_latent_zs, projection)
 			target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
 			shared_embedded_zs = np.concatenate([source_embedded_zs, target_embedded_zs],axis=0)
 
