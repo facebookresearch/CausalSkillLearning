@@ -1003,21 +1003,21 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.distances = -np.ones((self.test_set_size))
 
-		# # Get test set elements as last (self.test_set_size) number of elements of dataset.
-		# for i in range(self.test_set_size):
+		# Get test set elements as last (self.test_set_size) number of elements of dataset.
+		for i in range(self.test_set_size):
 
-		# 	index = i + len(self.dataset)-self.test_set_size
-		# 	print("Evaluating ", i, " in test set, or ", index, " in dataset.")
-		# 	# Get latent z. 					
-		# 	latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
+			index = i + len(self.dataset)-self.test_set_size
+			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
+			# Get latent z. 					
+			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
 
-		# 	if sample_traj is not None:
+			if sample_traj is not None:
 
-		# 		# Feed latent z to the rollout.
-		# 		# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
-		# 		rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
+				# Feed latent z to the rollout.
+				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
+				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
 
-		# 		self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
+				self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
@@ -1030,7 +1030,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
 			print("Running Evaluation of State Distances on small test set.")
-			self.evaluate_metrics()
+			# self.evaluate_metrics()
 
 			# Only running viz if we're actually pretraining.
 			if self.args.traj_segments:
@@ -1048,8 +1048,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
 
-			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
-			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
+			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
 class PolicyManager_Joint(PolicyManager_BaseClass):
 
