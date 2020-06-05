@@ -59,7 +59,6 @@ class PolicyManager_BaseClass():
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
 
-
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
 		self.writer.close()
@@ -423,7 +422,7 @@ class PolicyManager_BaseClass():
 		std = self.latent_z_set.std(axis=0)
 		normed_z = (self.latent_z_set-mean)/std
 		
-		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0,perplexity=self.args.perplexity)
 		embedded_zs = tsne.fit_transform(normed_z)
 
 		scale_factor = 1
@@ -2277,12 +2276,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
-	# def get_current_input_row(self):
-	# 	if len(self.action_trajectory)>0:
-	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
-	# 	else:
-	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
-
 	def get_transformed_gripper_value(self, gripper_finger_values):
 		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
 
@@ -2301,21 +2294,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			# state_action = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
 			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), np.zeros((1,self.output_size))],axis=1)
 		return np.concatenate([state_action, conditional],axis=1)
-
-	# def assemble_inputs(self):
-
-	# 	# Assemble states.
-	# 	state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
-	# 	if len(self.action_trajectory)>0:
-	# 		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
-	# 		# Appending 0 action to start of sequence.
-	# 		action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
-	# 	else:
-	# 		action_sequence = np.zeros((1,self.output_size))
-
-	# 	inputs = np.concatenate([state_sequence, action_sequence],axis=1)
-
-	# 	return inputs
 
 	def assemble_inputs(self):
 		conditional_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)

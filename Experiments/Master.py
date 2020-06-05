@@ -153,6 +153,7 @@ def parse_arguments():
 	parser.add_argument('--display_freq',dest='display_freq',type=int,default=10000)
 	parser.add_argument('--save_freq',dest='save_freq',type=int,default=1)	
 	parser.add_argument('--eval_freq',dest='eval_freq',type=int,default=20)	
+	parser.add_argument('--perplexity',dest='perplexity',type=float,default=30,help='Value of perplexity fed to TSNE.')
 
 	parser.add_argument('--entropy',dest='entropy',type=int,default=0)
 	parser.add_argument('--var_entropy',dest='var_entropy',type=int,default=0)
