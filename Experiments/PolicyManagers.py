@@ -252,6 +252,8 @@ class PolicyManager_BaseClass():
 
 		self.max_len = 0
 
+		embed()
+
 		for i in range(self.N):
 
 			print("#########################################")	
