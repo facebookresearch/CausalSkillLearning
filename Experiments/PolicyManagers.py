@@ -1003,21 +1003,21 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.distances = -np.ones((self.test_set_size))
 
-		# Get test set elements as last (self.test_set_size) number of elements of dataset.
-		for i in range(self.test_set_size):
+		# # Get test set elements as last (self.test_set_size) number of elements of dataset.
+		# for i in range(self.test_set_size):
 
-			index = i + len(self.dataset)-self.test_set_size
-			print("Evaluating ", i, " in test set, or ", index, " in dataset.")
-			# Get latent z. 					
-			latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
+		# 	index = i + len(self.dataset)-self.test_set_size
+		# 	print("Evaluating ", i, " in test set, or ", index, " in dataset.")
+		# 	# Get latent z. 					
+		# 	latent_z, sample_traj, sample_action_seq = self.run_iteration(0, index, return_z=True)
 
-			if sample_traj is not None:
+		# 	if sample_traj is not None:
 
-				# Feed latent z to the rollout.
-				# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
-				rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
+		# 		# Feed latent z to the rollout.
+		# 		# rollout_trajectory = self.rollout_visuals(index, latent_z=latent_z, return_traj=True)
+		# 		rollout_trajectory = self.rollout_robot_trajectory(sample_traj[0], latent_z, rollout_length=len(sample_traj))
 
-				self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
+		# 		self.distances[i] = ((sample_traj-rollout_trajectory)**2).mean()	
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
