@@ -9,6 +9,7 @@ import robosuite, threading
 from robosuite.wrappers import IKWrapper
 import MocapVisualizationUtils
 from mocap_processing.motion.pfnn import Animation, BVH
+import matplotlib.pyplot as plt
 from IPython import embed
 
 class SawyerVisualizer():
