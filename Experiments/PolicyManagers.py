@@ -502,6 +502,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Model size parameters
 		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
 		self.state_size = 2
+		self.state_dim = 2
 		self.input_size = 2*self.state_size
 		self.hidden_size = self.args.hidden_size
 		# Number of actions
