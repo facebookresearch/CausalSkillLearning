@@ -3584,10 +3584,20 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			if source_trajectory is not None:
 				# Now actually plot the images.
-				self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
-				self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
-				self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
-				self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
+
+				if self.args.source_domain=='ContinuousNonZero':
+					self.tf_logger.image_summary("Source Trajectory", [source_trajectory], counter)
+					self.tf_logger.image_summary("Source Reconstruction", [source_reconstruction], counter)
+				else:
+					self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
+					self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
+
+				if self.args.target_domain=='ContinuousNonZero':
+					self.tf_logger.image_summary("Target Trajectory", [target_trajectory], counter)
+					self.tf_logger.image_summary("Target Reconstruction", [target_reconstruction], counter)
+				else:
+					self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
+					self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
 
 	def get_transform(self, latent_z_set, projection='tsne', shared=False):
 
