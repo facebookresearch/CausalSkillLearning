@@ -312,7 +312,7 @@ class ToyDataVisualizer():
 
 	def __init__(self):
 
-		pass
+		self.dummy_var = 0
 
 	def visualize_joint_trajectory(self, trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True):
 
