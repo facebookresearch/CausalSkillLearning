@@ -1027,6 +1027,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		np.set_printoptions(suppress=True,precision=2)
 
+		if self.args.data=='ContinuousNonZero':
+
+			self.visualize_embedding_space()
+
 		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
 			print("Running Evaluation of State Distances on small test set.")
@@ -1050,6 +1054,55 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+
+	def visualize_embedding_space(self):
+
+		# For N number of random trajectories from MIME: 
+		#	# Encode trajectory using encoder into latent_z. 
+		# 	# Feed latent_z into subpolicy. 
+		#	# Rollout subpolicy for t timesteps. 
+		#	# Plot rollout.
+		# Embed plots. 
+
+		# Set N:
+		self.N = 200
+		self.rollout_timesteps = 5
+		self.state_dim = 2
+
+		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
+		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+
+		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
+		for i in range(self.N):
+
+			# (1) Encoder trajectory. 
+			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
+
+			# Copy z. 
+			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
+
+			# (2) Now rollout policy.
+			trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
+
+			# # (3) Plot trajectory.
+			# traj_image = self.visualize_trajectory(rollout_traj)
+
+		# TSNE on latentz's.
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		embedded_zs = tsne.fit_transform(latent_z_set)
+
+		ratio = 0.3
+		for i in range(self.N):
+			plt.scatter(embedded_zs[i,0]+ratio*trajectory_set[i,:,0],embedded_zs[i,1]+ratio*trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		# Format with name.
+		plt.savefig("{0}/Embedding_Joint_{1}.png".format(self.dir_name,self.args.name))
+		plt.close()
 
 class PolicyManager_Joint(PolicyManager_BaseClass):
 
@@ -1776,7 +1829,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# Feed z and b into subpolicy. 
 
 			pass
-
 
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
