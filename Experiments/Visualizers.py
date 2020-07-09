@@ -319,7 +319,7 @@ class ToyDataVisualizer():
 
 		fig = plt.figure()		
 		ax = fig.gca()
-		ax.scatter(traj[:,0],traj[:,1],c=range(len(traj)),cmap='jet')
+		ax.scatter(trajectory[:,0],trajectory[:,1],c=range(len(trajectory)),cmap='jet')
 		plt.xlim(-10,10)
 		plt.ylim(-10,10)
 
