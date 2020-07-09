@@ -308,6 +308,29 @@ class MocapVisualizer():
 		else:
 			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
 
+class ToyDataVisualizer():
+
+	def __init__(self):
+
+		pass
+
+	def visualize_joint_trajectory(self, trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True):
+
+		fig = plt.figure()		
+		ax = fig.gca()
+		ax.scatter(traj[:,0],traj[:,1],c=range(len(traj)),cmap='jet')
+		plt.xlim(-10,10)
+		plt.ylim(-10,10)
+
+		fig.canvas.draw()
+
+		width, height = fig.get_size_inches() * fig.get_dpi()
+		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
+		image = np.transpose(image, axes=[2,0,1])
+
+		return image
+
+
 if __name__ == '__main__':
 	# end_eff_pose = [0.3, -0.3, 0.09798524029948213, 0.38044099037703677, 0.9228975092885654, -0.021717379118030174, 0.05525572942370394]
 	# end_eff_pose = [0.53303758, -0.59997265,  0.09359371,  0.77337391,  0.34998901, 0.46797516, -0.24576358]

@@ -1,6 +1,6 @@
 from headers import *
 from PolicyNetworks import *
-from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
+from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer, ToyDataVisualizer
 import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
@@ -51,6 +51,8 @@ class PolicyManager_BaseClass():
 			# self.state_dim = 8
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
+		else: 
+			self.visualizer = ToyDataVisualizer()
 
 		self.rollout_gif_list = []
 		self.gt_gif_list = []
@@ -228,6 +230,8 @@ class PolicyManager_BaseClass():
 			self.visualizer = MocapVisualizer(args=self.args)
 			# Because there are just more invalid DP's in Mocap.
 			self.N = 200
+		else: 
+			self.visualizer = ToyDataVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# These are lists because they're variable length individually.
@@ -1138,7 +1142,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.output_size = 2					
 		self.number_layers = self.args.number_layers
 		self.traj_length = 5
-		self.conditional_info_size = 6
+		self.conditional_info_size = 6		
 
 		if self.args.data=='MIME':
 			self.state_size = 16	
@@ -3574,7 +3578,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.tf_logger.image_summary("PCA Target Embedding", [pca_target_embedding], counter)
 			self.tf_logger.image_summary("PCA Combined Embeddings", [pca_combined_embeddings], counter)			
 
-			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 
+			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 		
 			# Should be able to use the policy manager's functions to do this.
 			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
 
