@@ -755,6 +755,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			sample_traj = sample_traj[start_timepoint:end_timepoint]	
 			sample_action_seq = sample_action_seq[start_timepoint:end_timepoint-1]
 
+			self.current_traj_len = self.traj_length
+
 			# Now manage concatenated trajectory differently - {{s0,_},{s1,a0},{s2,a1},...,{sn,an-1}}.
 			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
 
