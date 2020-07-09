@@ -13,9 +13,9 @@ def return_dataset(args, data=None):
 
 	# Define Data Loader.
 	if args.data=='Continuous':
-		dataset = DataLoaders.ContinuousToyDataset(self.args.datadir)
+		dataset = DataLoaders.ContinuousToyDataset(args.datadir)
 	elif args.data=='ContinuousNonZero':
-		dataset = DataLoaders.ContinuousNonZeroToyDataset(self.args.datadir)
+		dataset = DataLoaders.ContinuousNonZeroToyDataset(args.datadir)
 	elif args.data=='DeterGoal':
 		dataset = DataLoaders.DeterministicGoalDirectedDataset(args.datadir)			
 	elif args.data=='MIME':
