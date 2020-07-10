@@ -1062,8 +1062,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
-	def visualize_embedding_space(self, suffix=None):
-
+	def get_trajectory_and_latent_sets(self):
 		# For N number of random trajectories from MIME: 
 		#	# Encode trajectory using encoder into latent_z. 
 		# 	# Feed latent_z into subpolicy. 
@@ -1076,8 +1075,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		self.rollout_timesteps = 5
 		self.state_dim = 2
 
-		latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
-		trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
+		self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
 
 		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
 		for i in range(self.N):
@@ -1086,21 +1085,25 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
 
 			# Copy z. 
-			latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
+			self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
 
 			# (2) Now rollout policy.
-			trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
+			self.trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
 
 			# # (3) Plot trajectory.
 			# traj_image = self.visualize_trajectory(rollout_traj)
 
+	def visualize_embedding_space(self, suffix=None):
+
+		self.get_trajectory_and_latent_sets()
+
 		# TSNE on latentz's.
 		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
-		embedded_zs = tsne.fit_transform(latent_z_set)
+		embedded_zs = tsne.fit_transform(self.latent_z_set)
 
 		ratio = 0.3
 		for i in range(self.N):
-			plt.scatter(embedded_zs[i,0]+ratio*trajectory_set[i,:,0],embedded_zs[i,1]+ratio*trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
+			plt.scatter(embedded_zs[i,0]+ratio*self.trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
 
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))		
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
@@ -1113,7 +1116,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
-
 
 		# Format with name.
 		plt.savefig("{0}/Embedding_Joint_{1}.png".format(self.dir_name,self.args.name))
@@ -3562,6 +3564,13 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
 			# Compute discriminator prob of right action for logging. 
 			self.tf_logger.scalar_summary('Discriminator Probability', viz_dict['discriminator_probs'], counter)
+		
+		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
+			# Evaluate metrics and plot them. 
+			self.evaluate_metrics()
+
+			self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
+			self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
 
 		# If we are displaying things: 
 		if counter%self.args.display_freq==0:
@@ -3820,6 +3829,29 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
 
+	def evaluate_metrics(self, computed_sets=True):
+
+		# Evaluate the correspondence and alignment metrics. 
+		# Whether latent_z_sets and trajectory_sets are already computed for each manager.
+		if not(computed_sets):
+			self.source_manager.get_trajectory_and_latent_sets()
+			self.target_manager.get_trajectory_and_latent_sets()
+
+		# Compute nearest neighbors for each set. First build KD-Trees / Ball-Trees. 
+		source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
+		target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
+
+		# Compute neighbors. 
+		_, source_target_neighbors = source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
+		_, target_source_neighbors = target_neighbors_object.kneighbors(self.source_manager.latent_z_set)
+
+		# Now compute trajectory distances for neighbors. 
+		source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
+		self.source_target_trajectory_distance = np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean()
+
+		target_source_trajectory_diffs = (self.target_manager.trajectory_set - self.source_manager.trajectory_set[target_source_neighbors.squeeze(1)])
+		self.target_source_trajectory_distance = np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean()	
+
 	def evaluate(self, model=None):
 
 		# Evaluating Transfer - we just want embeddings of both source and target; so run evaluate of both source and target policy managers. 
@@ -3833,3 +3865,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Run target policy manager evaluate. 
 		self.target_manager.evaluate(suffix="Target")
+
+		# Evaluate metrics. 
+		self.evaluate_metrics()
