@@ -996,7 +996,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 				if return_z: 
 					return latent_z, sample_traj, sample_action_seq
-				
+
 			else:
 
 				if return_z: 
@@ -1010,8 +1010,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		else: 
 			return None, None, None
 
-	def evaluate_metrics(self):
-
+	def evaluate_metrics(self):		
 		self.distances = -np.ones((self.test_set_size))
 
 		# Get test set elements as last (self.test_set_size) number of elements of dataset.
@@ -3571,7 +3570,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		
 		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
 			# Evaluate metrics and plot them. 
-			self.evaluate_metrics(computed_sets=False)
+			self.evaluate_correspondence_metrics(computed_sets=False)
 
 			self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
 			self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
@@ -3833,8 +3832,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
 
-	def evaluate_metrics(self, computed_sets=True):
+	def evaluate_correspondence_metrics(self, computed_sets=True):
 
+		print("Evaluating correspondence metrics.")
 		# Evaluate the correspondence and alignment metrics. 
 		# Whether latent_z_sets and trajectory_sets are already computed for each manager.
 		if not(computed_sets):
@@ -3871,4 +3871,4 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.target_manager.evaluate(suffix="Target")
 
 		# Evaluate metrics. 
-		self.evaluate_metrics()
+		self.evaluate_correspondence_metrics()
