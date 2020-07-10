@@ -993,6 +993,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 				# Update Plots. 
 				self.update_plots(counter, loglikelihood, trajectory_segment)
+
+				if return_z: 
+					return latent_z, sample_traj, sample_action_seq
+				
 			else:
 
 				if return_z: 
