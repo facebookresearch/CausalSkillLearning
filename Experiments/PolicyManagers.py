@@ -3568,13 +3568,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Compute discriminator prob of right action for logging. 
 			self.tf_logger.scalar_summary('Discriminator Probability', viz_dict['discriminator_probs'], counter)
 		
-		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
-			# Evaluate metrics and plot them. 
-			self.evaluate_correspondence_metrics(computed_sets=False)
-
-			self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
-			self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
-
 		# If we are displaying things: 
 		if counter%self.args.display_freq==0:
 
@@ -3618,6 +3611,13 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 				else:
 					self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
 					self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
+
+			if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
+				# Evaluate metrics and plot them. 
+				self.evaluate_correspondence_metrics(computed_sets=False)
+
+				self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
+				self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
 
 	def get_transform(self, latent_z_set, projection='tsne', shared=False):
 
