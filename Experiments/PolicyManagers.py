@@ -1105,11 +1105,15 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))		
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
 
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
 		if suffix is not None:
 			self.dir_name = os.path.join(self.dir_name, suffix)
 
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
+
 
 		# Format with name.
 		plt.savefig("{0}/Embedding_Joint_{1}.png".format(self.dir_name,self.args.name))
