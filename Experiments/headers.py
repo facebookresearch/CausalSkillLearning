@@ -39,3 +39,5 @@ from scipy import stats, signal
 from scipy.interpolate import interp1d
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.signal import find_peaks, argrelextrema
+
+from sklearn.neighbors import NearestNeighbors
