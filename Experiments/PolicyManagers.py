@@ -3567,7 +3567,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		
 		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
 			# Evaluate metrics and plot them. 
-			self.evaluate_metrics()
+			self.evaluate_metrics(computed_sets=False)
 
 			self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
 			self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
