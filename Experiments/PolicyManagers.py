@@ -1028,15 +1028,14 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
-	def evaluate(self, model=None):
+	def evaluate(self, model=None, suffix=None):
 		if model:
 			self.load_all_models(model)
 
 		np.set_printoptions(suppress=True,precision=2)
 
 		if self.args.data=='ContinuousNonZero':
-
-			self.visualize_embedding_space()
+			self.visualize_embedding_space(suffix=suffix)
 
 		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
@@ -1054,15 +1053,16 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				if not(os.path.isdir(upper_dir_name)):
 					os.mkdir(upper_dir_name)
 
-				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))				
 				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
 
 			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
-	def visualize_embedding_space(self):
+	def visualize_embedding_space(self, suffix=None):
 
 		# For N number of random trajectories from MIME: 
 		#	# Encode trajectory using encoder into latent_z. 
@@ -1102,8 +1102,12 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		for i in range(self.N):
 			plt.scatter(embedded_zs[i,0]+ratio*trajectory_set[i,:,0],embedded_zs[i,1]+ratio*trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
 
-		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))		
 		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+
+		if suffix is not None:
+			self.dir_name = os.path.join(self.dir_name, suffix)
+
 		if not(os.path.isdir(self.dir_name)):
 			os.mkdir(self.dir_name)
 
@@ -3811,3 +3815,17 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Now update Plots. 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
+
+	def evaluate(self, model=None):
+
+		# Evaluating Transfer - we just want embeddings of both source and target; so run evaluate of both source and target policy managers. 
+		
+		# Instead of parsing and passing model to individual source and target policy managers, just load using the transfer policy manager, and then run eval. 
+		if model is not None: 
+			self.load_all_models(model)
+
+		# Run source policy manager evaluate. 
+		self.source_manager.evaluate(suffix="Source")
+
+		# Run target policy manager evaluate. 
+		self.target_manager.evaluate(suffix="Target")
