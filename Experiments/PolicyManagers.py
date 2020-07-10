@@ -930,9 +930,9 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# input_row[0,-1] = 1.
 
 			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
-		print("latent_z:",latent_z)
+		# print("latent_z:",latent_z)
 		trajectory_rollout = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
-		print("Trajectory:",trajectory_rollout)
+		# print("Trajectory:",trajectory_rollout)
 
 		if return_traj:
 			return trajectory_rollout		
