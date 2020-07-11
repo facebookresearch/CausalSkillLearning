@@ -3851,10 +3851,15 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Now compute trajectory distances for neighbors. 
 		source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
-		self.source_target_trajectory_distance = np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean()
+		self.source_target_trajectory_distance = copy.deepcopy(np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean())
 
 		target_source_trajectory_diffs = (self.target_manager.trajectory_set - self.source_manager.trajectory_set[target_source_neighbors.squeeze(1)])
-		self.target_source_trajectory_distance = np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean()	
+		self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
+
+		# Reset variables to prevent memory leaks. 
+		source_neighbors_object = None
+		target_neighbors_object = None
+
 
 	def evaluate(self, model=None):
 
