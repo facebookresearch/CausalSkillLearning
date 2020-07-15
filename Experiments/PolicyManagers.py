@@ -3849,17 +3849,27 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		_, source_target_neighbors = source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
 		_, target_source_neighbors = target_neighbors_object.kneighbors(self.source_manager.latent_z_set)
 
-		# Now compute trajectory distances for neighbors. 
-		source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
+		# # Now compute trajectory distances for neighbors. 
+		# source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
+		# self.source_target_trajectory_distance = copy.deepcopy(np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean())
+
+		# target_source_trajectory_diffs = (self.target_manager.trajectory_set - self.source_manager.trajectory_set[target_source_neighbors.squeeze(1)])
+		# self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
+
+		# Remember, absolute trajectory differences is meaningless, since the data is randomly initialized across the state space. 
+		# Instead, compare actions. I.e. first compute differences along the time dimension. 
+		source_traj_actions = np.diff(self.source_manager.trajectory_set,axis=1)
+		target_traj_actions = np.diff(self.target_manager.trajectory_set,axis=1)
+
+		source_target_trajectory_diffs = (source_traj_actions - target_traj_actions[source_target_neighbors.squeeze(1)])
 		self.source_target_trajectory_distance = copy.deepcopy(np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean())
 
-		target_source_trajectory_diffs = (self.target_manager.trajectory_set - self.source_manager.trajectory_set[target_source_neighbors.squeeze(1)])
+		target_source_trajectory_diffs = (target_traj_actions - source_traj_actions[target_source_neighbors.squeeze(1)])
 		self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
 
 		# Reset variables to prevent memory leaks. 
 		source_neighbors_object = None
 		target_neighbors_object = None
-
 
 	def evaluate(self, model=None):
 
