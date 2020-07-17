@@ -3723,12 +3723,19 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Create a scatter plot of the embedding.
 			ratio = 0.3
 			color_scaling = 15
-			traj_length = len(self.trajectory_set[i,:,0])			
+
+			# Assemble shared trajectory set. 
+			traj_length = len(self.source_manager.trajectory_set[0,:,0])
+			self.shared_trajectory_set = np.zeros((2*self.N, traj_length, 2))
+			
+			self.shared_trajectory_set[:self.N] = self.source_manager.trajectory_set
+			self.shared_trajectory_set[self.N:] = self.target_manager.trajectory_set
+			
 			color_range_min = 0.2*color_scaling
 			color_range_max = 0.8*color_scaling+traj_length-1
 
 			for i in range(2*self.N):
-				plt.scatter(embedded_zs[i,0]+ratio*self.trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet',vmin=color_range_min,vmax=color_range_max)
+				plt.scatter(embedded_zs[i,0]+ratio*self.shared_trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.shared_trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet',vmin=color_range_min,vmax=color_range_max)
 
 		else:
 			# Create a scatter plot of the embedding.
