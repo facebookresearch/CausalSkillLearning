@@ -3576,7 +3576,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			# Now using both TSNE and PCA. 
 			# Plot source, target, and shared embeddings via TSNE.
-			tsne_source_embedding, tsne_target_embedding, tsne_combined_embeddings = self.get_embeddings(projection='tsne')
+			tsne_source_embedding, tsne_target_embedding, tsne_combined_embeddings, tsne_combined_traj_embeddings = self.get_embeddings(projection='tsne')
 
 			# Now actually plot the images.			
 			self.tf_logger.image_summary("TSNE Source Embedding", [tsne_source_embedding], counter)
@@ -3584,12 +3584,16 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.tf_logger.image_summary("TSNE Combined Embeddings", [tsne_combined_embeddings], counter)			
 
 			# Plot source, target, and shared embeddings via PCA. 
-			pca_source_embedding, pca_target_embedding, pca_combined_embeddings = self.get_embeddings(projection='pca')
+			pca_source_embedding, pca_target_embedding, pca_combined_embeddings, pca_combined_traj_embeddings = self.get_embeddings(projection='pca')
 
 			# Now actually plot the images.			
 			self.tf_logger.image_summary("PCA Source Embedding", [pca_source_embedding], counter)
 			self.tf_logger.image_summary("PCA Target Embedding", [pca_target_embedding], counter)
 			self.tf_logger.image_summary("PCA Combined Embeddings", [pca_combined_embeddings], counter)			
+
+			if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
+				self.tf_logger.image_summary("PCA Combined Trajectory Embeddings", [pca_combined_traj_embeddings], counter)
+				self.tf_logger.image_summary("TSNE Combined Trajectory Embeddings", [tsne_combined_traj_embeddings], counter)
 
 			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 		
 			# Should be able to use the policy manager's functions to do this.
@@ -3696,11 +3700,15 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		source_image = self.plot_embedding(source_embedded_zs, "Source_Embedding")
 		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
-		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)
+		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)	
 
-		return source_image, target_image, shared_image
+		toy_shared_embedding_image = None
+		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':			
+			toy_shared_embedding_image = self.plot_embedding(shared_embedded_zs, "Toy_Shared_Traj_Embedding", shared=True, trajectory=True)
 
-	def plot_embedding(self, embedded_zs, title, shared=False):
+		return source_image, target_image, shared_image, toy_shared_embedding_image
+
+	def plot_embedding(self, embedded_zs, title, shared=False, trajectory=False):
 	
 		fig = plt.figure()
 		ax = fig.gca()
@@ -3711,8 +3719,20 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		else:
 			colors = 0.2*np.ones((self.N))
 
-		# Create a scatter plot of the embedding.
-		ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
+		if trajectory:
+			# Create a scatter plot of the embedding.
+			ratio = 0.3
+			color_scaling = 15
+			traj_length = len(self.trajectory_set[i,:,0])			
+			color_range_min = 0.2*color_scaling
+			color_range_max = 0.8*color_scaling+traj_length-1
+
+			for i in range(2*self.N):
+				plt.scatter(embedded_zs[i,0]+ratio*self.trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet',vmin=color_range_min,vmax=color_range_max)
+
+		else:
+			# Create a scatter plot of the embedding.
+			ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
 		
 		# Title. 
 		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
