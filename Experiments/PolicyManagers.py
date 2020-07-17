@@ -3721,6 +3721,10 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		if trajectory:
 			# Create a scatter plot of the embedding.
+
+			self.source_manager.get_trajectory_and_latent_sets()
+			self.target_manager.get_trajectory_and_latent_sets()
+			
 			ratio = 0.3
 			color_scaling = 15
 
