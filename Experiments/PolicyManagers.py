@@ -229,7 +229,7 @@ class PolicyManager_BaseClass():
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
 			# Because there are just more invalid DP's in Mocap.
-			self.N = 200
+			self.N = 100
 		else: 
 			self.visualizer = ToyDataVisualizer()
 
@@ -1074,7 +1074,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Embed plots. 
 
 		# Set N:
-		self.N = 200
+		self.N = 100
 		self.rollout_timesteps = 5
 		self.state_dim = 2
 
@@ -3724,7 +3724,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			self.source_manager.get_trajectory_and_latent_sets()
 			self.target_manager.get_trajectory_and_latent_sets()
-			
+
 			ratio = 0.3
 			color_scaling = 15
 
