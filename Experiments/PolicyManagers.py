@@ -3384,6 +3384,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Now create variables that we need. 
 		self.number_epochs = 200
 		self.extent = max(self.source_dataset_size, self.target_dataset_size)
+		
 
 		# Now setup networks for these PolicyManagers. 		
 		self.source_manager.setup()
@@ -3739,7 +3740,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			color_range_max = 0.8*color_scaling+traj_length-1
 
 			for i in range(2*self.N):
-				plt.scatter(embedded_zs[i,0]+ratio*self.shared_trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.shared_trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet',vmin=color_range_min,vmax=color_range_max)
+				plt.scatter(embedded_zs[i,0]+ratio*self.shared_trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.shared_trajectory_set[i,:,1],c=range(traj_length),cmap='jet',vmin=color_range_min,vmax=color_range_max)
 
 		else:
 			# Create a scatter plot of the embedding.
