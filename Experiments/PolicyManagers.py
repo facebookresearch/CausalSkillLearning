@@ -3905,8 +3905,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 	def evaluate(self, model=None):
 
-		# Evaluating Transfer - we just want embeddings of both source and target; so run evaluate of both source and target policy managers. 
-		
+		# Evaluating Transfer - we just want embeddings of both source and target; so run evaluate of both source and target policy managers. 		
+
 		# Instead of parsing and passing model to individual source and target policy managers, just load using the transfer policy manager, and then run eval. 
 		if model is not None: 
 			self.load_all_models(model)
@@ -3919,3 +3919,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Evaluate metrics. 
 		self.evaluate_correspondence_metrics()
+
+	def automatic_evaluation(self, e):
+		
+		pass
