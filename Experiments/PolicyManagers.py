@@ -3899,9 +3899,11 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		target_source_trajectory_diffs = (target_traj_actions - source_traj_actions[target_source_neighbors.squeeze(1)])
 		self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
 
-		# Reset variables to prevent memory leaks. 
-		source_neighbors_object = None
-		target_neighbors_object = None
+		# Reset variables to prevent memory leaks.
+		# source_neighbors_object = None
+		# target_neighbors_object = None
+		del source_neighbors_object
+		del target_neighbors_object
 
 	def evaluate(self, model=None):
 
