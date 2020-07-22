@@ -3710,6 +3710,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return source_image, target_image, shared_image, toy_shared_embedding_image
 
+	@profile
 	def plot_embedding(self, embedded_zs, title, shared=False, trajectory=False):
 	
 		fig = plt.figure()
