@@ -3552,6 +3552,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		else:
 			return None, None, None, None
 
+	@profile
 	def update_plots(self, counter, viz_dict):
 
 		# VAE Losses. 
@@ -3824,6 +3825,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
 
+	@profile
 	def run_iteration(self, counter, i):
 
 		# Phases: 
