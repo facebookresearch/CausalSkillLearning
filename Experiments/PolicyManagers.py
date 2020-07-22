@@ -3552,7 +3552,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		else:
 			return None, None, None, None
 
-	@profile
 	def update_plots(self, counter, viz_dict):
 
 		# VAE Losses. 
@@ -3666,6 +3665,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Simply just transform according to a fit transforming_object.
 		return transforming_object.transform(latent_z_set)
 
+	@profile
 	def get_embeddings(self, projection='tsne'):
 		# Function to visualize source, target, and combined embeddings: 
 
