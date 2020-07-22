@@ -1065,6 +1065,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
+	@profile
 	def get_trajectory_and_latent_sets(self):
 		# For N number of random trajectories from MIME: 
 		#	# Encode trajectory using encoder into latent_z. 
@@ -3619,7 +3620,9 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 			if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
 				# Evaluate metrics and plot them. 
-				self.evaluate_correspondence_metrics(computed_sets=False)
+				# self.evaluate_correspondence_metrics(computed_sets=False)
+				# Actually, we've probably computed trajectory and latent sets. 
+				self.evaluate_correspondence_metrics()
 
 				self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
 				self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
@@ -3755,13 +3758,6 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		width, height = fig.get_size_inches() * fig.get_dpi()
 		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
 		image = np.transpose(image, axes=[2,0,1])
-
-		if trajectory:
-			# Now free memory. 
-			self.source_manager.trajectory_set = None
-			self.source_manager.latent_z_set = None
-			self.target_manager.trajectory_set = None
-			self.target_manager.latent_z_set = None
 
 		return image
 
