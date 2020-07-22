@@ -3864,6 +3864,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
 
+	# Run memory profiling.
+	@profile 
 	def evaluate_correspondence_metrics(self, computed_sets=True):
 
 		print("Evaluating correspondence metrics.")
