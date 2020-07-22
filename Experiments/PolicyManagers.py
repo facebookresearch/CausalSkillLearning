@@ -937,7 +937,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if return_traj:
 			return trajectory_rollout		
 
-	def run_iteration(self, counter, i, return_z=False):
+	@profile
+	def run_iteration(self, counter, i, return_z=False, and_train=True):
 
 		# Basic Training Algorithm: 
 		# For E epochs:
@@ -980,7 +981,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			############# (3) #############
 			# Update parameters. 
-			if self.args.train:
+			if self.args.train and and_train:
 
 				# If we are regularizing: 
 				# 	(1) Sample another z. 
@@ -1086,7 +1087,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		for i in range(self.N):
 
 			# (1) Encoder trajectory. 
-			latent_z, _, _ = self.run_iteration(0, i, return_z=True)
+			latent_z, _, _ = self.run_iteration(0, i, return_z=True, and_train=False)
 
 			# Copy z. 
 			self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
