@@ -3825,7 +3825,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.discriminator_loss.backward()
 			self.discriminator_optimizer.step()
 
-	@profile
+	# @profile
 	def run_iteration(self, counter, i):
 
 		# Phases: 
