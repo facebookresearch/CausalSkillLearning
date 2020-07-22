@@ -3756,6 +3756,13 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
 		image = np.transpose(image, axes=[2,0,1])
 
+		if trajectory:
+			# Now free memory. 
+			self.source_manager.trajectory_set = None
+			self.source_manager.latent_z_set = None
+			self.target_manager.trajectory_set = None
+			self.target_manager.latent_z_set = None
+
 		return image
 
 	def get_trajectory_visuals(self):
