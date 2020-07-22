@@ -1065,7 +1065,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
 			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
 
-	@profile
+	# @profile
 	def get_trajectory_and_latent_sets(self):
 		# For N number of random trajectories from MIME: 
 		#	# Encode trajectory using encoder into latent_z. 
@@ -3668,7 +3668,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Simply just transform according to a fit transforming_object.
 		return transforming_object.transform(latent_z_set)
 
-	@profile
+	# @profile
 	def get_embeddings(self, projection='tsne'):
 		# Function to visualize source, target, and combined embeddings: 
 
@@ -3713,7 +3713,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return source_image, target_image, shared_image, toy_shared_embedding_image
 
-	@profile
+	# @profile
 	def plot_embedding(self, embedded_zs, title, shared=False, trajectory=False):
 	
 		fig = plt.figure()
@@ -3871,7 +3871,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.update_plots(counter, viz_dict)
 
 	# Run memory profiling.
-	@profile 
+	# @profile 
 	def evaluate_correspondence_metrics(self, computed_sets=True):
 
 		print("Evaluating correspondence metrics.")
