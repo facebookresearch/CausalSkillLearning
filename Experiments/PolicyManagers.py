@@ -937,7 +937,6 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		if return_traj:
 			return trajectory_rollout		
 
-	@profile
 	def run_iteration(self, counter, i, return_z=False, and_train=True):
 
 		# Basic Training Algorithm: 
