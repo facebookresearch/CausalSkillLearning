@@ -3384,8 +3384,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		# Now create variables that we need. 
 		self.number_epochs = 200
-		self.extent = max(self.source_dataset_size, self.target_dataset_size)
-		
+		self.extent = max(self.source_dataset_size, self.target_dataset_size)		
 
 		# Now setup networks for these PolicyManagers. 		
 		self.source_manager.setup()
@@ -3467,34 +3466,34 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.discriminator_optimizer = torch.optim.Adam(self.discriminator_network.parameters(),lr=self.learning_rate)
 
 	def save_all_models(self, suffix):
-		logdir = os.path.join(self.args.logdir, self.args.name)
-		savedir = os.path.join(logdir,"saved_models")
-		if not(os.path.isdir(savedir)):
-			os.mkdir(savedir)
-		save_object = {}
+		self.logdir = os.path.join(self.args.logdir, self.args.name)
+		self.savedir = os.path.join(self.logdir,"saved_models")
+		if not(os.path.isdir(self.savedir)):
+			os.mkdir(self.savedir)
+		self.save_object = {}
 
 		# Source
-		save_object['Source_Policy_Network'] = self.source_manager.policy_network.state_dict()
-		save_object['Source_Encoder_Network'] = self.source_manager.encoder_network.state_dict()
+		self.save_object['Source_Policy_Network'] = self.source_manager.policy_network.state_dict()
+		self.save_object['Source_Encoder_Network'] = self.source_manager.encoder_network.state_dict()
 		# Target
-		save_object['Target_Policy_Network'] = self.target_manager.policy_network.state_dict()
-		save_object['Target_Encoder_Network'] = self.target_manager.encoder_network.state_dict()
+		self.save_object['Target_Policy_Network'] = self.target_manager.policy_network.state_dict()
+		self.save_object['Target_Encoder_Network'] = self.target_manager.encoder_network.state_dict()
 		# Discriminator
-		save_object['Discriminator_Network'] = self.discriminator_network.state_dict()				
+		self.save_object['Discriminator_Network'] = self.discriminator_network.state_dict()				
 
-		torch.save(save_object,os.path.join(savedir,"Model_"+suffix))
+		torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
 
 	def load_all_models(self, path):
-		load_object = torch.load(path)
+		self.load_object = torch.load(path)
 
 		# Source
-		self.source_manager.policy_network.load_state_dict(load_object['Source_Policy_Network'])
-		self.source_manager.encoder_network.load_state_dict(load_object['Source_Encoder_Network'])
+		self.source_manager.policy_network.load_state_dict(self.load_object['Source_Policy_Network'])
+		self.source_manager.encoder_network.load_state_dict(self.load_object['Source_Encoder_Network'])
 		# Target
-		self.target_manager.policy_network.load_state_dict(load_object['Target_Policy_Network'])
-		self.target_manager.encoder_network.load_state_dict(load_object['Target_Encoder_Network'])
+		self.target_manager.policy_network.load_state_dict(self.load_object['Target_Policy_Network'])
+		self.target_manager.encoder_network.load_state_dict(self.load_object['Target_Encoder_Network'])
 		# Discriminator
-		self.discriminator_network.load_state_dict(load_object['Discriminator_Network'])
+		self.discriminator_network.load_state_dict(self.load_object['Discriminator_Network'])
 
 	def get_domain_manager(self, domain):
 		# Create a list, and just index into this list. 
@@ -3933,3 +3932,90 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 	def automatic_evaluation(self, e):
 
 		pass
+
+# Writing a cycle consistency transfer PM class.
+class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
+
+	# Inherit from transfer. 
+	def __init__(self, args=None, source_dataset=None, target_dataset=None):
+
+
+		super(PolicyManager_CycleConsistencyTransfer, self).__init__(args, source_dataset, target_dataset)
+
+	def create_networks(self):
+
+		super().create_networks()
+
+		# Must also create two discriminator networks; one for source --> target --> source, one for target --> source --> target. 
+		# Remember, since these discriminator networks are operating on the trajectory space, we have to 
+		# make them LSTM networks, rather than MLPs. 
+
+		# We have the encoder network class that's perfect for this. Output size is 2. 
+		self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+		self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+
+	def create_training_ops(self):
+
+		# Call super training ops. 
+		super().create_training_ops()
+
+		# Now create discriminator optimizers. 
+		self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
+		self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
+
+	def save_all_models(self, suffix):
+
+		# Call super save model. 
+		super().save_all_models(suffix)
+
+		# Now save the individual source / target discriminators. 
+		self.save_object['Source_Discriminator_Network'] = self.source_discriminator_network.state_dict()
+		self.save_object['Target_Discriminator_Network'] = self.target_discriminator_network.state_dict()
+
+		# Overwrite the save from super. 
+		torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
+
+	def load_all_models(self, path):
+
+		# Call super load. 
+		super().load_all_models(path)
+
+		# Now load the individual source and target discriminators. 
+		self.source_discriminator.load_state_dict(self.load_object['Source_Discriminator_Network'])
+		self.target_discriminator.load_state_dict(self.load_object['Target_Discriminator_Network'])
+
+	# A bunch of functions should just be directly usable:
+	# get_domain_manager, get_trajectory_segment_tuple, encode_decode_trajectory, update_plots, get_transform, 
+	# transform_zs, get_embeddings, plot_embeddings, get_trajectory_visuals, evaluate_correspondence_metrics, 
+	# evaluate, automatic_evaluation
+
+	def run_iteration(self, counter, i):
+
+		# Phases: 
+		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
+		# Phase 2:  Train encoder, decoder for each domain, and Z discriminator concurrently. 
+		# Phase 3:  Train encoder, decoder for each domain, and the individual source and target discriminators, concurrently.
+
+		# Algorithm (joint training): 
+		# For every epoch:
+		# 	# For every datapoint: 
+		# 		# 1) Select which domain to use as source (i.e. with 50% chance, select either domain).
+		# 		# 2) Get trajectory segments from desired domain. 
+		#		# 3) Transfer Steps: 
+		#	 		# a) Encode trajectory as latent z (domain 1). 
+		#			# b) Use domain 2 decoder to decode latent z into trajectory (domain 2).
+		#			# c) Use domain 2 encoder to encode trajectory into latent z (domain 2).
+		#			# d) Use domain 1 decoder to decode latent z (domain 2) into trajectory (domain 1).
+		# 		# 4) Feed cycle-reconstructed trajectory and original trajectory (both domain 1) into discriminator. 
+		#		# 5) Train discriminators to predict whether original or cycle reconstructed trajectory. 
+		#		# 	 Train z discriminator to predict which domain the latentz sample came from. 
+		# 		# 	 Train encoder / decoder architectures with mix of reconstruction loss and discriminator confusing objective. 
+		# 		# 	 Compute and apply gradient updates. 
+
+
+
+
+
+
+
+
