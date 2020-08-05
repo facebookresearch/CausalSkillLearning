@@ -1,3 +1,9 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+
+# This source code is licensed under the license found in the
+# LICENSE file in the root directory of this source tree.
+
 from headers import *
 from PolicyNetworks import *
 from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer, ToyDataVisualizer
@@ -3989,6 +3995,44 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	# transform_zs, get_embeddings, plot_embeddings, get_trajectory_visuals, evaluate_correspondence_metrics, 
 	# evaluate, automatic_evaluation
 
+	def differentiable_rollout(self, trajectory_start, latent_z, rollout_length=None):
+		# Copying over from rollout_robot_trajectory. This function should provide rollout template, but may need modifications for differentiability. 
+
+		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
+		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
+
+		if rollout_length is not None: 
+			length = rollout_length-1
+		else:
+			length = self.rollout_timesteps-1
+
+		for t in range(length):
+
+			# Get actions from the policy.
+			actions = self.policy_network.get_actions(subpolicy_inputs, greedy=True)
+
+			# Select last action to execute. 
+			action_to_execute = actions[-1].squeeze(1)
+
+			# Downscale the actions by action_scale_factor.
+			action_to_execute = action_to_execute/self.args.action_scale_factor
+
+			# Compute next state. 
+			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
+
+			# New input row. 
+			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+			input_row[0,:self.state_dim] = new_state
+			# Feed in the ORIGINAL prediction from the network as input. Not the downscaled thing. 
+			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
+			input_row[0,2*self.state_dim:] = latent_z
+
+			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
+
+		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
+		return trajectory
+
 	def run_iteration(self, counter, i):
 
 		# Phases: 
@@ -4012,10 +4056,30 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# 		# 	 Train encoder / decoder architectures with mix of reconstruction loss and discriminator confusing objective. 
 		# 		# 	 Compute and apply gradient updates. 
 
+		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
+
+		# (0) Setup things like training phases, epislon values, etc.
+		self.set_iteration(counter)
+
+		# (1) Select which domain to use as source domain (also supervision of z discriminator for this iteration). 
+		domain = np.random.binomial(1,0.5)
+		# Also Get domain policy manager. 
+		policy_manager = self.get_domain_manager(domain) 
+
+		# (2) & (2 a) Get trajectory segment and encode and decode. 
+		source_subpolicy_inputs, source_latent_z, source_loglikelihood, source_kl_divergence = self.encode_decode_trajectory(policy_manager, i)
+
+		# (2 b) Cross domain decoding. 
 
 
+		if latent_z is not None:
+		# 	# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
+		# 	discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
 
+		# 	# (5) Compute and apply gradient updates. 
+		# 	self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
 
-
-
+		# 	# Now update Plots. 
+			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
+			self.update_plots(counter, viz_dict)
 
