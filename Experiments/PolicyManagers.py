@@ -1,10 +1,6 @@
 from headers import *
-from PolicyNetworks import ContinuousPolicyNetwork, LatentPolicyNetwork, ContinuousLatentPolicyNetwork, ContinuousLatentPolicyNetwork_ConstrainedBPrior
-from PolicyNetworks import VariationalPolicyNetwork, ContinuousEncoderNetwork, EncoderNetwork
-from PolicyNetworks import ContinuousVariationalPolicyNetwork, ContinuousEncoderNetwork, ContinuousVariationalPolicyNetwork_BPrior
-from PolicyNetworks import ContinuousVariationalPolicyNetwork_ConstrainedBPrior, CriticNetwork
-from PolicyNetworks import ContinuousMLP, CriticMLP
-from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer
+from PolicyNetworks import *
+from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer, ToyDataVisualizer
 import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
@@ -26,10 +22,12 @@ class PolicyManager_BaseClass():
 
 		if self.args.setting=='imitation':
 			extent = self.dataset.get_number_task_demos(self.demo_task_index)
+		if self.args.setting=='transfer' and isinstance(self, PolicyManager_Transfer):
+				extent = self.extent
 		else:
 			extent = len(self.dataset)-self.test_set_size
 
-		self.index_list = np.arange(0,extent)	
+		self.index_list = np.arange(0,extent)
 		self.initialize_plots()
 
 	def initialize_plots(self):
@@ -44,6 +42,24 @@ class PolicyManager_BaseClass():
 			self.tf_logger = TFLogger.Logger(logdir)
 		else:
 			self.tf_logger = TFLogger.Logger()
+
+		if self.args.data=='MIME':
+			self.visualizer = BaxterVisualizer()
+			# self.state_dim = 16
+		elif self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk':
+			self.visualizer = SawyerVisualizer()
+			# self.state_dim = 8
+		elif self.args.data=='Mocap':
+			self.visualizer = MocapVisualizer(args=self.args)
+		else: 
+			self.visualizer = ToyDataVisualizer()
+
+		self.rollout_gif_list = []
+		self.gt_gif_list = []
+
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval")
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
 
 	def write_and_close(self):
 		self.writer.export_scalars_to_json("./all_scalars.json")
@@ -159,6 +175,8 @@ class PolicyManager_BaseClass():
 			# For every item in the epoch:
 			if self.args.setting=='imitation':
 				extent = self.dataset.get_number_task_demos(self.demo_task_index)
+			if self.args.setting=='transfer':
+				extent = self.extent
 			else:
 				extent = len(self.dataset)-self.test_set_size
 
@@ -211,7 +229,9 @@ class PolicyManager_BaseClass():
 		elif self.args.data=='Mocap':
 			self.visualizer = MocapVisualizer(args=self.args)
 			# Because there are just more invalid DP's in Mocap.
-			self.N = 200
+			self.N = 100
+		else: 
+			self.visualizer = ToyDataVisualizer()
 
 		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
 		# These are lists because they're variable length individually.
@@ -250,7 +270,7 @@ class PolicyManager_BaseClass():
 
 				self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())		
 				
-				trajectory_rollout = self.get_robot_visuals(i, latent_z, sample_traj, sample_action_seq)
+				trajectory_rollout = self.get_robot_visuals(i, latent_z, sample_traj)
 				
 				# self.trajectory_set[i] = copy.deepcopy(sample_traj)
 				# self.trajectory_rollout_set[i] = copy.deepcopy(trajectory_rollout)	
@@ -305,7 +325,7 @@ class PolicyManager_BaseClass():
 		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
 		return trajectory
 
-	def get_robot_visuals(self, i, latent_z, trajectory, sample_action_seq):		
+	def get_robot_visuals(self, i, latent_z, trajectory, return_image=False):		
 
 		# 1) Feed Z into policy, rollout trajectory. 
 		trajectory_rollout = self.rollout_robot_trajectory(trajectory[0], latent_z, rollout_length=trajectory.shape[0])
@@ -323,18 +343,26 @@ class PolicyManager_BaseClass():
 			animation_object = self.dataset[i]['animation']
 
 		# 3) Run unnormalized ground truth trajectory in visualizer. 
-		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True, additional_info=animation_object)
+		ground_truth_gif = self.visualizer.visualize_joint_trajectory(unnorm_gt_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_GT.gif".format(i), return_and_save=True)
 		
 		# 4) Run unnormalized rollout trajectory in visualizer. 
-		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True, additional_info=animation_object)
+		rollout_gif = self.visualizer.visualize_joint_trajectory(unnorm_pred_trajectory, gif_path=self.dir_name, gif_name="Traj_{0}_Rollout.gif".format(i), return_and_save=True)
 		
 		self.gt_gif_list.append(copy.deepcopy(ground_truth_gif))
 		self.rollout_gif_list.append(copy.deepcopy(rollout_gif))
 
 		if self.args.normalization=='meanvar' or self.args.normalization=='minmax':
-			return unnorm_pred_trajectory
+
+			if return_image:
+				return unnorm_pred_trajectory, ground_truth_gif, rollout_gif
+			else:
+				return unnorm_pred_trajectory
 		else:
-			return trajectory_rollout
+
+			if return_image:
+				return trajectory_rollout, ground_truth_gif, rollout_gif
+			else:
+				return trajectory_rollout
 
 	def write_results_HTML(self):
 		# Retrieve, append, and print images from datapoints across different models. 
@@ -391,20 +419,23 @@ class PolicyManager_BaseClass():
 
 		print("Time taken to write this embedding: ",t2-t1)
 
-	def get_robot_embedding(self):
+	def get_robot_embedding(self, return_tsne_object=False):
 
 		# Mean and variance normalize z.
 		mean = self.latent_z_set.mean(axis=0)
 		std = self.latent_z_set.std(axis=0)
 		normed_z = (self.latent_z_set-mean)/std
 		
-		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0,perplexity=self.args.perplexity)
 		embedded_zs = tsne.fit_transform(normed_z)
 
 		scale_factor = 1
 		scaled_embedded_zs = scale_factor*embedded_zs
 
-		return scaled_embedded_zs
+		if return_tsne_object:
+			return scaled_embedded_zs, tsne
+		else:
+			return scaled_embedded_zs
 
 	def visualize_robot_embedding(self, scaled_embedded_zs, gt=False):
 
@@ -475,6 +506,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Model size parameters
 		# if self.args.data=='Continuous' or self.args.data=='ContinuousDir' or self.args.data=='ContinuousNonZero' or self.args.data=='ContinuousDirNZ' or self.args.data=='GoalDirected' or self.args.data=='Separable':
 		self.state_size = 2
+		self.state_dim = 2
 		self.input_size = 2*self.state_size
 		self.hidden_size = self.args.hidden_size
 		# Number of actions
@@ -591,10 +623,11 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# When you instantiate it, you call backward on that instantiation. That's why you know what loss to optimize when computing gradients. 		
 
 		if self.args.train_only_policy:
-			parameter_list = self.policy_network.parameters()
+			self.parameter_list = self.policy_network.parameters()
 		else:
-			parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
-		self.optimizer = torch.optim.Adam(parameter_list,lr=self.learning_rate)
+			self.parameter_list = list(self.policy_network.parameters()) + list(self.encoder_network.parameters())
+		
+		self.optimizer = torch.optim.Adam(self.parameter_list,lr=self.learning_rate)
 
 	def save_all_models(self, suffix):
 
@@ -660,7 +693,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if counter%self.args.display_freq==0:
 			self.tf_logger.image_summary("GT Trajectory",self.visualize_trajectory(sample_traj), counter)
-	
+
 	def assemble_inputs(self, input_trajectory, latent_z_indices, latent_b, sample_action_seq):
 
 		if self.args.discrete_z:
@@ -726,6 +759,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# The trajectory is going to be one step longer than the action sequence, because action sequences are constructed from state differences. Instead, truncate trajectory to length of action sequence. 
 			sample_traj = sample_traj[start_timepoint:end_timepoint]	
 			sample_action_seq = sample_action_seq[start_timepoint:end_timepoint-1]
+
+			self.current_traj_len = self.traj_length
 
 			# Now manage concatenated trajectory differently - {{s0,_},{s1,a0},{s2,a1},...,{sn,an-1}}.
 			concatenated_traj = self.concat_state_action(sample_traj, sample_action_seq)
@@ -895,14 +930,14 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			# input_row[0,-1] = 1.
 
 			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
-		print("latent_z:",latent_z)
+		# print("latent_z:",latent_z)
 		trajectory_rollout = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
-		print("Trajectory:",trajectory_rollout)
+		# print("Trajectory:",trajectory_rollout)
 
 		if return_traj:
 			return trajectory_rollout		
 
-	def run_iteration(self, counter, i, return_z=False):
+	def run_iteration(self, counter, i, return_z=False, and_train=True):
 
 		# Basic Training Algorithm: 
 		# For E epochs:
@@ -945,7 +980,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			############# (3) #############
 			# Update parameters. 
-			if self.args.train:
+			if self.args.train and and_train:
 
 				# If we are regularizing: 
 				# 	(1) Sample another z. 
@@ -958,6 +993,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 				# Update Plots. 
 				self.update_plots(counter, loglikelihood, trajectory_segment)
+
+				if return_z: 
+					return latent_z, sample_traj, sample_action_seq
+
 			else:
 
 				if return_z: 
@@ -970,9 +1009,8 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 			print("#########################################")	
 		else: 
 			return None, None, None
-		
-	def evaluate_metrics(self):
 
+	def evaluate_metrics(self):		
 		self.distances = -np.ones((self.test_set_size))
 
 		# Get test set elements as last (self.test_set_size) number of elements of dataset.
@@ -993,16 +1031,19 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		self.mean_distance = self.distances[self.distances>0].mean()
 
-	def evaluate(self, model=None):
+	def evaluate(self, model=None, suffix=None):
 		if model:
 			self.load_all_models(model)
 
 		np.set_printoptions(suppress=True,precision=2)
 
+		if self.args.data=='ContinuousNonZero':
+			self.visualize_embedding_space(suffix=suffix)
+
 		if self.args.data=="MIME" or self.args.data=='Roboturk' or self.args.data=='OrigRoboturk' or self.args.data=='FullRoboturk' or self.args.data=='Mocap':
 
 			print("Running Evaluation of State Distances on small test set.")
-			self.evaluate_metrics()
+			# self.evaluate_metrics()
 
 			# Only running viz if we're actually pretraining.
 			if self.args.traj_segments:
@@ -1015,13 +1056,74 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 				if not(os.path.isdir(upper_dir_name)):
 					os.mkdir(upper_dir_name)
 
-				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))
+				model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))				
 				self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+
 				if not(os.path.isdir(self.dir_name)):
 					os.mkdir(self.dir_name)
 
-			np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
-			np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+			# np.save(os.path.join(self.dir_name,"Trajectory_Distances_{0}.npy".format(self.args.name)),self.distances)
+			# np.save(os.path.join(self.dir_name,"Mean_Trajectory_Distance_{0}.npy".format(self.args.name)),self.mean_distance)
+
+	# @profile
+	def get_trajectory_and_latent_sets(self):
+		# For N number of random trajectories from MIME: 
+		#	# Encode trajectory using encoder into latent_z. 
+		# 	# Feed latent_z into subpolicy. 
+		#	# Rollout subpolicy for t timesteps. 
+		#	# Plot rollout.
+		# Embed plots. 
+
+		# Set N:
+		self.N = 100
+		self.rollout_timesteps = 5
+		self.state_dim = 2
+
+		self.latent_z_set = np.zeros((self.N,self.latent_z_dimensionality))		
+		self.trajectory_set = np.zeros((self.N, self.rollout_timesteps, self.state_dim))
+
+		# Use the dataset to get reasonable trajectories (because without the information bottleneck / KL between N(0,1), cannot just randomly sample.)
+		for i in range(self.N):
+
+			# (1) Encoder trajectory. 
+			latent_z, _, _ = self.run_iteration(0, i, return_z=True, and_train=False)
+
+			# Copy z. 
+			self.latent_z_set[i] = copy.deepcopy(latent_z.detach().cpu().numpy())
+
+			# (2) Now rollout policy.
+			self.trajectory_set[i] = self.rollout_visuals(i, latent_z=latent_z, return_traj=True)
+
+			# # (3) Plot trajectory.
+			# traj_image = self.visualize_trajectory(rollout_traj)
+
+	def visualize_embedding_space(self, suffix=None):
+
+		self.get_trajectory_and_latent_sets()
+
+		# TSNE on latentz's.
+		tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+		embedded_zs = tsne.fit_transform(self.latent_z_set)
+
+		ratio = 0.3
+		for i in range(self.N):
+			plt.scatter(embedded_zs[i,0]+ratio*self.trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.trajectory_set[i,:,1],c=range(self.rollout_timesteps),cmap='jet')
+
+		model_epoch = int(os.path.split(self.args.model)[1].lstrip("Model_epoch"))		
+		self.dir_name = os.path.join(self.args.logdir,self.args.name,"MEval","m{0}".format(model_epoch))
+
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		if suffix is not None:
+			self.dir_name = os.path.join(self.dir_name, suffix)
+
+		if not(os.path.isdir(self.dir_name)):
+			os.mkdir(self.dir_name)
+
+		# Format with name.
+		plt.savefig("{0}/Embedding_Joint_{1}.png".format(self.dir_name,self.args.name))
+		plt.close()
 
 class PolicyManager_Joint(PolicyManager_BaseClass):
 
@@ -1054,7 +1156,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		self.output_size = 2					
 		self.number_layers = self.args.number_layers
 		self.traj_length = 5
-		self.conditional_info_size = 6
+		self.conditional_info_size = 6		
 
 		if self.args.data=='MIME':
 			self.state_size = 16	
@@ -1749,7 +1851,6 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			pass
 
-
 	def rollout_latent_policy(self, orig_assembled_inputs, orig_subpolicy_inputs):
 		assembled_inputs = orig_assembled_inputs.clone().detach()
 		subpolicy_inputs = orig_subpolicy_inputs.clone().detach()
@@ -2248,12 +2349,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		self.episode = RLUtils.Episode(self.state_trajectory, self.action_trajectory, self.reward_trajectory, self.terminal_trajectory)
 		# Since we're doing TD updates, we DON'T want to use the cummulative reward, but rather the reward trajectory itself.
 
-	# def get_current_input_row(self):
-	# 	if len(self.action_trajectory)>0:
-	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),self.action_trajectory[-1].reshape((1,-1))],axis=1)
-	# 	else:
-	# 		return np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
-
 	def get_transformed_gripper_value(self, gripper_finger_values):
 		gripper_values = (gripper_finger_values - self.gripper_open)/(self.gripper_closed - self.gripper_open)			
 
@@ -2272,21 +2367,6 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			# state_action = np.concatenate([self.state_trajectory[-1]['robot-state'].reshape((1,-1)),self.state_trajectory[-1]['object-state'].reshape((1,-1)),np.zeros((1,self.output_size))],axis=1)
 			state_action = np.concatenate([self.state_trajectory[-1]['joint_pos'].reshape((1,-1)), self.get_transformed_gripper_value(gripper_finger_values), np.zeros((1,self.output_size))],axis=1)
 		return np.concatenate([state_action, conditional],axis=1)
-
-	# def assemble_inputs(self):
-
-	# 	# Assemble states.
-	# 	state_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
-	# 	if len(self.action_trajectory)>0:
-	# 		action_sequence = np.concatenate([self.action_trajectory[t].reshape((1,-1)) for t in range(len(self.action_trajectory))],axis=0)
-	# 		# Appending 0 action to start of sequence.
-	# 		action_sequence = np.concatenate([np.zeros((1,self.output_size)),action_sequence],axis=0)
-	# 	else:
-	# 		action_sequence = np.zeros((1,self.output_size))
-
-	# 	inputs = np.concatenate([state_sequence, action_sequence],axis=1)
-
-	# 	return inputs
 
 	def assemble_inputs(self):
 		conditional_sequence = np.concatenate([np.concatenate([self.state_trajectory[t]['robot-state'].reshape((1,-1)),self.state_trajectory[t]['object-state'].reshape((1,-1))],axis=1) for t in range(len(self.state_trajectory))],axis=0)
@@ -3276,3 +3356,666 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 				self.evaluate(e)
 
 		self.write_and_close()
+
+class PolicyManager_Transfer(PolicyManager_BaseClass):
+
+	def __init__(self, args=None, source_dataset=None, target_dataset=None):
+
+		super(PolicyManager_Transfer, self).__init__()
+
+		# The inherited functions refer to self.args. Also making this to make inheritance go smooth.
+		self.args = args
+
+		# Before instantiating policy managers of source or target domains; create copies of args with data attribute changed. 		
+		self.source_args = copy.deepcopy(args)
+		self.source_args.data = self.source_args.source_domain
+		self.source_dataset = source_dataset
+
+		self.target_args = copy.deepcopy(args)
+		self.target_args.data = self.target_args.target_domain
+		self.target_dataset = target_dataset
+
+		# Now create two instances of policy managers for each domain. Call them source and target domain policy managers. 
+		self.source_manager = PolicyManager_Pretrain(dataset=self.source_dataset, args=self.source_args)
+		self.target_manager = PolicyManager_Pretrain(dataset=self.target_dataset, args=self.target_args)		
+
+		self.source_dataset_size = len(self.source_manager.dataset) - self.source_manager.test_set_size
+		self.target_dataset_size = len(self.target_manager.dataset) - self.target_manager.test_set_size
+
+		# Now create variables that we need. 
+		self.number_epochs = 200
+		self.extent = max(self.source_dataset_size, self.target_dataset_size)		
+
+		# Now setup networks for these PolicyManagers. 		
+		self.source_manager.setup()
+		self.target_manager.setup()
+
+		# Now define other parameters that will be required for the discriminator, etc. 
+		self.input_size = self.args.z_dimensions
+		self.hidden_size = self.args.hidden_size
+		self.output_size = 2
+		self.learning_rate = self.args.learning_rate
+
+	def set_iteration(self, counter):
+
+		# Based on what phase of training we are in, set discriminability loss weight, etc. 
+		
+		# Phase 1 of training: Don't train discriminator at all, set discriminability loss weight to 0.
+		if counter<self.args.training_phase_size:
+			self.discriminability_loss_weight = 0.
+			self.vae_loss_weight = 1.
+			self.training_phase = 1
+			self.skip_vae = False
+			self.skip_discriminator = True
+
+		# Phase 2 of training: Train the discriminator, and set discriminability loss weight to original.
+		else:
+			self.discriminability_loss_weight = self.args.discriminability_weight
+			self.vae_loss_weight = self.args.vae_loss_weight
+
+			# Now make discriminator and vae train in alternating fashion. 
+			# Set number of iterations of alteration. 
+			# self.alternating_phase_size = self.args.alternating_phase_size*self.extent
+
+			# # If odd epoch, train discriminator. (Just so that we start training discriminator first).
+			# if (counter/self.alternating_phase_size)%2==1:			
+			# 	self.skip_discriminator = False
+			# 	self.skip_vae = True
+			# # Otherwise train VAE.
+			# else:
+			# 	self.skip_discriminator = True
+			# 	self.skip_vae = False		
+
+			# Train discriminator for k times as many steps as VAE. Set args.alternating_phase_size as 1 for this. 
+			if (counter/self.args.alternating_phase_size)%(self.args.discriminator_phase_size+1)>=1:
+				print("Training Discriminator.")
+				self.skip_discriminator = False
+				self.skip_vae = True
+			# Otherwise train VAE.
+			else:
+				print("Training VAE.")
+				self.skip_discriminator = True
+				self.skip_vae = False		
+
+			self.training_phase = 2
+
+
+		self.source_manager.set_epoch(counter)
+		self.target_manager.set_epoch(counter)
+
+	def create_networks(self):
+
+		# Call create networks from each of the policy managers. 
+		self.source_manager.create_networks()
+		self.target_manager.create_networks()
+
+		# Now must also create discriminator.
+		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.output_size).cuda()
+
+	def create_training_ops(self):
+
+		# # Call create training ops from each of the policy managers. Need these optimizers, because the encoder-decoders get a different loss than the discriminator. 
+		self.source_manager.create_training_ops()
+		self.target_manager.create_training_ops()
+
+		# Create BCE loss object. 
+		# self.BCE_loss = torch.nn.BCELoss(reduction='None')		
+		self.negative_log_likelihood_loss_function = torch.nn.NLLLoss(reduction='none')
+		
+		# Create common optimizer for source, target, and discriminator networks. 
+		self.discriminator_optimizer = torch.optim.Adam(self.discriminator_network.parameters(),lr=self.learning_rate)
+
+	def save_all_models(self, suffix):
+		self.logdir = os.path.join(self.args.logdir, self.args.name)
+		self.savedir = os.path.join(self.logdir,"saved_models")
+		if not(os.path.isdir(self.savedir)):
+			os.mkdir(self.savedir)
+		self.save_object = {}
+
+		# Source
+		self.save_object['Source_Policy_Network'] = self.source_manager.policy_network.state_dict()
+		self.save_object['Source_Encoder_Network'] = self.source_manager.encoder_network.state_dict()
+		# Target
+		self.save_object['Target_Policy_Network'] = self.target_manager.policy_network.state_dict()
+		self.save_object['Target_Encoder_Network'] = self.target_manager.encoder_network.state_dict()
+		# Discriminator
+		self.save_object['Discriminator_Network'] = self.discriminator_network.state_dict()				
+
+		torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
+
+	def load_all_models(self, path):
+		self.load_object = torch.load(path)
+
+		# Source
+		self.source_manager.policy_network.load_state_dict(self.load_object['Source_Policy_Network'])
+		self.source_manager.encoder_network.load_state_dict(self.load_object['Source_Encoder_Network'])
+		# Target
+		self.target_manager.policy_network.load_state_dict(self.load_object['Target_Policy_Network'])
+		self.target_manager.encoder_network.load_state_dict(self.load_object['Target_Encoder_Network'])
+		# Discriminator
+		self.discriminator_network.load_state_dict(self.load_object['Discriminator_Network'])
+
+	def get_domain_manager(self, domain):
+		# Create a list, and just index into this list. 
+		domain_manager_list = [self.source_manager, self.target_manager]
+		return domain_manager_list[domain]
+
+	def get_trajectory_segment_tuple(self, source_manager, target_manager):
+
+		# Sample indices. 
+		source_index = np.random.randint(0, high=self.source_dataset_size)
+		target_index = np.random.randint(0, high=self.target_dataset_size)
+
+		# Get trajectory segments. 
+		source_trajectory_segment, source_action_seq, _ = source_manager.get_trajectory_segment(source_manager.index_list[source_index])
+		target_trajectory_segment, target_action_seq, _ = target_manager.get_trajectory_segment(target_manager.index_list[target_index])
+
+		return source_trajectory_segment, source_action_seq, target_trajectory_segment, target_action_seq
+
+	def encode_decode_trajectory(self, policy_manager, i, return_trajectory=False):
+
+		# This should basically replicate the encode-decode steps in run_iteration of the Pretrain_PolicyManager. 
+
+		############# (0) #############
+		# Sample trajectory segment from dataset. 			
+
+		# Check if the index is too big. If yes, just sample randomly.
+		if i >= len(policy_manager.dataset):
+			i = np.random.randint(0, len(policy_manager.dataset))
+
+		trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
+
+		if trajectory_segment is not None:
+			############# (1) #############
+			# Torchify trajectory segment.
+			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
+			# Encode trajectory segment into latent z. 		
+			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = policy_manager.encoder_network.forward(torch_traj_seg, policy_manager.epsilon)
+
+			########## (2) & (3) ##########
+			# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
+			latent_z_seq, latent_b = policy_manager.construct_dummy_latents(latent_z)
+
+			_, subpolicy_inputs, sample_action_seq = policy_manager.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
+
+			# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
+			loglikelihoods, _ = policy_manager.policy_network.forward(subpolicy_inputs, sample_action_seq)
+			loglikelihood = loglikelihoods[:-1].mean()
+
+			if return_trajectory:
+				return sample_traj, latent_z
+			else:
+				return subpolicy_inputs, latent_z, loglikelihood, kl_divergence
+
+		if return_trajectory:
+			return None, None
+		else:
+			return None, None, None, None
+
+	def update_plots(self, counter, viz_dict):
+
+		# VAE Losses. 
+		self.tf_logger.scalar_summary('Policy LogLikelihood', self.likelihood_loss, counter)
+		self.tf_logger.scalar_summary('Discriminability Loss', self.discriminability_loss, counter)
+		self.tf_logger.scalar_summary('Encoder KL', self.encoder_KL, counter)
+		self.tf_logger.scalar_summary('VAE Loss', self.VAE_loss, counter)
+		self.tf_logger.scalar_summary('Total VAE Loss', self.total_VAE_loss, counter)
+		self.tf_logger.scalar_summary('Domain', viz_dict['domain'], counter)
+
+		# Plot discriminator values after we've started training it. 
+		if self.training_phase>1:
+			# Discriminator Loss. 
+			self.tf_logger.scalar_summary('Discriminator Loss', self.discriminator_loss, counter)
+			# Compute discriminator prob of right action for logging. 
+			self.tf_logger.scalar_summary('Discriminator Probability', viz_dict['discriminator_probs'], counter)
+		
+		# If we are displaying things: 
+		if counter%self.args.display_freq==0:
+
+			self.gt_gif_list = []
+			self.rollout_gif_list = []
+
+			# Now using both TSNE and PCA. 
+			# Plot source, target, and shared embeddings via TSNE.
+			tsne_source_embedding, tsne_target_embedding, tsne_combined_embeddings, tsne_combined_traj_embeddings = self.get_embeddings(projection='tsne')
+
+			# Now actually plot the images.			
+			self.tf_logger.image_summary("TSNE Source Embedding", [tsne_source_embedding], counter)
+			self.tf_logger.image_summary("TSNE Target Embedding", [tsne_target_embedding], counter)
+			self.tf_logger.image_summary("TSNE Combined Embeddings", [tsne_combined_embeddings], counter)			
+
+			# Plot source, target, and shared embeddings via PCA. 
+			pca_source_embedding, pca_target_embedding, pca_combined_embeddings, pca_combined_traj_embeddings = self.get_embeddings(projection='pca')
+
+			# Now actually plot the images.			
+			self.tf_logger.image_summary("PCA Source Embedding", [pca_source_embedding], counter)
+			self.tf_logger.image_summary("PCA Target Embedding", [pca_target_embedding], counter)
+			self.tf_logger.image_summary("PCA Combined Embeddings", [pca_combined_embeddings], counter)			
+
+			if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
+				self.tf_logger.image_summary("PCA Combined Trajectory Embeddings", [pca_combined_traj_embeddings], counter)
+				self.tf_logger.image_summary("TSNE Combined Trajectory Embeddings", [tsne_combined_traj_embeddings], counter)
+
+			# We are also going to log Ground Truth trajectories and their reconstructions in each of the domains, to make sure our networks are learning. 		
+			# Should be able to use the policy manager's functions to do this.
+			source_trajectory, source_reconstruction, target_trajectory, target_reconstruction = self.get_trajectory_visuals()
+
+			if source_trajectory is not None:
+				# Now actually plot the images.
+
+				if self.args.source_domain=='ContinuousNonZero':
+					self.tf_logger.image_summary("Source Trajectory", [source_trajectory], counter)
+					self.tf_logger.image_summary("Source Reconstruction", [source_reconstruction], counter)
+				else:
+					self.tf_logger.gif_summary("Source Trajectory", [source_trajectory], counter)
+					self.tf_logger.gif_summary("Source Reconstruction", [source_reconstruction], counter)
+
+				if self.args.target_domain=='ContinuousNonZero':
+					self.tf_logger.image_summary("Target Trajectory", [target_trajectory], counter)
+					self.tf_logger.image_summary("Target Reconstruction", [target_reconstruction], counter)
+				else:
+					self.tf_logger.gif_summary("Target Trajectory", [target_trajectory], counter)
+					self.tf_logger.gif_summary("Target Reconstruction", [target_reconstruction], counter)
+
+			if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':
+				# Evaluate metrics and plot them. 
+				# self.evaluate_correspondence_metrics(computed_sets=False)
+				# Actually, we've probably computed trajectory and latent sets. 
+				self.evaluate_correspondence_metrics()
+
+				self.tf_logger.scalar_summary('Source To Target Trajectory Distance', self.source_target_trajectory_distance, counter)		
+				self.tf_logger.scalar_summary('Target To Source Trajectory Distance', self.target_source_trajectory_distance, counter)
+
+	def get_transform(self, latent_z_set, projection='tsne', shared=False):
+
+		if shared:
+			# If this set of z's contains z's from both source and target domains, mean-std normalize them independently. 
+			normed_z = np.zeros_like(latent_z_set)
+			# Normalize source.
+			source_mean = latent_z_set[:self.N].mean(axis=0)
+			source_std = latent_z_set[:self.N].std(axis=0)
+			normed_z[:self.N] = (latent_z_set[:self.N]-source_mean)/source_std
+			# Normalize target.
+			target_mean = latent_z_set[self.N:].mean(axis=0)
+			target_std = latent_z_set[self.N:].std(axis=0)
+			normed_z[self.N:] = (latent_z_set[self.N:]-target_mean)/target_std			
+
+		else:
+			# Just normalize z's.
+			mean = latent_z_set.mean(axis=0)
+			std = latent_z_set.std(axis=0)
+			normed_z = (latent_z_set-mean)/std
+		
+		if projection=='tsne':
+			# Use TSNE to project the data:
+			tsne = skl_manifold.TSNE(n_components=2,random_state=0)
+			embedded_zs = tsne.fit_transform(normed_z)
+
+			scale_factor = 1
+			scaled_embedded_zs = scale_factor*embedded_zs
+
+			return scaled_embedded_zs, tsne
+
+		elif projection=='pca':
+			# Use PCA to project the data:
+			pca_object = PCA(n_components=2)
+			embedded_zs = pca_object.fit_transform(normed_z)
+
+			return embedded_zs, pca_object
+
+	def transform_zs(self, latent_z_set, transforming_object):
+		# Simply just transform according to a fit transforming_object.
+		return transforming_object.transform(latent_z_set)
+
+	# @profile
+	def get_embeddings(self, projection='tsne'):
+		# Function to visualize source, target, and combined embeddings: 
+
+		self.N = 100
+		self.source_latent_zs = np.zeros((self.N,self.args.z_dimensions))
+		self.target_latent_zs = np.zeros((self.N,self.args.z_dimensions))
+		self.shared_latent_zs = np.zeros((2*self.N,self.args.z_dimensions))
+
+		# For N data points:
+		for i in range(self.N):
+
+			# Get corresponding latent z's of source and target domains.
+			_, source_z, _, _ = self.encode_decode_trajectory(self.source_manager, i)
+			_, target_z, _, _ = self.encode_decode_trajectory(self.target_manager, i)
+
+			if source_z is not None:
+				self.source_latent_zs[i] = source_z.detach().cpu().numpy()
+				self.shared_latent_zs[i] = source_z.detach().cpu().numpy()
+			if target_z is not None:
+				self.target_latent_zs[i] = target_z.detach().cpu().numpy()
+				self.shared_latent_zs[self.N+i] = target_z.detach().cpu().numpy()
+
+		if projection=='tsne':
+			# Use TSNE to transform data.		
+			source_embedded_zs, _ = self.get_transform(self.source_latent_zs, projection)
+			target_embedded_zs, _ = self.get_transform(self.target_latent_zs, projection)
+			shared_embedded_zs, _ = self.get_transform(self.shared_latent_zs, projection, shared=True)		
+
+		elif projection=='pca':
+			# Now fit PCA to source.
+			source_embedded_zs, pca = self.get_transform(self.source_latent_zs, projection)
+			target_embedded_zs = self.transform_zs(self.target_latent_zs, pca)
+			shared_embedded_zs = np.concatenate([source_embedded_zs, target_embedded_zs],axis=0)
+
+		source_image = self.plot_embedding(source_embedded_zs, "Source_Embedding")
+		target_image = self.plot_embedding(target_embedded_zs, "Target_Embedding")
+		shared_image = self.plot_embedding(shared_embedded_zs, "Shared_Embedding", shared=True)	
+
+		toy_shared_embedding_image = None
+		if self.args.source_domain=='ContinuousNonZero' and self.args.target_domain=='ContinuousNonZero':			
+			toy_shared_embedding_image = self.plot_embedding(shared_embedded_zs, "Toy_Shared_Traj_Embedding", shared=True, trajectory=True)
+
+		return source_image, target_image, shared_image, toy_shared_embedding_image
+
+	# @profile
+	def plot_embedding(self, embedded_zs, title, shared=False, trajectory=False):
+	
+		fig = plt.figure()
+		ax = fig.gca()
+		
+		if shared:
+			colors = 0.2*np.ones((2*self.N))
+			colors[self.N:] = 0.8
+		else:
+			colors = 0.2*np.ones((self.N))
+
+		if trajectory:
+			# Create a scatter plot of the embedding.
+
+			self.source_manager.get_trajectory_and_latent_sets()
+			self.target_manager.get_trajectory_and_latent_sets()
+
+			ratio = 0.4
+			color_scaling = 15
+
+			# Assemble shared trajectory set. 
+			traj_length = len(self.source_manager.trajectory_set[0,:,0])
+			self.shared_trajectory_set = np.zeros((2*self.N, traj_length, 2))
+			
+			self.shared_trajectory_set[:self.N] = self.source_manager.trajectory_set
+			self.shared_trajectory_set[self.N:] = self.target_manager.trajectory_set
+			
+			color_range_min = 0.2*color_scaling
+			color_range_max = 0.8*color_scaling+traj_length-1
+
+			for i in range(2*self.N):
+				ax.scatter(embedded_zs[i,0]+ratio*self.shared_trajectory_set[i,:,0],embedded_zs[i,1]+ratio*self.shared_trajectory_set[i,:,1],c=colors[i]*color_scaling+range(traj_length),cmap='jet',vmin=color_range_min,vmax=color_range_max)
+
+		else:
+			# Create a scatter plot of the embedding.
+			ax.scatter(embedded_zs[:,0],embedded_zs[:,1],c=colors,vmin=0,vmax=1,cmap='jet')
+		
+		# Title. 
+		ax.set_title("{0}".format(title),fontdict={'fontsize':40})
+		fig.canvas.draw()
+		# Grab image.
+		width, height = fig.get_size_inches() * fig.get_dpi()
+		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
+		image = np.transpose(image, axes=[2,0,1])
+
+		return image
+
+	def get_trajectory_visuals(self):
+
+		i = np.random.randint(0,high=self.extent)
+
+		# First get a trajectory, starting point, and latent z.
+		source_trajectory, source_latent_z = self.encode_decode_trajectory(self.source_manager, i, return_trajectory=True)
+
+		if source_trajectory is not None:
+			# Reconstruct using the source domain manager. 
+			_, source_trajectory_image, source_reconstruction_image = self.source_manager.get_robot_visuals(0, source_latent_z, source_trajectory, return_image=True)		
+
+			# Now repeat the same for target domain - First get a trajectory, starting point, and latent z.
+			target_trajectory, target_latent_z = self.encode_decode_trajectory(self.target_manager, i, return_trajectory=True)
+			# Reconstruct using the target domain manager. 
+			_, target_trajectory_image, target_reconstruction_image = self.target_manager.get_robot_visuals(0, target_latent_z, target_trajectory, return_image=True)		
+
+			return np.array(source_trajectory_image), np.array(source_reconstruction_image), np.array(target_trajectory_image), np.array(target_reconstruction_image)
+			
+		else: 
+			return None, None, None, None
+
+	def update_networks(self, domain, policy_manager, policy_loglikelihood, encoder_KL, discriminator_loglikelihood, latent_z):
+
+		#######################
+		# Update VAE portion. 
+		#######################
+
+		# Zero out gradients of encoder and decoder (policy).
+		policy_manager.optimizer.zero_grad()		
+
+		# Compute VAE loss on the current domain as likelihood plus weighted KL.  
+		self.likelihood_loss = -policy_loglikelihood.mean()
+		self.encoder_KL = encoder_KL.mean()
+		self.VAE_loss = self.likelihood_loss + self.args.kl_weight*self.encoder_KL
+
+		# Compute discriminability loss for encoder (implicitly ignores decoder).
+		# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
+		# I.e. train encoder to make discriminator maximize likelihood of wrong label.
+
+		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+
+		# Total encoder loss: 
+		self.total_VAE_loss = self.vae_loss_weight*self.VAE_loss + self.discriminability_loss_weight*self.discriminability_loss	
+
+		if not(self.skip_vae):
+			# Go backward through the generator (encoder / decoder), and take a step. 
+			self.total_VAE_loss.backward()
+			policy_manager.optimizer.step()
+
+		#######################
+		# Update Discriminator. 
+		#######################
+
+		# Zero gradients of discriminator.
+		self.discriminator_optimizer.zero_grad()
+
+		# If we tried to zero grad the discriminator and then use NLL loss on it again, Pytorch would cry about going backward through a part of the graph that we already \ 
+		# went backward through. Instead, just pass things through the discriminator again, but this time detaching latent_z. 
+		discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z.detach())
+
+		# Compute discriminator loss for discriminator. 
+		self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+		
+		if not(self.skip_discriminator):
+			# Now go backward and take a step.
+			self.discriminator_loss.backward()
+			self.discriminator_optimizer.step()
+
+	# @profile
+	def run_iteration(self, counter, i):
+
+		# Phases: 
+		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
+		# Phase 2:  Train encoder, decoder for each domain, and discriminator concurrently. 
+
+		# Algorithm: 
+		# For every epoch:
+		# 	# For every datapoint: 
+		# 		# 1) Select which domain to use (source or target, i.e. with 50% chance, select either domain).
+		# 		# 2) Get trajectory segments from desired domain. 
+		# 		# 3) Encode trajectory segments into latent z's and compute likelihood of trajectory actions under the decoder.
+		# 		# 4) Feed into discriminator, get likelihood of each domain.
+		# 		# 5) Compute and apply gradient updates. 
+
+		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
+
+		# (0) Setup things like training phases, epislon values, etc.
+		self.set_iteration(counter)
+
+		# (1) Select which domain to run on. This is supervision of discriminator.
+		domain = np.random.binomial(1,0.5)
+
+		# (1.5) Get domain policy manager. 
+		policy_manager = self.get_domain_manager(domain)
+		
+		# (2) & (3) Get trajectory segment and encode and decode. 
+		subpolicy_inputs, latent_z, loglikelihood, kl_divergence = self.encode_decode_trajectory(policy_manager, i)
+
+		if latent_z is not None:
+			# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
+			discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
+
+			# (5) Compute and apply gradient updates. 
+			self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
+
+			# Now update Plots. 
+			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
+			self.update_plots(counter, viz_dict)
+
+	# Run memory profiling.
+	# @profile 
+	def evaluate_correspondence_metrics(self, computed_sets=True):
+
+		print("Evaluating correspondence metrics.")
+		# Evaluate the correspondence and alignment metrics. 
+		# Whether latent_z_sets and trajectory_sets are already computed for each manager.
+		if not(computed_sets):
+			self.source_manager.get_trajectory_and_latent_sets()
+			self.target_manager.get_trajectory_and_latent_sets()
+
+		# Compute nearest neighbors for each set. First build KD-Trees / Ball-Trees. 
+		source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
+		target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
+
+		# Compute neighbors. 
+		_, source_target_neighbors = source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
+		_, target_source_neighbors = target_neighbors_object.kneighbors(self.source_manager.latent_z_set)
+
+		# # Now compute trajectory distances for neighbors. 
+		# source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
+		# self.source_target_trajectory_distance = copy.deepcopy(np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean())
+
+		# target_source_trajectory_diffs = (self.target_manager.trajectory_set - self.source_manager.trajectory_set[target_source_neighbors.squeeze(1)])
+		# self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
+
+		# Remember, absolute trajectory differences is meaningless, since the data is randomly initialized across the state space. 
+		# Instead, compare actions. I.e. first compute differences along the time dimension. 
+		source_traj_actions = np.diff(self.source_manager.trajectory_set,axis=1)
+		target_traj_actions = np.diff(self.target_manager.trajectory_set,axis=1)
+
+		source_target_trajectory_diffs = (source_traj_actions - target_traj_actions[source_target_neighbors.squeeze(1)])
+		self.source_target_trajectory_distance = copy.deepcopy(np.linalg.norm(source_target_trajectory_diffs,axis=(1,2)).mean())
+
+		target_source_trajectory_diffs = (target_traj_actions - source_traj_actions[target_source_neighbors.squeeze(1)])
+		self.target_source_trajectory_distance = copy.deepcopy(np.linalg.norm(target_source_trajectory_diffs,axis=(1,2)).mean())
+
+		# Reset variables to prevent memory leaks.
+		# source_neighbors_object = None
+		# target_neighbors_object = None
+		del source_neighbors_object
+		del target_neighbors_object
+
+	def evaluate(self, model=None):
+
+		# Evaluating Transfer - we just want embeddings of both source and target; so run evaluate of both source and target policy managers. 		
+
+		# Instead of parsing and passing model to individual source and target policy managers, just load using the transfer policy manager, and then run eval. 
+		if model is not None: 
+			self.load_all_models(model)
+
+		# Run source policy manager evaluate. 
+		self.source_manager.evaluate(suffix="Source")
+
+		# Run target policy manager evaluate. 
+		self.target_manager.evaluate(suffix="Target")
+
+		# Evaluate metrics. 
+		self.evaluate_correspondence_metrics()
+
+	def automatic_evaluation(self, e):
+
+		pass
+
+# Writing a cycle consistency transfer PM class.
+class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
+
+	# Inherit from transfer. 
+	def __init__(self, args=None, source_dataset=None, target_dataset=None):
+
+
+		super(PolicyManager_CycleConsistencyTransfer, self).__init__(args, source_dataset, target_dataset)
+
+	def create_networks(self):
+
+		super().create_networks()
+
+		# Must also create two discriminator networks; one for source --> target --> source, one for target --> source --> target. 
+		# Remember, since these discriminator networks are operating on the trajectory space, we have to 
+		# make them LSTM networks, rather than MLPs. 
+
+		# We have the encoder network class that's perfect for this. Output size is 2. 
+		self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+		self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+
+	def create_training_ops(self):
+
+		# Call super training ops. 
+		super().create_training_ops()
+
+		# Now create discriminator optimizers. 
+		self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
+		self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
+
+	def save_all_models(self, suffix):
+
+		# Call super save model. 
+		super().save_all_models(suffix)
+
+		# Now save the individual source / target discriminators. 
+		self.save_object['Source_Discriminator_Network'] = self.source_discriminator_network.state_dict()
+		self.save_object['Target_Discriminator_Network'] = self.target_discriminator_network.state_dict()
+
+		# Overwrite the save from super. 
+		torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
+
+	def load_all_models(self, path):
+
+		# Call super load. 
+		super().load_all_models(path)
+
+		# Now load the individual source and target discriminators. 
+		self.source_discriminator.load_state_dict(self.load_object['Source_Discriminator_Network'])
+		self.target_discriminator.load_state_dict(self.load_object['Target_Discriminator_Network'])
+
+	# A bunch of functions should just be directly usable:
+	# get_domain_manager, get_trajectory_segment_tuple, encode_decode_trajectory, update_plots, get_transform, 
+	# transform_zs, get_embeddings, plot_embeddings, get_trajectory_visuals, evaluate_correspondence_metrics, 
+	# evaluate, automatic_evaluation
+
+	def run_iteration(self, counter, i):
+
+		# Phases: 
+		# Phase 1:  Train encoder-decoder for both domains initially, so that discriminator is not fed garbage. 
+		# Phase 2:  Train encoder, decoder for each domain, and Z discriminator concurrently. 
+		# Phase 3:  Train encoder, decoder for each domain, and the individual source and target discriminators, concurrently.
+
+		# Algorithm (joint training): 
+		# For every epoch:
+		# 	# For every datapoint: 
+		# 		# 1) Select which domain to use as source (i.e. with 50% chance, select either domain).
+		# 		# 2) Get trajectory segments from desired domain. 
+		#		# 3) Transfer Steps: 
+		#	 		# a) Encode trajectory as latent z (domain 1). 
+		#			# b) Use domain 2 decoder to decode latent z into trajectory (domain 2).
+		#			# c) Use domain 2 encoder to encode trajectory into latent z (domain 2).
+		#			# d) Use domain 1 decoder to decode latent z (domain 2) into trajectory (domain 1).
+		# 		# 4) Feed cycle-reconstructed trajectory and original trajectory (both domain 1) into discriminator. 
+		#		# 5) Train discriminators to predict whether original or cycle reconstructed trajectory. 
+		#		# 	 Train z discriminator to predict which domain the latentz sample came from. 
+		# 		# 	 Train encoder / decoder architectures with mix of reconstruction loss and discriminator confusing objective. 
+		# 		# 	 Compute and apply gradient updates. 
+
+
+
+
+
+
+
+

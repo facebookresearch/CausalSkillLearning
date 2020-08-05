@@ -21,6 +21,7 @@ from matplotlib.figure import Figure
 from IPython import embed
 import pdb
 import sklearn.manifold as skl_manifold
+from sklearn.decomposition import PCA
 from matplotlib.offsetbox import (TextArea, DrawingArea, OffsetImage,
                                   AnnotationBbox)
 from matplotlib.animation import FuncAnimation
@@ -38,3 +39,5 @@ from scipy import stats, signal
 from scipy.interpolate import interp1d
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.signal import find_peaks, argrelextrema
+
+from sklearn.neighbors import NearestNeighbors

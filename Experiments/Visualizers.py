@@ -9,6 +9,7 @@ import robosuite, threading
 from robosuite.wrappers import IKWrapper
 import MocapVisualizationUtils
 from mocap_processing.motion.pfnn import Animation, BVH
+import matplotlib.pyplot as plt
 from IPython import embed
 
 class SawyerVisualizer():
@@ -307,6 +308,29 @@ class MocapVisualizer():
 			return image_list
 		else:
 			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
+
+class ToyDataVisualizer():
+
+	def __init__(self):
+
+		pass
+
+	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
+
+		fig = plt.figure()		
+		ax = fig.gca()
+		ax.scatter(trajectory[:,0],trajectory[:,1],c=range(len(trajectory)),cmap='jet')
+		plt.xlim(-10,10)
+		plt.ylim(-10,10)
+
+		fig.canvas.draw()
+
+		width, height = fig.get_size_inches() * fig.get_dpi()
+		image = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8).reshape(int(height), int(width), 3)
+		image = np.transpose(image, axes=[2,0,1])
+
+		return image
+
 
 if __name__ == '__main__':
 	# end_eff_pose = [0.3, -0.3, 0.09798524029948213, 0.38044099037703677, 0.9228975092885654, -0.021717379118030174, 0.05525572942370394]
