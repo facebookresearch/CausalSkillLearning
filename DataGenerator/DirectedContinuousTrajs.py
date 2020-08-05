@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # Copyright (c) Facebook, Inc. and its affiliates.
 # All rights reserved.
 
