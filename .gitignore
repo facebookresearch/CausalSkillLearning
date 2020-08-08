@@ -1,0 +1,9 @@
+# Ignore files.
+*.bvh
+*.html
+*.png
+*.jpg
+*.gif
+*.pyc
+Experiments/Experimental_Logs/*
+Experiments/Code_Runs/*
