@@ -4120,10 +4120,11 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# For differentiabiity, return tuple of trajectory, actions, state actions, and subpolicy_inputs. 
 		return [differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs]
 
-	def cross_domain_decoding(self, domain_manager, latent_z):
+	def cross_domain_decoding(self, domain_manager, latent_z, start_state=None):
 
-		# First get start state. 
-		start_state = self.get_start_state(latent_z)
+		# If start state is none, first get start state, else use the argument. 
+		if start_state is None: 
+			start_state = self.get_start_state(latent_z)
 
 		# Now rollout in target domain.
 		trajectory_rollout, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
@@ -4180,11 +4181,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (3 b) Cross domain decoding. 
 		####################################
 		
-		# First get start state. 
-		target_start_state = self.get_start_state(source_latent_z)
-
-		# Now rollout in target domain.
-		target_trajectory_rollout, target_subpolicy_inputs = self.differentiable_rollout(target_start_state, source_latent_z)
+		target_trajectory_rollout, target_subpolicy_inputs = self.cross_domain_decoding(target_policy_manager, source_latent_z)
 
 		####################################
 		# (3 c) Cross domain encoding of target_trajectory_rollout into target latent_z. 
@@ -4197,11 +4194,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Could also use the reverse trick for start state?  
 		####################################
 
-		# Get the original start state. 
-		source_start_state = source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy()
-
-		# Now rollout in target domain.
-		source_trajectory_rollout, source_subpolicy_inputs_rollout = self.differentiable_rollout(source_start_state, target_latent_z)
+		source_trajectory_rollout, source_subpolicy_inputs_rollout = self.cross_domain_decoding(source_start_state, target_latent_z, start_state=source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy())
 
 		####################################
 		# (4) 
