@@ -3529,12 +3529,22 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		if i >= len(policy_manager.dataset):
 			i = np.random.randint(0, len(policy_manager.dataset))
 
-		trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
+		if trajectory_input is not None: 
+
+			# Grab trajectory segment from tuple. 
+			torch_traj_seg = trajectory_input_tuple[0]
+			# Grab action seq.  
+			sample_action_seq = trajectory_input_tuple[1]
+			# Grab state (only) seq. 
+			sample_traj = trajectory_input_tuple[2]
+			
+		else: 
+			trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
+			# Torchify trajectory segment.
+			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
 
 		if trajectory_segment is not None:
 			############# (1) #############
-			# Torchify trajectory segment.
-			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
 			# Encode trajectory segment into latent z. 		
 			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = policy_manager.encoder_network.forward(torch_traj_seg, policy_manager.epsilon)
 
@@ -3887,12 +3897,12 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			self.target_manager.get_trajectory_and_latent_sets()
 
 		# Compute nearest neighbors for each set. First build KD-Trees / Ball-Trees. 
-		source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
-		target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
+		self.source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
+		self.target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
 
 		# Compute neighbors. 
-		_, source_target_neighbors = source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
-		_, target_source_neighbors = target_neighbors_object.kneighbors(self.source_manager.latent_z_set)
+		_, source_target_neighbors = self.source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
+		_, target_source_neighbors = self.target_neighbors_object.kneighbors(self.source_manager.latent_z_set)
 
 		# # Now compute trajectory distances for neighbors. 
 		# source_target_trajectory_diffs = (self.source_manager.trajectory_set - self.target_manager.trajectory_set[source_target_neighbors.squeeze(1)])
@@ -3915,8 +3925,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Reset variables to prevent memory leaks.
 		# source_neighbors_object = None
 		# target_neighbors_object = None
-		del source_neighbors_object
-		del target_neighbors_object
+		del self.source_neighbors_object
+		del self.target_neighbors_object
 
 	def evaluate(self, model=None):
 
@@ -3995,8 +4005,77 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	# transform_zs, get_embeddings, plot_embeddings, get_trajectory_visuals, evaluate_correspondence_metrics, 
 	# evaluate, automatic_evaluation
 
+	def get_start_state(self, domain, source_latent_z):
+
+		# Function to retrieve the start state for differentiable decoding from target domain. 
+		# How we do this is first to retrieve the target domain latent z closest to the source_latent_z. 
+		# We then select the trajectory corresponding to this target_domain latent_z.
+		# We then copy the start state of this trajectory. 
+
+		# First get neighbor object and trajectory sets. 
+		neighbor_object_list = [self.source_neighbors_object, self.target_neighbors_object]
+		trajectory_set_list = [self.source_manager.trajectory_set, self.target_manager.trajectory_set]
+		
+		# Remember, we need _target_ domain. So use 1-domain instead of domain.
+		neighbor_object = neighbor_object_list[1-domain]
+		trajectory_set = trajectory_set_list[1-domain]
+
+		# Next get closest target z. 
+		_ , target_latent_z_index = neighbor_object.kneighbors(source_latent_z)
+
+		# Don't actually need the target_latent_z, unless we're doing differentiable nearest neighbor transfer. 
+		# Now get the corresponding trajectory. 
+		trajectory = trajectory_set[target_latent_z_index]
+
+		# Finally, pick up first state. 
+		start_state = trajectory[0]
+
+		return start_state
+
 	def differentiable_rollout(self, trajectory_start, latent_z, rollout_length=None):
 		# Copying over from rollout_robot_trajectory. This function should provide rollout template, but may need modifications for differentiability. 
+
+		# Remember, the differentiable rollout is required because the backtranslation / cycle-consistency loss needs to be propagated through multiple sets of translations. 
+		# Therefore it must pass through the decoder network(s), and through the latent_z's. (It doesn't actually pass through the states / actions?).
+
+		####################################
+		# Here is a self-contained code snippet that shows that does differentiable rollouts:
+		# x = torch.rand((1,2))
+		# z_input = torch.rand((1))
+		# layer = torch.nn.Linear(4,2)
+		# z_layer = torch.nn.Linear(1,2)
+
+		# z = z_layer(z_input)
+		# for i in range(10):
+		    
+		#     # Concatenate x with z and feed to layer       
+		#     a = softmax(layer(torch.cat([x[-1],z])))
+		#     x = torch.cat([x,(x[-1]+a).unsqueeze(0)])
+		    
+		# # Print layer params.
+		# print("First time layer weight:")
+		# print(layer.weight)
+
+		# print("First time z layer weight:")
+		# print(z_layer.weight)
+
+		# # Set parameter list. 
+		# params = list(layer.parameters()) + list(z_layer.parameters())
+		# # Create optimizer. 
+		# opt = torch.optim.Adam(params=params,lr=1)
+		# loss = x.sum()
+		# opt.zero_grad()
+		# loss.backward()
+		# opt.step()
+
+		# # Print layer params again. 
+		# print("Second time layer weight:")
+		# print(layer.weight)
+
+		# print("Second time z layer weight:")
+		# print(z_layer.weight)
+
+		####################################		
 
 		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
 		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
@@ -4028,10 +4107,28 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
 			input_row[0,2*self.state_dim:] = latent_z
 
+			# Now that we have assembled the new input row, concatenate it along temporal dimension with previous inputs. 
 			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
 
 		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
-		return trajectory
+		differentiable_trajectory = subpolicy_inputs[:,:self.state_dim]
+		differentiable_action_seq = subpolicy_inputs[:,self.state_dim:2*self.state_dim]
+		differentiable_state_action_seq = subpolicy_inputs[:,:2*self.state_dim]
+
+		# return trajectory
+
+		# For differentiabiity, return tuple of trajectory, actions, state actions, and subpolicy_inputs. 
+		return [differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs]
+
+	def cross_domain_decoding(self, domain_manager, latent_z):
+
+		# First get start state. 
+		start_state = self.get_start_state(latent_z)
+
+		# Now rollout in target domain.
+		trajectory_rollout, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
+
+		return trajectory_rollout, subpolicy_inputs
 
 	def run_iteration(self, counter, i):
 
@@ -4058,19 +4155,57 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		# Remember to make domain agnostic function calls to encode, feed into discriminator, get likelihoods, etc. 
 
+		####################################
 		# (0) Setup things like training phases, epislon values, etc.
+		####################################
+
 		self.set_iteration(counter)
 
+		####################################
 		# (1) Select which domain to use as source domain (also supervision of z discriminator for this iteration). 
+		####################################
+
 		domain = np.random.binomial(1,0.5)
 		# Also Get domain policy manager. 
 		policy_manager = self.get_domain_manager(domain) 
+		target_policy_manager = self.get_domain_manager(1-domain) 
 
-		# (2) & (2 a) Get trajectory segment and encode and decode. 
+		####################################
+		# (2) & (3 a) Get trajectory segment and encode and decode. 
+		####################################
+
 		source_subpolicy_inputs, source_latent_z, source_loglikelihood, source_kl_divergence = self.encode_decode_trajectory(policy_manager, i)
 
-		# (2 b) Cross domain decoding. 
+		####################################
+		# (3 b) Cross domain decoding. 
+		####################################
+		
+		# First get start state. 
+		target_start_state = self.get_start_state(source_latent_z)
 
+		# Now rollout in target domain.
+		target_trajectory_rollout, target_subpolicy_inputs = self.differentiable_rollout(target_start_state, source_latent_z)
+
+		####################################
+		# (3 c) Cross domain encoding of target_trajectory_rollout into target latent_z. 
+		####################################
+
+		target_subpolicy_inputs, target_latent_z, target_loglikelihood, target_kl_divergence = self.encode_decode_trajectory()
+
+		####################################
+		# (3 d) Cross domain decoding of target_latent_z into source trajectory. Use the original start state? 
+		# Could also use the reverse trick for start state?  
+		####################################
+
+		# Get the original start state. 
+		source_start_state = source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy()
+
+		# Now rollout in target domain.
+		source_trajectory_rollout, source_subpolicy_inputs_rollout = self.differentiable_rollout(source_start_state, target_latent_z)
+
+		####################################
+		# (4) 
+		####################################
 
 		if latent_z is not None:
 		# 	# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
@@ -4082,4 +4217,5 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# 	# Now update Plots. 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
+
 
