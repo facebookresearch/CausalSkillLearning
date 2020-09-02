@@ -4037,46 +4037,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Copying over from rollout_robot_trajectory. This function should provide rollout template, but may need modifications for differentiability. 
 
 		# Remember, the differentiable rollout is required because the backtranslation / cycle-consistency loss needs to be propagated through multiple sets of translations. 
-		# Therefore it must pass through the decoder network(s), and through the latent_z's. (It doesn't actually pass through the states / actions?).
-
-		####################################
-		# Here is a self-contained code snippet that shows that does differentiable rollouts:
-		# x = torch.rand((1,2))
-		# z_input = torch.rand((1))
-		# layer = torch.nn.Linear(4,2)
-		# z_layer = torch.nn.Linear(1,2)
-
-		# z = z_layer(z_input)
-		# for i in range(10):
-		    
-		#     # Concatenate x with z and feed to layer       
-		#     a = softmax(layer(torch.cat([x[-1],z])))
-		#     x = torch.cat([x,(x[-1]+a).unsqueeze(0)])
-		    
-		# # Print layer params.
-		# print("First time layer weight:")
-		# print(layer.weight)
-
-		# print("First time z layer weight:")
-		# print(z_layer.weight)
-
-		# # Set parameter list. 
-		# params = list(layer.parameters()) + list(z_layer.parameters())
-		# # Create optimizer. 
-		# opt = torch.optim.Adam(params=params,lr=1)
-		# loss = x.sum()
-		# opt.zero_grad()
-		# loss.backward()
-		# opt.step()
-
-		# # Print layer params again. 
-		# print("Second time layer weight:")
-		# print(layer.weight)
-
-		# print("Second time z layer weight:")
-		# print(z_layer.weight)
-
-		####################################		
+		# Therefore it must pass through the decoder network(s), and through the latent_z's. (It doesn't actually pass through the states / actions?).		
 
 		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
 		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
@@ -4090,7 +4051,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		for t in range(length):
 
 			# Get actions from the policy.
-			actions = self.policy_network.get_actions(subpolicy_inputs, greedy=True)
+			actions = self.policy_network.reparameterized_get_actions(subpolicy_inputs, greedy=True)
 
 			# Select last action to execute. 
 			action_to_execute = actions[-1].squeeze(1)
@@ -4192,11 +4153,37 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# 	self.discriminator_loss.backward()
 		# 	self.discriminator_optimizer.step()
 
-	def update_networks(self):
+	def update_networks(self, dictionary):
 
 		# Here are the objectives we have to be considering. 
 		# 	1) Reconstruction of inputs under single domain encoding / decoding. 
-		#	2) 
+		#		In this implementation, we just have to use the source_loglikelihood for this. 
+		#	2) Discriminability of Z space. This is taken care of from the compute_discriminator_losses function.
+		# 	3) Cycle-consistency. This may be implemented as regression (L2), loglikelihood of cycle-reconstructed traj, or discriminability of trajectories.
+		#		In this implementation, we just have to use the cross domain decoded loglikelihood. 
+
+		####################################
+		# (1) Compute single-domain reconstruction loss.
+		####################################
+
+		# Compute VAE loss on the current domain as negative log likelihood likelihood plus weighted KL.  
+		self.source_likelihood_loss = -dictionary['source_loglikelihood'].mean()
+		self.source_encoder_KL = dictionary['source_kl_divergence'].mean()
+		self.source_reconstruction_loss = self.source_likelihood_loss + self.args.kl_weight*self.source_encoder_KL
+
+		####################################
+		# (2) Discriminability losses are already computed.
+		####################################
+
+		####################################
+		# (3) Compute cycle-consistency losses.
+		####################################
+
+		# Must compute likelihoods of original actions under the cycle reconstructed trajectory states. 
+		# I.e. evaluate likelihood of original actions under source_decoder (i.e. source subpolicy), with the subpolicy inputs constructed from cycle-reconstruction.
+		
+		# Get the original action sequence.
+
 
 	def run_iteration(self, counter, i):
 
@@ -4241,7 +4228,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (2) & (3 a) Get source trajectory (segment) and encode into latent z. Decode using source decoder, to get loglikelihood for reconstruction objectve. 
 		####################################
 
-		dictionary['source_subpolicy_inputs'], dictionary['source_latent_z'], dictionary['source_loglikelihood'], dictionary['source_kl_divergence'] = self.encode_decode_trajectory(source_policy_manager, i)
+		dictionary['source_subpolicy_inputs_original'], dictionary['source_latent_z'], dictionary['source_loglikelihood'], dictionary['source_kl_divergence'] = self.encode_decode_trajectory(source_policy_manager, i)
 
 		####################################
 		# (3 b) Cross domain decoding. 
@@ -4260,19 +4247,19 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Can use the original start state, or also use the reverse trick for start state. Try both maybe.
 		####################################
 
-		source_trajectory_rollout, source_subpolicy_inputs = self.cross_domain_decoding(source_policy_manager, dictionary['target_latent_z'], start_state=dictionary['source_subpolicy_inputs'][0,:self.state_dim].detach().cpu().numpy())
+		source_trajectory_rollout, dictionary['source_subpolicy_inputs_crossdomain'] = self.cross_domain_decoding(source_policy_manager, dictionary['target_latent_z'], start_state=dictionary['source_subpolicy_inputs'][0,:self.state_dim].detach().cpu().numpy())
 
 		####################################
 		# (4) Feed source and target latent z's to z_discriminator.
 		####################################
 
-		self.compute_discriminator_losses(domain, source_latent_z)
+		self.compute_discriminator_losses(domain, dictionary['source_latent_z'])
 
 		####################################
 		# (5) Compute all losses, reweight, and take gradient steps.
 		####################################
 
-		self.update_networks()
+		self.update_networks(dictionary)
 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
