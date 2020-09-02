@@ -3955,7 +3955,6 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	# Inherit from transfer. 
 	def __init__(self, args=None, source_dataset=None, target_dataset=None):
 
-
 		super(PolicyManager_CycleConsistencyTransfer, self).__init__(args, source_dataset, target_dataset)
 
 	# Don't actually need to define these functions since they perform same steps as super functions.
@@ -3971,14 +3970,18 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	# 	# self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
 	# 	# self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
 
-	# def create_training_ops(self):
+	def create_training_ops(self):
 
-	# 	# Call super training ops. 
-	# 	super().create_training_ops()
+		# Call super training ops. 
+		super().create_training_ops()
 
-	# 	# # Now create discriminator optimizers. 
-	# 	# self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
-	# 	# self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
+		# # Now create discriminator optimizers. 
+		# self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
+		# self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
+
+		# Instead of using the individuals policy manager optimizers, use one single optimizer. 
+		self.parameter_list = self.source_manager.parameter_list + self.target_manager.parameter_list
+		self.optimizer = torch.opt.Adam(self.parameter_list, lr=self.learning_rate)
 
 	# def save_all_models(self, suffix):
 
@@ -4166,6 +4169,9 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# First update encoder decoder networks. Don't train discriminator.
 		####################################
 
+		# Zero gradients.
+		self.optimizer.zero_grad()		
+
 		####################################
 		# (1) Compute single-domain reconstruction loss.
 		####################################
@@ -4225,6 +4231,18 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		self.cycle_reconstruction_loss = -self.args.cycle_reconstruction_loss_weight*cycle_reconstruction_loss
 
 		####################################
+		# Now that individual losses are computed, compute total loss, compute gradients, and then step.
+		####################################
+
+		# First combine losses.
+		self.total_VAE_loss = self.source_reconstruction_loss + self.z_discriminability_loss + self.cycle_reconstruction_loss
+
+		# If we are in a encoder / decoder training phase, compute gradients and step.  
+		if not(self.skip_vae):
+			self.total_VAE_loss.backward()
+			self.optimizer.step()
+
+		####################################
 		# Now compute discriminator losses and update discriminator network(s).
 		####################################
 
@@ -4240,7 +4258,6 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			# Now go backward and take a step.
 			self.z_discriminator_loss.backward()
 			self.discriminator_optimizer.step()
-
 
 	def run_iteration(self, counter, i):
 
