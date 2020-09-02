@@ -4163,6 +4163,10 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		#		In this implementation, we just have to use the cross domain decoded loglikelihood. 
 
 		####################################
+		# First update encoder decoder networks. Don't train discriminator.
+		####################################
+
+		####################################
 		# (1) Compute single-domain reconstruction loss.
 		####################################
 
@@ -4172,8 +4176,38 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		self.source_reconstruction_loss = self.source_likelihood_loss + self.args.kl_weight*self.source_encoder_KL
 
 		####################################
-		# (2) Discriminability losses are already computed.
+		# (2) Compute discriminability losses.
 		####################################
+
+		#	This block first computes discriminability losses:
+		#	# a) First, feeds the latent_z into the z_discriminator, that is being trained to discriminate between z's of source and target domains. 
+		#	# 	 Gets and returns the loglikelihood of the discriminator predicting the true domain. 
+		#	# 	 Also returns discriminability loss, that is used to train the _encoders_ of both domains. 
+		#	#		
+		#	# b) ####### DON'T NEED TO DO THIS YET: ####### Also feeds either the cycle reconstructed trajectory, or the original trajectory from the source domain, into a separate discriminator. 
+		#	# 	 This second discriminator is specific to the domain we are operating in. This discriminator is discriminating between the reconstructed and original trajectories. 
+		#	# 	 Basically standard GAN adversarial training, except the generative model here is the entire cycle-consistency translation model.
+		#
+		#	In addition to this, must also compute discriminator losses to train discriminators themselves. 
+		# 	# a) For the z discriminator (and if we're using trajectory discriminators, those too), clone and detach the inputs of the discriminator and compute a discriminator loss with the right domain used in targets / supervision. 
+		#	#	 This discriminator loss is what is used to actually train the discriminators.		
+
+		# Get z discriminator logprobabilities.
+		z_discriminator_logprob, z_discriminator_prob = self.discriminator_network(latent_z)
+		# Compute discriminability loss. Remember, this is not used for training the discriminator, but rather the encoders.
+		self.z_discriminability_loss = self.negative_log_likelihood_loss_function(z_discriminator_logprob.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+
+		###### Block that computes discriminability losses assuming we are using trjaectory discriminators. ######
+
+		# # Get the right trajectory discriminator network.
+		# discriminator_list = [self.source_discriminator, self.target_discriminator]		
+		# source_discriminator = discriminator_list[domain]
+
+		# # Now feed trajectory to the trajectory discriminator, based on whether it is the source of target discriminator.
+		# traj_discriminator_logprob, traj_discriminator_prob = source_discriminator(trajectory)
+
+		# # Compute trajectory discriminability loss, based on whether the trajectory was original or reconstructed.
+		# self.traj_discriminability_loss = self.negative_log_likelihood_loss_function(traj_discriminator_logprob.squeeze(1), torch.tensor(1-original_or_reconstructed).cuda().long().view(1,))
 
 		####################################
 		# (3) Compute cycle-consistency losses.
@@ -4190,7 +4224,23 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Reweight the cycle reconstructed likelihood to construct the loss.
 		self.cycle_reconstruction_loss = -self.args.cycle_reconstruction_loss_weight*cycle_reconstruction_loss
 
+		####################################
+		# Now compute discriminator losses and update discriminator network(s).
+		####################################
+
+		# Detach the latent z that is fed to the discriminator, and then compute discriminator loss.
+		# If we tried to zero grad the discriminator and then use NLL loss on it again, Pytorch would cry about going backward through a part of the graph that we already \ 
+		# went backward through. Instead, just pass things through the discriminator again, but this time detaching latent_z. 
+		z_discriminator_detach_logprob, z_discriminator_detach_prob = self.discriminator_network(latent_z.detach())
+
+		# Compute discriminator loss for discriminator. 
+		self.z_discriminator_loss = self.negative_log_likelihood_loss_function(z_discriminator_detach_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
 		
+		if not(self.skip_discriminator):
+			# Now go backward and take a step.
+			self.z_discriminator_loss.backward()
+			self.discriminator_optimizer.step()
+
 
 	def run_iteration(self, counter, i):
 
