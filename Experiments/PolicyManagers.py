@@ -4193,7 +4193,10 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# 	self.discriminator_optimizer.step()
 
 	def update_networks(self):
-		
+
+		# Here are the objectives we have to be considering. 
+		# 	1) Reconstruction of inputs under single domain encoding / decoding. 
+		#	2) 
 
 	def run_iteration(self, counter, i):
 
@@ -4226,6 +4229,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		####################################
 
 		self.set_iteration(counter)
+		dictionary = {}
 
 		####################################
 		# (1) Select which domain to use as source domain (also supervision of z discriminator for this iteration). 
@@ -4237,26 +4241,26 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (2) & (3 a) Get source trajectory (segment) and encode into latent z. Decode using source decoder, to get loglikelihood for reconstruction objectve. 
 		####################################
 
-		source_subpolicy_inputs, source_latent_z, source_loglikelihood, source_kl_divergence = self.encode_decode_trajectory(source_policy_manager, i)
+		dictionary['source_subpolicy_inputs'], dictionary['source_latent_z'], dictionary['source_loglikelihood'], dictionary['source_kl_divergence'] = self.encode_decode_trajectory(source_policy_manager, i)
 
 		####################################
 		# (3 b) Cross domain decoding. 
 		####################################
 		
-		target_trajectory_rollout, target_subpolicy_inputs = self.cross_domain_decoding(target_policy_manager, source_latent_z)
+		target_trajectory_rollout, target_subpolicy_inputs = self.cross_domain_decoding(target_policy_manager, dictionary['source_latent_z'])
 
 		####################################
 		# (3 c) Cross domain encoding of target_trajectory_rollout into target latent_z. 
 		####################################
 
-		target_subpolicy_inputs, target_latent_z, target_loglikelihood, target_kl_divergence = self.encode_decode_trajectory(target_policy_manager, i)
+		dictionary['target_subpolicy_inputs'], dictionary['target_latent_z'], dictionary['target_loglikelihood'], dictionary['target_kl_divergence'] = self.encode_decode_trajectory(target_policy_manager, i)
 
 		####################################
 		# (3 d) Cross domain decoding of target_latent_z into source trajectory. 
 		# Can use the original start state, or also use the reverse trick for start state. Try both maybe.
 		####################################
 
-		source_trajectory_rollout, source_subpolicy_inputs = self.cross_domain_decoding(source_start_state, target_latent_z, start_state=source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy())
+		source_trajectory_rollout, source_subpolicy_inputs = self.cross_domain_decoding(source_policy_manager, dictionary['target_latent_z'], start_state=dictionary['source_subpolicy_inputs'][0,:self.state_dim].detach().cpu().numpy())
 
 		####################################
 		# (4) Feed source and target latent z's to z_discriminator.
