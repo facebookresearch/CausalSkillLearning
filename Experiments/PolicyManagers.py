@@ -4096,7 +4096,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			start_state = self.get_start_state(latent_z)
 
 		# Now rollout in target domain.
-		trajectory_rollout, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
+		differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
 
 		return trajectory_rollout, subpolicy_inputs
 
@@ -4153,7 +4153,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# 	self.discriminator_loss.backward()
 		# 	self.discriminator_optimizer.step()
 
-	def update_networks(self, dictionary):
+	def update_networks(self, dictionary, source_policy_manager):
 
 		# Here are the objectives we have to be considering. 
 		# 	1) Reconstruction of inputs under single domain encoding / decoding. 
@@ -4183,7 +4183,14 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# I.e. evaluate likelihood of original actions under source_decoder (i.e. source subpolicy), with the subpolicy inputs constructed from cycle-reconstruction.
 		
 		# Get the original action sequence.
+		original_action_sequence = dictionary['source_subpolicy_inputs_original'][:,self.state_dim:2*self.state_dim]
 
+		# Now evaluate likelihood of actions under the source decoder.
+		cycle_reconstructed_loglikelihood, _ = source_policy_manager.forward(dictionary['source_subpolicy_inputs_crossdomain'], original_action_sequence)
+		# Reweight the cycle reconstructed likelihood to construct the loss.
+		self.cycle_reconstruction_loss = -self.args.cycle_reconstruction_loss_weight*cycle_reconstruction_loss
+
+		
 
 	def run_iteration(self, counter, i):
 
@@ -4259,7 +4266,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (5) Compute all losses, reweight, and take gradient steps.
 		####################################
 
-		self.update_networks(dictionary)
+		self.update_networks(dictionary, source_policy_manager)
 
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
