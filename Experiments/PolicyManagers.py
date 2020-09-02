@@ -3958,47 +3958,48 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		super(PolicyManager_CycleConsistencyTransfer, self).__init__(args, source_dataset, target_dataset)
 
-	def create_networks(self):
+	# Don't actually need to define these functions since they perform same steps as super functions.
+	# def create_networks(self):
 
-		super().create_networks()
+	# 	super().create_networks()
 
-		# Must also create two discriminator networks; one for source --> target --> source, one for target --> source --> target. 
-		# Remember, since these discriminator networks are operating on the trajectory space, we have to 
-		# make them LSTM networks, rather than MLPs. 
+	# 	# Must also create two discriminator networks; one for source --> target --> source, one for target --> source --> target. 
+	# 	# Remember, since these discriminator networks are operating on the trajectory space, we have to 
+	# 	# make them LSTM networks, rather than MLPs. 
 
-		# We have the encoder network class that's perfect for this. Output size is 2. 
-		self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
-		self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+	# 	# # We have the encoder network class that's perfect for this. Output size is 2. 
+	# 	# self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+	# 	# self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
 
-	def create_training_ops(self):
+	# def create_training_ops(self):
 
-		# Call super training ops. 
-		super().create_training_ops()
+	# 	# Call super training ops. 
+	# 	super().create_training_ops()
 
-		# Now create discriminator optimizers. 
-		self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
-		self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
+	# 	# # Now create discriminator optimizers. 
+	# 	# self.source_discriminator_optimizer = torch.optim.Adam(self.source_discriminator_network.parameters(),lr=self.learning_rate)
+	# 	# self.target_discriminator_optimizer = torch.optim.Adam(self.target_discriminator_network.parameters(),lr=self.learning_rate)
 
-	def save_all_models(self, suffix):
+	# def save_all_models(self, suffix):
 
-		# Call super save model. 
-		super().save_all_models(suffix)
+	# 	# Call super save model. 
+	# 	super().save_all_models(suffix)
 
-		# Now save the individual source / target discriminators. 
-		self.save_object['Source_Discriminator_Network'] = self.source_discriminator_network.state_dict()
-		self.save_object['Target_Discriminator_Network'] = self.target_discriminator_network.state_dict()
+	# 	# Now save the individual source / target discriminators. 
+	# 	self.save_object['Source_Discriminator_Network'] = self.source_discriminator_network.state_dict()
+	# 	self.save_object['Target_Discriminator_Network'] = self.target_discriminator_network.state_dict()
 
-		# Overwrite the save from super. 
-		torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
+	# 	# Overwrite the save from super. 
+	# 	torch.save(self.save_object,os.path.join(self.savedir,"Model_"+suffix))
 
-	def load_all_models(self, path):
+	# def load_all_models(self, path):
 
-		# Call super load. 
-		super().load_all_models(path)
+	# 	# Call super load. 
+	# 	super().load_all_models(path)
 
-		# Now load the individual source and target discriminators. 
-		self.source_discriminator.load_state_dict(self.load_object['Source_Discriminator_Network'])
-		self.target_discriminator.load_state_dict(self.load_object['Target_Discriminator_Network'])
+	# 	# Now load the individual source and target discriminators. 
+	# 	self.source_discriminator.load_state_dict(self.load_object['Source_Discriminator_Network'])
+	# 	self.target_discriminator.load_state_dict(self.load_object['Target_Discriminator_Network'])
 
 	# A bunch of functions should just be directly usable:
 	# get_domain_manager, get_trajectory_segment_tuple, encode_decode_trajectory, update_plots, get_transform, 
@@ -4138,6 +4139,62 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		return trajectory_rollout, subpolicy_inputs
 
+	def compute_discriminator_losses(self, domain, latent_z):
+
+		#	This function first computes discriminability losses:
+		#	# a) First, feeds the latent_z into the z_discriminator, that is being trained to discriminate between z's of source and target domains. 
+		#	# 	 Gets and returns the loglikelihood of the discriminator predicting the true domain. 
+		#	# 	 Also returns discriminability loss, that is used to train the _encoders_ of both domains. 
+		#	#		
+		#	# b) ####### DON'T NEED TO DO THIS YET: ####### Also feeds either the cycle reconstructed trajectory, or the original trajectory from the source domain, into a separate discriminator. 
+		#	# 	 This second discriminator is specific to the domain we are operating in. This discriminator is discriminating between the reconstructed and original trajectories. 
+		#	# 	 Basically standard GAN adversarial training, except the generative model here is the entire cycle-consistency translation model.
+		#
+		#	In addition to this, must also compute discriminator losses to train discriminators themselves. 
+		# 	# a) For the z discriminator (and if we're using trajectory discriminators, those too), clone and detach the inputs of the discriminator and compute a discriminator loss with the right domain used in targets / supervision. 
+		#	#	 This discriminator loss is what is used to actually train the discriminators.		
+
+		####################################
+		# Compute discriminability losses.
+		####################################
+
+		# Get z discriminator logprobabilities.
+		z_discriminator_logprob, z_discriminator_prob = self.discriminator_network(latent_z)
+		# Compute discriminability loss. Remember, this is not used for training the discriminator, but rather the encoders.
+		self.z_discriminability_loss = self.negative_log_likelihood_loss_function(z_discriminator_logprob.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+
+		###### Block that computes discriminability losses assuming we are using trjaectory discriminators. ######
+
+		# # Get the right trajectory discriminator network.
+		# discriminator_list = [self.source_discriminator, self.target_discriminator]		
+		# source_discriminator = discriminator_list[domain]
+
+		# # Now feed trajectory to the trajectory discriminator, based on whether it is the source of target discriminator.
+		# traj_discriminator_logprob, traj_discriminator_prob = source_discriminator(trajectory)
+
+		# # Compute trajectory discriminability loss, based on whether the trajectory was original or reconstructed.
+		# self.traj_discriminability_loss = self.negative_log_likelihood_loss_function(traj_discriminator_logprob.squeeze(1), torch.tensor(1-original_or_reconstructed).cuda().long().view(1,))
+
+		####################################
+		# Compute discriminator losses.
+		####################################
+
+		# Detach the latent z that is fed to the discriminator, and then compute discriminator loss.
+		# If we tried to zero grad the discriminator and then use NLL loss on it again, Pytorch would cry about going backward through a part of the graph that we already \ 
+		# went backward through. Instead, just pass things through the discriminator again, but this time detaching latent_z. 
+		z_discriminator_detach_logprob, z_discriminator_detach_prob = self.discriminator_network(latent_z.detach())
+
+		# Compute discriminator loss for discriminator. 
+		self.z_discriminator_loss = self.negative_log_likelihood_loss_function(z_discriminator_detach_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+		
+		# if not(self.skip_discriminator):
+		# 	# Now go backward and take a step.
+		# 	self.discriminator_loss.backward()
+		# 	self.discriminator_optimizer.step()
+
+	def update_networks(self):
+		
+
 	def run_iteration(self, counter, i):
 
 		# Phases: 
@@ -4157,6 +4214,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		#			# d) Use domain 1 decoder to decode latent z (domain 2) into trajectory (domain 1).
 		# 		# 4) Feed cycle-reconstructed trajectory and original trajectory (both domain 1) into discriminator. 
 		#		# 5) Train discriminators to predict whether original or cycle reconstructed trajectory. 
+		#		# 	 Alternate: Remember, don't actually need to use trajectory level discriminator networks, can just use loglikelihood cycle-reconstruction loss. Try this first.
 		#		# 	 Train z discriminator to predict which domain the latentz sample came from. 
 		# 		# 	 Train encoder / decoder architectures with mix of reconstruction loss and discriminator confusing objective. 
 		# 		# 	 Compute and apply gradient updates. 
@@ -4198,21 +4256,19 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Can use the original start state, or also use the reverse trick for start state. Try both maybe.
 		####################################
 
-		source_trajectory_rollout, source_subpolicy_inputs_rollout = self.cross_domain_decoding(source_start_state, target_latent_z, start_state=source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy())
+		source_trajectory_rollout, source_subpolicy_inputs = self.cross_domain_decoding(source_start_state, target_latent_z, start_state=source_subpolicy_inputs[0,:self.state_dim].detach().cpu().numpy())
 
 		####################################
-		# (4) 
+		# (4) Feed source and target latent z's to z_discriminator.
 		####################################
 
-		if latent_z is not None:
-		# 	# (4) Feed latent z's to discriminator, and get discriminator likelihoods. 
-		# 	discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z)
+		self.compute_discriminator_losses(domain, source_latent_z)
 
-		# 	# (5) Compute and apply gradient updates. 
-		# 	self.update_networks(domain, policy_manager, loglikelihood, kl_divergence, discriminator_logprob, latent_z)
+		####################################
+		# (5) Compute all losses, reweight, and take gradient steps.
+		####################################
 
-		# 	# Now update Plots. 
+		self.update_networks()
+
 			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 			self.update_plots(counter, viz_dict)
-
-
