@@ -13,10 +13,12 @@ import copy, os, imageio, scipy.misc, pdb, math, time, numpy as np
 
 import robosuite, threading
 from robosuite.wrappers import IKWrapper
-import MocapVisualizationUtils
-from mocap_processing.motion.pfnn import Animation, BVH
 import matplotlib.pyplot as plt
 from IPython import embed
+
+# # Mocap viz.
+# import MocapVisualizationUtils
+# from mocap_processing.motion.pfnn import Animation, BVH
 
 class SawyerVisualizer():
 
@@ -198,122 +200,122 @@ class BaxterVisualizer():
 		else:
 			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
 
-class MocapVisualizer():
+# class MocapVisualizer():
 
-	def __init__(self, has_display=False, args=None):
+# 	def __init__(self, has_display=False, args=None):
 
-		# Load some things from the MocapVisualizationUtils and set things up so that they're ready to go. 
-		# self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
-		# 						origin=np.array([0.0, 0.0, 0.0]), 
-		# 						vup=np.array([0.0, 0.0, 1.0]), 
-		# 						fov=45.0)
+# 		# Load some things from the MocapVisualizationUtils and set things up so that they're ready to go. 
+# 		# self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([6.0, 0.0, 2.0]),
+# 		# 						origin=np.array([0.0, 0.0, 0.0]), 
+# 		# 						vup=np.array([0.0, 0.0, 1.0]), 
+# 		# 						fov=45.0)
 
-		self.args = args
+# 		self.args = args
 
-		# Default is local data. 
-		self.global_data = False
+# 		# Default is local data. 
+# 		self.global_data = False
 
-		self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([4.5, 0.0, 2.0]),
-								origin=np.array([0.0, 0.0, 0.0]), 
-								vup=np.array([0.0, 0.0, 1.0]), 
-								fov=45.0)
+# 		self.cam_cur = MocapVisualizationUtils.camera.Camera(pos=np.array([4.5, 0.0, 2.0]),
+# 								origin=np.array([0.0, 0.0, 0.0]), 
+# 								vup=np.array([0.0, 0.0, 1.0]), 
+# 								fov=45.0)
 
-		# Path to dummy file that is going to populate joint_parents, initial global positions, etc. 
-		bvh_filename = "/private/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
+# 		# Path to dummy file that is going to populate joint_parents, initial global positions, etc. 
+# 		bvh_filename = "/private/home/tanmayshankar/Research/Code/CausalSkillLearning/Experiments/01_01_poses.bvh"  
 
-		# Run init before loading animation.
-		MocapVisualizationUtils.init()
-		MocapVisualizationUtils.global_positions, MocapVisualizationUtils.joint_parents, MocapVisualizationUtils.time_per_frame = MocapVisualizationUtils.load_animation(bvh_filename)
+# 		# Run init before loading animation.
+# 		MocapVisualizationUtils.init()
+# 		MocapVisualizationUtils.global_positions, MocapVisualizationUtils.joint_parents, MocapVisualizationUtils.time_per_frame = MocapVisualizationUtils.load_animation(bvh_filename)
 
-		# State sizes. 
-		self.number_joints = 22
-		self.number_dimensions = 3
-		self.total_dimensions = self.number_joints*self.number_dimensions
+# 		# State sizes. 
+# 		self.number_joints = 22
+# 		self.number_dimensions = 3
+# 		self.total_dimensions = self.number_joints*self.number_dimensions
 
-		# Run thread of viewer, so that callbacks start running. 
-		thread = threading.Thread(target=self.run_thread)
-		thread.start()
+# 		# Run thread of viewer, so that callbacks start running. 
+# 		thread = threading.Thread(target=self.run_thread)
+# 		thread.start()
 
-		# Also create dummy animation object. 
-		self.animation_object, _, _ = BVH.load(bvh_filename)
+# 		# Also create dummy animation object. 
+# 		self.animation_object, _, _ = BVH.load(bvh_filename)
 
-	def run_thread(self):
-		MocapVisualizationUtils.viewer.run(
-			title='BVH viewer',
-			cam=self.cam_cur,
-			size=(1280, 720),
-			keyboard_callback=None,
-			render_callback=MocapVisualizationUtils.render_callback_time_independent,
-			idle_callback=MocapVisualizationUtils.idle_callback_return,
-		) 
+# 	def run_thread(self):
+# 		MocapVisualizationUtils.viewer.run(
+# 			title='BVH viewer',
+# 			cam=self.cam_cur,
+# 			size=(1280, 720),
+# 			keyboard_callback=None,
+# 			render_callback=MocapVisualizationUtils.render_callback_time_independent,
+# 			idle_callback=MocapVisualizationUtils.idle_callback_return,
+# 		) 
 
-	def get_global_positions(self, positions, animation_object=None):
-		# Function to get global positions corresponding to predicted or actual local positions.
+# 	def get_global_positions(self, positions, animation_object=None):
+# 		# Function to get global positions corresponding to predicted or actual local positions.
 
-		traj_len = positions.shape[0]
+# 		traj_len = positions.shape[0]
 
-		def resample(original_trajectory, desired_number_timepoints):
-			original_traj_len = len(original_trajectory)
-			new_timepoints = np.linspace(0, original_traj_len-1, desired_number_timepoints, dtype=int)
-			return original_trajectory[new_timepoints]
+# 		def resample(original_trajectory, desired_number_timepoints):
+# 			original_traj_len = len(original_trajectory)
+# 			new_timepoints = np.linspace(0, original_traj_len-1, desired_number_timepoints, dtype=int)
+# 			return original_trajectory[new_timepoints]
 
-		if animation_object is not None:
-			# Now copy over from animation_object instead of just dummy animation object.
-			new_animation_object = Animation.Animation(resample(animation_object.rotations, traj_len), positions, animation_object.orients, animation_object.offsets, animation_object.parents)
-		else:	
-			# Create a dummy animation object. 
-			new_animation_object = Animation.Animation(self.animation_object.rotations[:traj_len], positions, self.animation_object.orients, self.animation_object.offsets, self.animation_object.parents)
+# 		if animation_object is not None:
+# 			# Now copy over from animation_object instead of just dummy animation object.
+# 			new_animation_object = Animation.Animation(resample(animation_object.rotations, traj_len), positions, animation_object.orients, animation_object.offsets, animation_object.parents)
+# 		else:	
+# 			# Create a dummy animation object. 
+# 			new_animation_object = Animation.Animation(self.animation_object.rotations[:traj_len], positions, self.animation_object.orients, self.animation_object.offsets, self.animation_object.parents)
 
-		# Then transform them.
-		transformed_global_positions = Animation.positions_global(new_animation_object)
+# 		# Then transform them.
+# 		transformed_global_positions = Animation.positions_global(new_animation_object)
 
-		# Now return coordinates. 
-		return transformed_global_positions
+# 		# Now return coordinates. 
+# 		return transformed_global_positions
 
-	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
+# 	def visualize_joint_trajectory(self, trajectory, return_gif=False, gif_path=None, gif_name="Traj.gif", segmentations=None, return_and_save=False, additional_info=None):
 
-		image_list = []
+# 		image_list = []
 
-		if self.global_data:
-			# If we predicted in the global setting, just reshape.
-			predicted_global_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions)) 
-		else:
-			# If it's local data, then transform to global. 
-			# Assume trajectory is number of timesteps x number_dimensions. 
-			# Convert to number_of_timesteps x number_of_joints x 3.
-			predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
+# 		if self.global_data:
+# 			# If we predicted in the global setting, just reshape.
+# 			predicted_global_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions)) 
+# 		else:
+# 			# If it's local data, then transform to global. 
+# 			# Assume trajectory is number of timesteps x number_dimensions. 
+# 			# Convert to number_of_timesteps x number_of_joints x 3.
+# 			predicted_local_positions = np.reshape(trajectory, (-1,self.number_joints,self.number_dimensions))
 
-			# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
-			predicted_global_positions = self.get_global_positions(predicted_local_positions, animation_object=additional_info)
+# 			# Assume trajectory was predicted in local coordinates. Transform to global for visualization.
+# 			predicted_global_positions = self.get_global_positions(predicted_local_positions, animation_object=additional_info)
 
-		# Copy into the global variable.
-		MocapVisualizationUtils.global_positions = predicted_global_positions
+# 		# Copy into the global variable.
+# 		MocapVisualizationUtils.global_positions = predicted_global_positions
 
-		# Reset Image List. 
-		MocapVisualizationUtils.image_list = []
-		# Set save_path and prefix.
-		MocapVisualizationUtils.save_path = gif_path
-		MocapVisualizationUtils.name_prefix = gif_name.rstrip('.gif')
-		# Now set the whether_to_render as true. 
-		MocapVisualizationUtils.whether_to_render = True
+# 		# Reset Image List. 
+# 		MocapVisualizationUtils.image_list = []
+# 		# Set save_path and prefix.
+# 		MocapVisualizationUtils.save_path = gif_path
+# 		MocapVisualizationUtils.name_prefix = gif_name.rstrip('.gif')
+# 		# Now set the whether_to_render as true. 
+# 		MocapVisualizationUtils.whether_to_render = True
 
-		# Wait till rendering is complete. 
-		x_count = 0
-		while MocapVisualizationUtils.done_with_render==False and MocapVisualizationUtils.whether_to_render==True:
-			x_count += 1
-			time.sleep(1)
+# 		# Wait till rendering is complete. 
+# 		x_count = 0
+# 		while MocapVisualizationUtils.done_with_render==False and MocapVisualizationUtils.whether_to_render==True:
+# 			x_count += 1
+# 			time.sleep(1)
 			
-		# Now that rendering is complete, load images.
-		image_list = MocapVisualizationUtils.image_list
+# 		# Now that rendering is complete, load images.
+# 		image_list = MocapVisualizationUtils.image_list
 
-		# Now actually save the GIF or return.
-		if return_and_save:
-			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
-			return image_list
-		elif return_gif:
-			return image_list
-		else:
-			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
+# 		# Now actually save the GIF or return.
+# 		if return_and_save:
+# 			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
+# 			return image_list
+# 		elif return_gif:
+# 			return image_list
+# 		else:
+# 			imageio.mimsave(os.path.join(gif_path,gif_name), image_list)
 
 class ToyDataVisualizer():
 
