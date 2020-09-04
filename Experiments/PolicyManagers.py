@@ -9,6 +9,10 @@ from PolicyNetworks import *
 from Visualizers import BaxterVisualizer, SawyerVisualizer, ToyDataVisualizer #, MocapVisualizer
 import TFLogger, DMP, RLUtils
 
+# Check if CUDA is available, set device to GPU if it is, otherwise use CPU.
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
+
 class PolicyManager_BaseClass():
 
 	def __init__(self):
@@ -297,9 +301,9 @@ class PolicyManager_BaseClass():
 
 	def rollout_robot_trajectory(self, trajectory_start, latent_z, rollout_length=None):
 
-		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
-		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
-		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
+		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
+		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).to(device).float()
+		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).to(device).float()	
 
 		if rollout_length is not None: 
 			length = rollout_length-1
@@ -320,7 +324,7 @@ class PolicyManager_BaseClass():
 			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
 
 			# New input row. 
-			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
 			input_row[0,:self.state_dim] = new_state
 			# Feed in the ORIGINAL prediction from the network as input. Not the downscaled thing. 
 			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
@@ -602,22 +606,22 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 		# Create K Policy Networks. 
 		# This policy network automatically manages input size. 
 		if self.args.discrete_z:
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.number_policies, self.number_layers).cuda()
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.number_policies, self.number_layers).to(device)
 		else:
-			# self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.latent_z_dimensionality, self.number_layers).cuda()
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()
+			# self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.latent_z_dimensionality, self.number_layers).to(device)
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).to(device)
 
 		# Create encoder.
 		if self.args.discrete_z: 
 			# The latent space is just one of 4 z's. So make output of encoder a one hot vector.		
-			self.encoder_network = EncoderNetwork(self.input_size, self.hidden_size, self.number_policies).cuda()
+			self.encoder_network = EncoderNetwork(self.input_size, self.hidden_size, self.number_policies).to(device)
 		else:
-			# self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality).cuda()
+			# self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality).to(device)
 
 			# if self.args.transformer:
-			# 	self.encoder_network = TransformerEncoder(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()
+			# 	self.encoder_network = TransformerEncoder(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).to(device)
 			# else:
-			self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()		
+			self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).to(device)		
 
 	def create_training_ops(self):
 		# self.negative_log_likelihood_loss_function = torch.nn.NLLLoss()
@@ -704,14 +708,14 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if self.args.discrete_z:
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 
-			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies+1)).cuda()
-			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies+1)).to(device)
+			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+latent_z_indices[:-1].long()] = 1.
 			assembled_inputs[range(1,len(input_trajectory)),-1] = latent_b[:-1].float()
 
 			# Now assemble inputs for subpolicy.
-			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies)).cuda()
-			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies)).to(device)
+			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			subpolicy_inputs[range(len(input_trajectory)),self.input_size+latent_z_indices.long()] = 1.
 			# subpolicy_inputs[range(len(input_trajectory)),-1] = latent_b.float()
 
@@ -722,15 +726,15 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		else:
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 
-			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1)).cuda()
-			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
+			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1)).to(device)
+			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()			
 
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size:-1] = latent_z_indices[:-1]
 			assembled_inputs[range(1,len(input_trajectory)),-1] = latent_b[:-1].float()
 
 			# Now assemble inputs for subpolicy.
-			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).cuda()
-			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).to(device)
+			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			subpolicy_inputs[range(len(input_trajectory)),self.input_size:] = latent_z_indices
 			# subpolicy_inputs[range(len(input_trajectory)),-1] = latent_b.float()
 
@@ -853,15 +857,15 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 	def construct_dummy_latents(self, latent_z):
 
 		if self.args.discrete_z:
-			latent_z_indices = latent_z.float()*torch.ones((self.traj_length)).cuda().float()			
+			latent_z_indices = latent_z.float()*torch.ones((self.traj_length)).to(device).float()			
 		else:
 			# This construction should work irrespective of reparam or not.
 			latent_z_indices = torch.cat([latent_z.squeeze(0) for i in range(self.current_traj_len)],dim=0)
 
 		# Setting latent_b's to 00001. 
 		# This is just a dummy value.
-		# latent_b = torch.ones((5)).cuda().float()
-		latent_b = torch.zeros((self.current_traj_len)).cuda().float()
+		# latent_b = torch.ones((5)).to(device).float()
+		latent_b = torch.zeros((self.current_traj_len)).to(device).float()
 		# latent_b[-1] = 1.
 
 		return latent_z_indices, latent_b	
@@ -902,10 +906,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if self.args.discrete_z:
 			# Assuming 4 discrete subpolicies, just set subpolicy input to 1 at the latent_z index == i. 
-			subpolicy_inputs = torch.zeros((1,self.input_size+self.number_policies)).cuda().float()
+			subpolicy_inputs = torch.zeros((1,self.input_size+self.number_policies)).to(device).float()
 			subpolicy_inputs[0,self.input_size+i] = 1. 
 		else:
-			subpolicy_inputs = torch.zeros((1,self.input_size+self.latent_z_dimensionality)).cuda()
+			subpolicy_inputs = torch.zeros((1,self.input_size+self.latent_z_dimensionality)).to(device)
 			subpolicy_inputs[0,self.input_size:] = latent_z
 
 		subpolicy_inputs[0,:self.state_dim] = start_state
@@ -926,10 +930,10 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 			# New input row: 
 			if self.args.discrete_z:
-				input_row = torch.zeros((1,self.input_size+self.number_policies)).cuda().float()
+				input_row = torch.zeros((1,self.input_size+self.number_policies)).to(device).float()
 				input_row[0,self.input_size+i] = 1. 
 			else:
-				input_row = torch.zeros((1,self.input_size+self.latent_z_dimensionality)).cuda().float()
+				input_row = torch.zeros((1,self.input_size+self.latent_z_dimensionality)).to(device).float()
 				input_row[0,self.input_size:] = latent_z
 			input_row[0,:self.state_dim] = new_state
 			input_row[0,self.state_dim:2*self.state_dim] = action_to_execute	
@@ -966,7 +970,7 @@ class PolicyManager_Pretrain(PolicyManager_BaseClass):
 
 		if trajectory_segment is not None:
 			############# (1) #############
-			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
+			torch_traj_seg = torch.tensor(trajectory_segment).to(device).float()
 			# Encode trajectory segment into latent z. 		
 			latent_z, encoder_loglikelihood, encoder_entropy, kl_divergence = self.encoder_network.forward(torch_traj_seg, self.epsilon)
 
@@ -1247,33 +1251,33 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			
 			# Create K Policy Networks. 
 			# This policy network automatically manages input size. 
-			# self.policy_network = ContinuousPolicyNetwork(self.input_size,self.hidden_size,self.output_size,self.number_policies, self.number_layers).cuda()	
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()		
+			# self.policy_network = ContinuousPolicyNetwork(self.input_size,self.hidden_size,self.output_size,self.number_policies, self.number_layers).to(device)	
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).to(device)		
 
 			# Create latent policy, whose action space = self.number_policies. 
 			# This policy network automatically manages input size. 
 
 			# Also add conditional_info_size to this. 
-			self.latent_policy = LatentPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).cuda()
+			self.latent_policy = LatentPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.number_layers, self.args.b_exploration_bias).to(device)
 
 			# Create variational network. 
-			# self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, number_layers=self.number_layers, z_exploration_bias=self.args.z_exploration_bias, b_exploration_bias=self.args.b_exploration_bias).cuda()
-			self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.args, number_layers=self.number_layers).cuda()
+			# self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, number_layers=self.number_layers, z_exploration_bias=self.args.z_exploration_bias, b_exploration_bias=self.args.b_exploration_bias).to(device)
+			self.variational_policy = VariationalPolicyNetwork(self.input_size, self.hidden_size, self.number_policies, self.args, number_layers=self.number_layers).to(device)
 
 		else:
-			# self.policy_network = ContinuousPolicyNetwork(self.input_size,self.hidden_size,self.output_size,self.latent_z_dimensionality, self.number_layers).cuda()
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()			
+			# self.policy_network = ContinuousPolicyNetwork(self.input_size,self.hidden_size,self.output_size,self.latent_z_dimensionality, self.number_layers).to(device)
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).to(device)			
 
 			if self.args.constrained_b_prior:
-				self.latent_policy = ContinuousLatentPolicyNetwork_ConstrainedBPrior(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
+				self.latent_policy = ContinuousLatentPolicyNetwork_ConstrainedBPrior(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).to(device)
 				
-				self.variational_policy = ContinuousVariationalPolicyNetwork_ConstrainedBPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+				self.variational_policy = ContinuousVariationalPolicyNetwork_ConstrainedBPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).to(device)
 
 			else:
-				# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).cuda()
-				self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).cuda()
+				# self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.number_layers, self.args.b_exploration_bias).to(device)
+				self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.hidden_size, self.args, self.number_layers).to(device)
 
-				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).cuda()
+				self.variational_policy = ContinuousVariationalPolicyNetwork_BPrior(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args, number_layers=self.number_layers).to(device)
 
 	def create_training_ops(self):
 		self.negative_log_likelihood_loss_function = torch.nn.NLLLoss(reduction='none')
@@ -1448,14 +1452,14 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 		if self.args.discrete_z:
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 
-			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies+1)).cuda()
-			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies+1)).to(device)
+			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+latent_z_indices[:-1].long()] = 1.
 			assembled_inputs[range(1,len(input_trajectory)),-1] = latent_b[:-1].float()
 
 			# Now assemble inputs for subpolicy.
-			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies)).cuda()
-			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.number_policies)).to(device)
+			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			subpolicy_inputs[range(len(input_trajectory)),self.input_size+latent_z_indices.long()] = 1.
 			# subpolicy_inputs[range(len(input_trajectory)),-1] = latent_b.float()
 
@@ -1471,29 +1475,29 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			if self.training_phase>1:
 				# Prevents gradients being propagated through this..
-				latent_z_copy = torch.tensor(latent_z_indices).cuda()
+				latent_z_copy = torch.tensor(latent_z_indices).to(device)
 			else:
 				latent_z_copy = latent_z_indices
 
 			if conditional_information is None:
-				conditional_information = torch.zeros((self.conditional_info_size)).cuda().float()
+				conditional_information = torch.zeros((self.conditional_info_size)).to(device).float()
 
 			# Append latent z indices to sample_traj data to feed as input to BOTH the latent policy network and the subpolicy network. 			
-			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.conditional_info_size)).cuda()
-			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()			
+			assembled_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality+1+self.conditional_info_size)).to(device)
+			assembled_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()			
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size:self.input_size+self.latent_z_dimensionality] = latent_z_copy[:-1]
 			
 			# We were writing the wrong dimension... should we be running again? :/ 
 			assembled_inputs[range(1,len(input_trajectory)),self.input_size+self.latent_z_dimensionality] = latent_b[:-1].float()	
-			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
+			# assembled_inputs[range(1,len(input_trajectory)),-self.conditional_info_size:] = torch.tensor(conditional_information).to(device).float()
 
 			# Instead of feeding conditional infromation only from 1'st timestep onwards, we are going to st it from the first timestep. 
 			if self.conditional_info_size>0:
-				assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).cuda().float()
+				assembled_inputs[:,-self.conditional_info_size:] = torch.tensor(conditional_information).to(device).float()
 
 			# Now assemble inputs for subpolicy.
-			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).cuda()
-			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).cuda().float()
+			subpolicy_inputs = torch.zeros((len(input_trajectory),self.input_size+self.latent_z_dimensionality)).to(device)
+			subpolicy_inputs[:,:self.input_size] = torch.tensor(input_trajectory).view(len(input_trajectory),self.input_size).to(device).float()
 			subpolicy_inputs[range(len(input_trajectory)),self.input_size:] = latent_z_indices
 
 			# # This method of concatenation is wrong, because it evaluates likelihood of action [0,0] as well. 
@@ -1520,7 +1524,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 	def setup_eval_against_encoder(self):
 		# Creates a network, loads the network from pretraining model file. 
-		self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).cuda()				
+		self.encoder_network = ContinuousEncoderNetwork(self.input_size, self.hidden_size, self.latent_z_dimensionality, self.args).to(device)				
 		load_object = torch.load(self.args.subpolicy_model)
 		self.encoder_network.load_state_dict(load_object['Encoder_Network'])
 
@@ -1573,7 +1577,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			# # Selects first option for variable = 1, second option for variable = 0. 
 			
 			# Use this to check if latent_z elements are equal: 
-			diff_val = (1-(latent_z_indices==latent_z_indices.roll(1,0))[1:]).cuda().float()
+			diff_val = (1-(latent_z_indices==latent_z_indices.roll(1,0))[1:]).to(device).float()
 			# We rolled latent_z, we didn't roll diff. This works because latent_b is always guaranteed to be 1 in the first timestep, so it doesn't matter what's in diff_val[0].
 			diff_val = diff_val.roll(1,0)
 
@@ -1679,7 +1683,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		baseline_target = (temporal_loglikelihoods - self.args.prior_weight*prior_loglikelihood).clone().detach()
 
 		if self.baseline is None:
-			self.baseline = torch.zeros_like(baseline_target.mean()).cuda().float()
+			self.baseline = torch.zeros_like(baseline_target.mean()).to(device).float()
 		else:
 			self.baseline = (self.beta_decay*self.baseline)+(1.-self.beta_decay)*baseline_target.mean()
 			
@@ -1761,7 +1765,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 
 			# Concatenate joint and gripper state. 			
 			new_state_numpy = np.concatenate([observation['joint_pos'], np.array(gripper_value).reshape((1,))])
-			new_state = torch.tensor(new_state_numpy).cuda().float().view((1,-1))
+			new_state = torch.tensor(new_state_numpy).to(device).float().view((1,-1))
 
 			# This should be true by default...
 			# if self.conditional_viz_env:
@@ -1799,7 +1803,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 		############# (1) #############
 		# Sample latent variables from p(\zeta | \tau).
 		latent_z_indices, latent_b, variational_b_logprobabilities, variational_z_logprobabilities,\
-		variational_b_probabilities, variational_z_probabilities, kl_divergence, prior_loglikelihood = self.variational_policy.forward(torch.tensor(old_concatenated_traj).cuda().float(), self.epsilon)
+		variational_b_probabilities, variational_z_probabilities, kl_divergence, prior_loglikelihood = self.variational_policy.forward(torch.tensor(old_concatenated_traj).to(device).float(), self.epsilon)
 
 		############# (1.5) ###########
 		# Doesn't really matter what the conditional information is here... because latent policy isn't being rolled out. 
@@ -1875,11 +1879,11 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			selected_b, new_selected_z = self.latent_policy.get_actions(assembled_inputs[:(t+1)].view((t+1,-1)), greedy=True, delta_t=delta_t)
 
 			if t==0:
-				selected_b = torch.ones_like(selected_b).cuda().float()
+				selected_b = torch.ones_like(selected_b).to(device).float()
 
 			if selected_b[-1]==1:
 				# Copy over ALL z's. This is okay to do because we're greedily selecting, and hte latent policy is hence deterministic.
-				selected_z = torch.tensor(new_selected_z).cuda().float()
+				selected_z = torch.tensor(new_selected_z).to(device).float()
 
 				# If b was == 1, then... reset b to 0.
 				delta_t = 0
@@ -1904,7 +1908,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 				self.set_env_conditional_info()
 
 			if self.conditional_info_size>0:
-				assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).cuda().float()
+				assembled_inputs[t+1, -self.conditional_info_size:] = torch.tensor(self.conditional_information).to(device).float()
 
 			# Set z's to 0.
 			subpolicy_inputs[t, self.input_size:self.input_size+self.number_policies] = 0.
@@ -1988,7 +1992,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 			############# (1) #############
 			# Sample latent variables from p(\zeta | \tau).
 			latent_z_indices, latent_b, variational_b_logprobabilities, variational_z_logprobabilities,\
-			variational_b_probabilities, variational_z_probabilities, kl_divergence, prior_loglikelihood = self.variational_policy.forward(torch.tensor(old_concatenated_traj).cuda().float(), self.epsilon)
+			variational_b_probabilities, variational_z_probabilities, kl_divergence, prior_loglikelihood = self.variational_policy.forward(torch.tensor(old_concatenated_traj).to(device).float(), self.epsilon)
 			
 			########## (2) & (3) ##########
 			# Evaluate Log Likelihoods of actions and options as "Return" for Variational policy.
@@ -2039,7 +2043,7 @@ class PolicyManager_Joint(PolicyManager_BaseClass):
 						eval_encoded_logprobs = torch.zeros((latent_z_indices.shape[0]))
 						eval_orig_encoder_logprobs = torch.zeros((latent_z_indices.shape[0]))
 
-						torch_concat_traj = torch.tensor(concatenated_traj).cuda().float()
+						torch_concat_traj = torch.tensor(concatenated_traj).to(device).float()
 
 						# For each timestep z in latent_z_indices, evaluate likelihood under pretrained encoder model. 
 						for t in range(latent_z_indices.shape[0]):
@@ -2163,12 +2167,12 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def create_networks(self):
 
 		if self.args.MLP_policy:
-			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).cuda()
-			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).cuda()
+			self.policy_network = ContinuousMLP(self.input_size, self.args.hidden_size, self.output_size, self.args).to(device)
+			self.critic_network = CriticMLP(self.input_size, self.args.hidden_size, 1, self.args).to(device)
 		else:
 			# Create policy and critic. 		
-			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers, small_init=True).cuda()			
-			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+			self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers, small_init=True).to(device)			
+			self.critic_network = CriticNetwork(self.input_size, self.args.hidden_size, 1, self.args, self.args.number_layers).to(device)
 
 	def create_training_ops(self):
 
@@ -2252,13 +2256,13 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		current_input_row = self.get_current_input_row()
 
 		# Using the incremental get actions. Still get action greedily, then add noise. 		
-		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).to(device).float(), greedy=True, hidden=hidden)
 
 		if evaluate:
-			noise = torch.zeros_like(predicted_action).cuda().float()
+			noise = torch.zeros_like(predicted_action).to(device).float()
 		else:
 			# Get noise from noise process. 					
-			noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+			noise = torch.randn_like(predicted_action).to(device).float()*self.epsilon
 
 		# Perturb action with noise. 			
 		perturbed_action = predicted_action + noise
@@ -2279,7 +2283,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		# Assemble states of current input row.
 		current_input_row = self.get_current_input_row()
 		# Using the incremental get actions. Still get action greedily, then add noise. 		
-		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).cuda().float(), greedy=True, hidden=hidden)
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(current_input_row).to(device).float(), greedy=True, hidden=hidden)
 
 		# Numpy action
 		if self.args.MLP_policy:
@@ -2402,7 +2406,7 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 		assembled_inputs = self.assemble_inputs()
 
 		# Input to the policy should be states and actions. 
-		self.state_action_inputs = torch.tensor(assembled_inputs).cuda().float()	
+		self.state_action_inputs = torch.tensor(assembled_inputs).to(device).float()	
 
 		# Get summed reward for statistics. 
 		self.batch_reward_statistics += sum(self.reward_trajectory)
@@ -2410,13 +2414,13 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 	def set_differentiable_critic_inputs(self):
 		# Get policy's predicted actions by getting action greedily, then add noise. 				
 		predicted_action = self.policy_network.reparameterized_get_actions(self.state_action_inputs, greedy=True).squeeze(1)
-		noise = torch.zeros_like(predicted_action).cuda().float()
+		noise = torch.zeros_like(predicted_action).to(device).float()
 		
 		# Get noise from noise process. 					
-		noise = torch.randn_like(predicted_action).cuda().float()*self.epsilon
+		noise = torch.randn_like(predicted_action).to(device).float()*self.epsilon
 
 		# Concatenate the states from policy inputs and the predicted actions. 
-		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.output_size], predicted_action, self.state_action_inputs[:,2*self.output_size:]],axis=1).cuda().float()
+		self.critic_inputs = torch.cat([self.state_action_inputs[:,:self.output_size], predicted_action, self.state_action_inputs[:,2*self.output_size:]],axis=1).to(device).float()
 
 	def update_policies(self):
 		######################################
@@ -2438,10 +2442,10 @@ class PolicyManager_BaselineRL(PolicyManager_BaseClass):
 			# Mask with terminal. 
 			self.TD_targets = self.gamma*np.array(self.terminal_trajectory)*self.TD_targets		
 			self.TD_targets += np.array(self.reward_trajectory)
-			self.critic_targets = torch.tensor(self.TD_targets).cuda().float()
+			self.critic_targets = torch.tensor(self.TD_targets).to(device).float()
 		else:
 			self.cummulative_rewards = copy.deepcopy(np.cumsum(np.array(self.reward_trajectory)[::-1])[::-1])
-			self.critic_targets = torch.tensor(self.cummulative_rewards).cuda().float()
+			self.critic_targets = torch.tensor(self.cummulative_rewards).to(device).float()
 
 	def update_critic(self):
 		######################################
@@ -2662,13 +2666,13 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# Copying over the create networks from Joint Policy training. 
 
 		# Not sure if there's a better way to inherit - unless we inherit from both classes.
-		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).cuda()				
-		self.critic_network = CriticNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, 1, self.args, self.args.number_layers).cuda()
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.args.hidden_size, self.output_size, self.args, self.args.number_layers).to(device)				
+		self.critic_network = CriticNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, 1, self.args, self.args.number_layers).to(device)
 
 		if self.args.constrained_b_prior:
-			self.latent_policy = ContinuousLatentPolicyNetwork_ConstrainedBPrior(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).cuda()
+			self.latent_policy = ContinuousLatentPolicyNetwork_ConstrainedBPrior(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).to(device)
 		else:
-			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).cuda()
+			self.latent_policy = ContinuousLatentPolicyNetwork(self.input_size+self.conditional_info_size, self.args.hidden_size, self.args, self.args.number_layers).to(device)
 
 	def create_training_ops(self):
 		
@@ -2771,11 +2775,11 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			# return np.concatenate([self.get_current_input_row(t), latent_z.reshape((1,-1))],axis=1)
 
 			# Instead of numpy, use torch. 
-			return torch.cat([torch.tensor(self.get_current_input_row(t)).cuda().float(), latent_z.reshape((1,-1))],dim=1)
+			return torch.cat([torch.tensor(self.get_current_input_row(t)).to(device).float(), latent_z.reshape((1,-1))],dim=1)
 		else:
 			# Remember, get_latent_input_row isn't operating on something that needs to be differentiable, so just use numpy and then wrap with torch tensor. 
-			# return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).cuda().float()
-			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.latent_z_trajectory[t].reshape((1,-1))],axis=1)).cuda().float()
+			# return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_latent_input_row(t)[:,:-1]],axis=1)).to(device).float()
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.latent_z_trajectory[t].reshape((1,-1))],axis=1)).to(device).float()
 
 	def assemble_subpolicy_inputs(self, latent_z_list=None):
 		# Assemble sub policy inputs over time.	
@@ -2801,10 +2805,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 			gripper_value = np.array(2*finger_diff-1).reshape((1,-1))
 
 			# Don't create a torch tensor out of actions. 
-			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).cuda().float().reshape((1,-1)), torch.tensor(gripper_value).cuda().float(), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).cuda().float()],dim=1)
+			return torch.cat([torch.tensor(self.state_trajectory[t]['joint_pos']).to(device).float().reshape((1,-1)), torch.tensor(gripper_value).to(device).float(), action.reshape((1,-1)), torch.tensor(self.get_conditional_information_row(t)).to(device).float()],dim=1)
 		else:		
 			# Just use actions that were used in the trajectory. This doesn't need to be differentiable, because it's going to be used for the critic targets, so just make a torch tensor from numpy. 
-			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).cuda().float()
+			return torch.tensor(np.concatenate([self.get_current_input_row(t), self.get_conditional_information_row(t)],axis=1)).to(device).float()
 
 	def assemble_state_action_inputs(self, action_list=None):
 		# return np.concatenate([self.assemble_state_action_row(t) for t in range(len(self.state_trajectory))],axis=0)
@@ -2825,7 +2829,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		latent_policy_inputs = self.assemble_latent_input_row()
 		
 		# Feed in latent policy inputs and get the latent policy outputs (z, b, and hidden)
-		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).cuda().float(), greedy=True, hidden=latent_hidden, previous_z=previous_z, delta_t=delta_t)
+		latent_z, latent_b, latent_hidden = self.latent_policy.incremental_reparam_get_actions(torch.tensor(latent_policy_inputs).to(device).float(), greedy=True, hidden=latent_hidden, previous_z=previous_z, delta_t=delta_t)
 
 		# Perturb latent_z with some noise. 
 		z_noise = self.epsilon*torch.randn_like(latent_z)
@@ -2842,7 +2846,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		subpolicy_inputs = self.assemble_subpolicy_input_row(latent_z=latent_z)
 
 		# Feed in subpolicy inputs and get the subpolicy outputs (a, hidden)
-		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).cuda().float(), greedy=True, hidden=policy_hidden)
+		predicted_action, hidden = self.policy_network.incremental_reparam_get_actions(torch.tensor(subpolicy_inputs).to(device).float(), greedy=True, hidden=policy_hidden)
 
 		# Numpy action
 		action = predicted_action[-1].squeeze(0).detach().cpu().numpy()		
@@ -2947,7 +2951,7 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		self.batch_reward_statistics += sum(self.reward_trajectory)
 
 		# Assembling state_action inputs to feed to the Critic network for TARGETS. (These don't need to, and in fact shouldn't, be differentiable).
-		self.state_action_inputs = torch.tensor(self.assemble_state_action_inputs()).cuda().float()
+		self.state_action_inputs = torch.tensor(self.assemble_state_action_inputs()).to(device).float()
 
 	def update_policies(self):
 		# There are a few steps that need to be taken. 
@@ -2960,10 +2964,10 @@ class PolicyManager_DownstreamRL(PolicyManager_BaselineRL):
 		# 7) Backprop.
 
 		# 1) Assemble latent policy inputs. # Remember, these are the only things that don't need to be differentiable.
-		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).cuda().float()		
+		self.latent_policy_inputs = torch.tensor(self.assemble_latent_inputs()).to(device).float()		
 
 		# 2) Feed this into latent policy. 
-		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(self.latent_policy_inputs).cuda().float(), greedy=True)
+		latent_z, latent_b, _ = self.latent_policy.incremental_reparam_get_actions(torch.tensor(self.latent_policy_inputs).to(device).float(), greedy=True)
 
 		# 3) Assemble subpolicy inputs with diff latent z's. Remember, this needs to be differentiable. Modify the assembling to torch, WITHOUT creating new torch tensors of z. 
 
@@ -3181,7 +3185,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 
 		# We don't need a decoder.
 		# Policy Network is the only thing we need.
-		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).cuda()
+		self.policy_network = ContinuousPolicyNetwork(self.input_size, self.hidden_size, self.output_size, self.args, self.number_layers).to(device)
 
 	def save_all_models(self, suffix):
 
@@ -3239,7 +3243,7 @@ class PolicyManager_Imitation(PolicyManager_Pretrain, PolicyManager_BaselineRL):
 			# padded_action_seq = np.concatenate([sample_action_seq, np.zeros((1,self.output_size))],axis=0)
 
 			# Feed concatenated trajectory into the policy. 
-			logprobabilities, _ = self.policy_network.forward(torch.tensor(policy_inputs).cuda().float(), sample_action_seq)
+			logprobabilities, _ = self.policy_network.forward(torch.tensor(policy_inputs).to(device).float(), sample_action_seq)
 
 			if self.args.train:
 				if self.args.debug:
@@ -3456,7 +3460,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		self.target_manager.create_networks()
 
 		# Now must also create discriminator.
-		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.output_size).cuda()
+		self.discriminator_network = DiscreteMLP(self.input_size, self.hidden_size, self.output_size).to(device)
 
 	def create_training_ops(self):
 
@@ -3541,7 +3545,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		else: 
 			trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
 			# Torchify trajectory segment.
-			torch_traj_seg = torch.tensor(trajectory_segment).cuda().float()
+			torch_traj_seg = torch.tensor(trajectory_segment).to(device).float()
 
 		if trajectory_segment is not None:
 			############# (1) #############
@@ -3815,7 +3819,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Pretend the label was the opposite of what it is, and train the encoder to make the discriminator think this was what was true. 
 		# I.e. train encoder to make discriminator maximize likelihood of wrong label.
 
-		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+		self.discriminability_loss = self.negative_log_likelihood_loss_function(discriminator_loglikelihood.squeeze(1), torch.tensor(1-domain).to(device).long().view(1,))
 
 		# Total encoder loss: 
 		self.total_VAE_loss = self.vae_loss_weight*self.VAE_loss + self.discriminability_loss_weight*self.discriminability_loss	
@@ -3837,7 +3841,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		discriminator_logprob, discriminator_prob = self.discriminator_network(latent_z.detach())
 
 		# Compute discriminator loss for discriminator. 
-		self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+		self.discriminator_loss = self.negative_log_likelihood_loss_function(discriminator_logprob.squeeze(1), torch.tensor(domain).to(device).long().view(1,))		
 		
 		if not(self.skip_discriminator):
 			# Now go backward and take a step.
@@ -3967,8 +3971,8 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	# 	# make them LSTM networks, rather than MLPs. 
 
 	# 	# # We have the encoder network class that's perfect for this. Output size is 2. 
-	# 	# self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
-	# 	# self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).cuda()
+	# 	# self.source_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).to(device)
+	# 	# self.target_discriminator = EncoderNetwork(self.source_manager.input_size, self.hidden_size, self.output_size).to(device)
 
 	def create_training_ops(self):
 
@@ -4042,9 +4046,9 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Remember, the differentiable rollout is required because the backtranslation / cycle-consistency loss needs to be propagated through multiple sets of translations. 
 		# Therefore it must pass through the decoder network(s), and through the latent_z's. (It doesn't actually pass through the states / actions?).		
 
-		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
-		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).cuda().float()
-		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).cuda().float()	
+		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
+		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).to(device).float()
+		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).to(device).float()	
 
 		if rollout_length is not None: 
 			length = rollout_length-1
@@ -4066,7 +4070,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
 
 			# New input row. 
-			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).cuda().float()
+			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
 			input_row[0,:self.state_dim] = new_state
 			# Feed in the ORIGINAL prediction from the network as input. Not the downscaled thing. 
 			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
@@ -4148,7 +4152,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Get z discriminator logprobabilities.
 		z_discriminator_logprob, z_discriminator_prob = self.discriminator_network(dictionary['source_latent_z'])
 		# Compute discriminability loss. Remember, this is not used for training the discriminator, but rather the encoders.
-		self.z_discriminability_loss = self.negative_log_likelihood_loss_function(z_discriminator_logprob.squeeze(1), torch.tensor(1-domain).cuda().long().view(1,))
+		self.z_discriminability_loss = self.negative_log_likelihood_loss_function(z_discriminator_logprob.squeeze(1), torch.tensor(1-domain).to(device).long().view(1,))
 
 		###### Block that computes discriminability losses assuming we are using trjaectory discriminators. ######
 
@@ -4160,7 +4164,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# traj_discriminator_logprob, traj_discriminator_prob = source_discriminator(trajectory)
 
 		# # Compute trajectory discriminability loss, based on whether the trajectory was original or reconstructed.
-		# self.traj_discriminability_loss = self.negative_log_likelihood_loss_function(traj_discriminator_logprob.squeeze(1), torch.tensor(1-original_or_reconstructed).cuda().long().view(1,))
+		# self.traj_discriminability_loss = self.negative_log_likelihood_loss_function(traj_discriminator_logprob.squeeze(1), torch.tensor(1-original_or_reconstructed).to(device).long().view(1,))
 
 		####################################
 		# (3) Compute cycle-consistency losses.
@@ -4202,7 +4206,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		z_discriminator_detach_logprob, z_discriminator_detach_prob = self.discriminator_network(dictionary['source_latent_z'].detach())
 
 		# Compute discriminator loss for discriminator. 
-		self.z_discriminator_loss = self.negative_log_likelihood_loss_function(z_discriminator_detach_logprob.squeeze(1), torch.tensor(domain).cuda().long().view(1,))		
+		self.z_discriminator_loss = self.negative_log_likelihood_loss_function(z_discriminator_detach_logprob.squeeze(1), torch.tensor(domain).to(device).long().view(1,))		
 		
 		if not(self.skip_discriminator):
 			# Now go backward and take a step.
