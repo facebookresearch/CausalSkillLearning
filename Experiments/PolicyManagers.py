@@ -3901,7 +3901,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 	# Run memory profiling.
 	# @profile 
 
-	def set_neighbor_objects(self, computed_sets):
+	def set_neighbor_objects(self, computed_sets=False):
 		if not(computed_sets):
 			self.source_manager.get_trajectory_and_latent_sets()
 			self.target_manager.get_trajectory_and_latent_sets()
