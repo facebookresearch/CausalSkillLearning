@@ -32,7 +32,8 @@ class PolicyManager_BaseClass():
 
 		if self.args.setting=='imitation':
 			extent = self.dataset.get_number_task_demos(self.demo_task_index)
-		if self.args.setting=='transfer' and isinstance(self, PolicyManager_Transfer):
+		if (self.args.setting=='transfer' and isinstance(self, PolicyManager_Transfer)) or \
+			(self.args.setting=='cycle_transfer' and isinstance(self, PolicyManager_CycleConsistencyTransfer)):
 				extent = self.extent
 		else:
 			extent = len(self.dataset)-self.test_set_size
@@ -185,7 +186,7 @@ class PolicyManager_BaseClass():
 			# For every item in the epoch:
 			if self.args.setting=='imitation':
 				extent = self.dataset.get_number_task_demos(self.demo_task_index)
-			if self.args.setting=='transfer':
+			if self.args.setting=='transfer' or self.args.setting=='cycle_transfer':
 				extent = self.extent
 			else:
 				extent = len(self.dataset)-self.test_set_size
