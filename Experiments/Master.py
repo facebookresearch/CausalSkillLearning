@@ -72,7 +72,7 @@ class Master():
 		self.policy_manager.setup()
 
 	def run(self):
-		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or \ 
+		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or \
 			self.args.setting=='imitation' or self.args.setting=='baselineRL' or self.args.setting=='downstreamRL' or \
 			 self.args.setting=='transfer' or self.args.setting=='cycle_transfer':
 			if self.args.train:
