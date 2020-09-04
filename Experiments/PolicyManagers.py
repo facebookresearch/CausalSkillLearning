@@ -6,7 +6,7 @@
 
 from headers import *
 from PolicyNetworks import *
-from Visualizers import BaxterVisualizer, SawyerVisualizer, MocapVisualizer, ToyDataVisualizer
+from Visualizers import BaxterVisualizer, SawyerVisualizer, ToyDataVisualizer #, MocapVisualizer
 import TFLogger, DMP, RLUtils
 
 class PolicyManager_BaseClass():
@@ -4285,5 +4285,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		self.update_networks(dictionary, source_policy_manager)
 
-			viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
-			self.update_plots(counter, viz_dict)
+			# viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
+			# self.update_plots(counter, viz_dict)
+
+			
