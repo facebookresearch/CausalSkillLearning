@@ -4057,8 +4057,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		trajectory_set = trajectory_set_list[1-domain]
 
 		# Next get closest target z. 
-		embed()
-		_ , target_latent_z_index = neighbor_object.kneighbors(source_latent_z.detach().cpu().numpy())
+		_ , target_latent_z_index = neighbor_object.kneighbors(source_latent_z.squeeze(0).detach().cpu().numpy())
 
 		# Don't actually need the target_latent_z, unless we're doing differentiable nearest neighbor transfer. 
 		# Now get the corresponding trajectory. 
