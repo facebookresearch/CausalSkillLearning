@@ -4107,11 +4107,11 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		return domain, source_policy_manager, target_policy_manager
 
-	def cross_domain_decoding(self, domain_manager, latent_z, start_state=None):
+	def cross_domain_decoding(self, domain, domain_manager, latent_z, start_state=None):
 
 		# If start state is none, first get start state, else use the argument. 
 		if start_state is None: 
-			start_state = self.get_start_state(latent_z)
+			start_state = self.get_start_state(domain, latent_z)
 
 		# Now rollout in target domain.
 		differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
@@ -4274,7 +4274,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (3 b) Cross domain decoding. 
 		####################################
 		
-		target_dict['target_trajectory_rollout'], target_dict['target_subpolicy_inputs'] = self.cross_domain_decoding(target_policy_manager, dictionary['source_latent_z'])
+		target_dict['target_trajectory_rollout'], target_dict['target_subpolicy_inputs'] = self.cross_domain_decoding(domain, target_policy_manager, dictionary['source_latent_z'])
 
 		####################################
 		# (3 c) Cross domain encoding of target_trajectory_rollout into target latent_z. 
@@ -4287,7 +4287,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Can use the original start state, or also use the reverse trick for start state. Try both maybe.
 		####################################
 
-		source_trajectory_rollout, dictionary['source_subpolicy_inputs_crossdomain'] = self.cross_domain_decoding(source_policy_manager, dictionary['target_latent_z'], start_state=dictionary['source_subpolicy_inputs'][0,:self.state_dim].detach().cpu().numpy())
+		source_trajectory_rollout, dictionary['source_subpolicy_inputs_crossdomain'] = self.cross_domain_decoding(domain, source_policy_manager, dictionary['target_latent_z'], start_state=dictionary['source_subpolicy_inputs'][0,:self.state_dim].detach().cpu().numpy())
 
 		####################################
 		# (4) Feed source and target latent z's to z_discriminator.
