@@ -3900,11 +3900,8 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 	# Run memory profiling.
 	# @profile 
-	def evaluate_correspondence_metrics(self, computed_sets=True):
 
-		print("Evaluating correspondence metrics.")
-		# Evaluate the correspondence and alignment metrics. 
-		# Whether latent_z_sets and trajectory_sets are already computed for each manager.
+	def set_neighbor_objects(self, computed_sets):
 		if not(computed_sets):
 			self.source_manager.get_trajectory_and_latent_sets()
 			self.target_manager.get_trajectory_and_latent_sets()
@@ -3912,6 +3909,23 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		# Compute nearest neighbors for each set. First build KD-Trees / Ball-Trees. 
 		self.source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
 		self.target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
+
+		self.neighbor_obj_set = True
+
+	def evaluate_correspondence_metrics(self, computed_sets=True):
+
+		print("Evaluating correspondence metrics.")
+		# Evaluate the correspondence and alignment metrics. 
+		# Whether latent_z_sets and trajectory_sets are already computed for each manager.
+		self.set_neighbor_objects(computed_sets)
+
+		# if not(computed_sets):
+		# 	self.source_manager.get_trajectory_and_latent_sets()
+		# 	self.target_manager.get_trajectory_and_latent_sets()
+
+		# # Compute nearest neighbors for each set. First build KD-Trees / Ball-Trees. 
+		# self.source_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.source_manager.latent_z_set)
+		# self.target_neighbors_object = NearestNeighbors(n_neighbors=1, algorithm='auto').fit(self.target_manager.latent_z_set)
 
 		# Compute neighbors. 
 		_, source_target_neighbors = self.source_neighbors_object.kneighbors(self.target_manager.latent_z_set)
@@ -3969,6 +3983,8 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 	def __init__(self, args=None, source_dataset=None, target_dataset=None):
 
 		super(PolicyManager_CycleConsistencyTransfer, self).__init__(args, source_dataset, target_dataset)
+
+		self.neighbor_obj_set = False
 
 	# Don't actually need to define these functions since they perform same steps as super functions.
 	# def create_networks(self):
@@ -4028,6 +4044,9 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# How we do this is first to retrieve the target domain latent z closest to the source_latent_z. 
 		# We then select the trajectory corresponding to this target_domain latent_z.
 		# We then copy the start state of this trajectory. 
+
+		if not(self.neighbor_obj_set):
+			self.set_neighbor_objects()
 
 		# First get neighbor object and trajectory sets. 
 		neighbor_object_list = [self.source_neighbors_object, self.target_neighbors_object]
@@ -4303,8 +4322,6 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		# viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
 		# self.update_plots(counter, viz_dict)
-
-		
 
 		# Encode decode function: First encodes, takes trajectory segment, and outputs latent z. The latent z is then provided to decoder (along with initial state), and then we get SOURCE domain subpolicy inputs. 
 		# Cross domain decoding function: Takes encoded latent z (and start state), and then rolls out with target decoder. Function returns, target trajectory, action sequence, and TARGET domain subpolicy inputs. 
