@@ -3523,7 +3523,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 
 		return source_trajectory_segment, source_action_seq, target_trajectory_segment, target_action_seq
 
-	def encode_decode_trajectory(self, policy_manager, i, return_trajectory=False):
+	def encode_decode_trajectory(self, policy_manager, i, return_trajectory=False, trajectory_input=None):
 
 		# This should basically replicate the encode-decode steps in run_iteration of the Pretrain_PolicyManager. 
 
@@ -3537,11 +3537,7 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 		if trajectory_input is not None: 
 
 			# Grab trajectory segment from tuple. 
-			torch_traj_seg = trajectory_input_tuple[0]
-			# Grab action seq.  
-			sample_action_seq = trajectory_input_tuple[1]
-			# Grab state (only) seq. 
-			sample_traj = trajectory_input_tuple[2]
+			torch_traj_seg = trajectory_input['target_trajectory_rollout']
 			
 		else: 
 			trajectory_segment, sample_action_seq, sample_traj = policy_manager.get_trajectory_segment(i)
@@ -3557,7 +3553,19 @@ class PolicyManager_Transfer(PolicyManager_BaseClass):
 			# Feed latent z and trajectory segment into policy network and evaluate likelihood. 
 			latent_z_seq, latent_b = policy_manager.construct_dummy_latents(latent_z)
 
-			_, subpolicy_inputs, sample_action_seq = policy_manager.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
+			# If we are using the pre-computed trajectory input, (in second encode_decode call, from target trajectory to target latent z.)
+			# Don't assemble trajectory in numpy, just take the previous subpolicy_inputs, and then clone it and replace the latent z in it.
+			if trajectory_input is not None: 
+
+				# Now assigned trajectory_input['target_subpolicy_inputs'].clone() to SubPolicy_inputs, and then replace the latent z's.
+				subpolicy_inputs = trajectory_input['target_subpolicy_inputs'].clone()
+				subpolicy_inputs[:,2*self.state_dim:-1] = latent_z_seq
+
+				# Now get "sample_action_seq" for forward function. 
+				sample_action_seq = subpolicy_inputs[:,self.state_dim:2*self.state_dim].clone()
+
+			else:
+				_, subpolicy_inputs, sample_action_seq = policy_manager.assemble_inputs(trajectory_segment, latent_z_seq, latent_b, sample_action_seq)
 
 			# Policy net doesn't use the decay epislon. (Because we never sample from it in training, only rollouts.)
 			loglikelihoods, _ = policy_manager.policy_network.forward(subpolicy_inputs, sample_action_seq)
@@ -4098,7 +4106,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		target_policy_manager = self.get_domain_manager(1-domain) 
 
 		return domain, source_policy_manager, target_policy_manager
-		
+
 	def cross_domain_decoding(self, domain_manager, latent_z, start_state=None):
 
 		# If start state is none, first get start state, else use the argument. 
@@ -4108,7 +4116,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# Now rollout in target domain.
 		differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
 
-		return trajectory_rollout, subpolicy_inputs
+		return differentiable_trajectory, subpolicy_inputs
 
 	def update_networks(self, dictionary, source_policy_manager):
 
@@ -4248,6 +4256,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		self.set_iteration(counter)
 		dictionary = {}
+		target_dict = {}
 
 		####################################
 		# (1) Select which domain to use as source domain (also supervision of z discriminator for this iteration). 
@@ -4265,13 +4274,13 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		# (3 b) Cross domain decoding. 
 		####################################
 		
-		target_trajectory_rollout, target_subpolicy_inputs = self.cross_domain_decoding(target_policy_manager, dictionary['source_latent_z'])
+		target_dict['target_trajectory_rollout'], target_dict['target_subpolicy_inputs'] = self.cross_domain_decoding(target_policy_manager, dictionary['source_latent_z'])
 
 		####################################
 		# (3 c) Cross domain encoding of target_trajectory_rollout into target latent_z. 
 		####################################
 
-		dictionary['target_subpolicy_inputs'], dictionary['target_latent_z'], dictionary['target_loglikelihood'], dictionary['target_kl_divergence'] = self.encode_decode_trajectory(target_policy_manager, i)
+		dictionary['target_subpolicy_inputs'], dictionary['target_latent_z'], dictionary['target_loglikelihood'], dictionary['target_kl_divergence'] = self.encode_decode_trajectory(target_policy_manager, i, trajectory_input=target_dict)
 
 		####################################
 		# (3 d) Cross domain decoding of target_latent_z into source trajectory. 
@@ -4292,7 +4301,11 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		self.update_networks(dictionary, source_policy_manager)
 
-			# viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
-			# self.update_plots(counter, viz_dict)
+		# viz_dict = {'domain': domain, 'discriminator_probs': discriminator_prob.squeeze(0).squeeze(0)[domain].detach().cpu().numpy()}			
+		# self.update_plots(counter, viz_dict)
 
-			
+		
+
+		# Encode decode function: First encodes, takes trajectory segment, and outputs latent z. The latent z is then provided to decoder (along with initial state), and then we get SOURCE domain subpolicy inputs. 
+		# Cross domain decoding function: Takes encoded latent z (and start state), and then rolls out with target decoder. Function returns, target trajectory, action sequence, and TARGET domain subpolicy inputs. 
+
