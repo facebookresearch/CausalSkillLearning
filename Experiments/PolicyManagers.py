@@ -3985,7 +3985,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		# Instead of using the individuals policy manager optimizers, use one single optimizer. 
 		self.parameter_list = self.source_manager.parameter_list + self.target_manager.parameter_list
-		self.optimizer = torch.opt.Adam(self.parameter_list, lr=self.learning_rate)
+		self.optimizer = torch.optim.Adam(self.parameter_list, lr=self.learning_rate)
 
 	# def save_all_models(self, suffix):
 
