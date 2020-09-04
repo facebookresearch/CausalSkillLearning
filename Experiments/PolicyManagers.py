@@ -4097,6 +4097,8 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 		source_policy_manager = self.get_domain_manager(domain) 
 		target_policy_manager = self.get_domain_manager(1-domain) 
 
+		return domain, source_policy_manager, target_policy_manager
+		
 	def cross_domain_decoding(self, domain_manager, latent_z, start_state=None):
 
 		# If start state is none, first get start state, else use the argument. 
