@@ -4068,25 +4068,27 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 
 		return start_state
 
-	def differentiable_rollout(self, trajectory_start, latent_z, rollout_length=None):
+	def differentiable_rollout(self, policy_manager, trajectory_start, latent_z, rollout_length=None):
+		# Now implementing a differentiable_rollout function that takes in a policy manager.
+
 		# Copying over from rollout_robot_trajectory. This function should provide rollout template, but may need modifications for differentiability. 
 
 		# Remember, the differentiable rollout is required because the backtranslation / cycle-consistency loss needs to be propagated through multiple sets of translations. 
 		# Therefore it must pass through the decoder network(s), and through the latent_z's. (It doesn't actually pass through the states / actions?).		
 
-		subpolicy_inputs = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
-		subpolicy_inputs[0,:self.state_dim] = torch.tensor(trajectory_start).to(device).float()
-		subpolicy_inputs[:,2*self.state_dim:] = torch.tensor(latent_z).to(device).float()	
+		subpolicy_inputs = torch.zeros((1,2*policy_manager.state_dim+policy_manager.latent_z_dimensionality)).to(device).float()
+		subpolicy_inputs[0,:policy_manager.state_dim] = torch.tensor(trajectory_start).to(device).float()
+		subpolicy_inputs[:,2*policy_manager.state_dim:] = torch.tensor(latent_z).to(device).float()	
 
 		if rollout_length is not None: 
 			length = rollout_length-1
 		else:
-			length = self.rollout_timesteps-1
+			length = policy_manager.rollout_timesteps-1
 
 		for t in range(length):
 
 			# Get actions from the policy.
-			actions = self.policy_network.reparameterized_get_actions(subpolicy_inputs, greedy=True)
+			actions = policy_manager.policy_network.reparameterized_get_actions(subpolicy_inputs, greedy=True)
 
 			# Select last action to execute. 
 			action_to_execute = actions[-1].squeeze(1)
@@ -4095,24 +4097,22 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			action_to_execute = action_to_execute/self.args.action_scale_factor
 
 			# Compute next state. 
-			new_state = subpolicy_inputs[t,:self.state_dim]+action_to_execute
+			new_state = subpolicy_inputs[t,:policy_manager.state_dim]+action_to_execute
 
 			# New input row. 
-			input_row = torch.zeros((1,2*self.state_dim+self.latent_z_dimensionality)).to(device).float()
-			input_row[0,:self.state_dim] = new_state
+			input_row = torch.zeros((1,2*policy_manager.state_dim+policy_manager.latent_z_dimensionality)).to(device).float()
+			input_row[0,:policy_manager.state_dim] = new_state
 			# Feed in the ORIGINAL prediction from the network as input. Not the downscaled thing. 
-			input_row[0,self.state_dim:2*self.state_dim] = actions[-1].squeeze(1)
-			input_row[0,2*self.state_dim:] = latent_z
+			input_row[0,policy_manager.state_dim:2*policy_manager.state_dim] = actions[-1].squeeze(1)
+			input_row[0,2*policy_manager.state_dim:] = latent_z
 
 			# Now that we have assembled the new input row, concatenate it along temporal dimension with previous inputs. 
 			subpolicy_inputs = torch.cat([subpolicy_inputs,input_row],dim=0)
 
-		trajectory = subpolicy_inputs[:,:self.state_dim].detach().cpu().numpy()
-		differentiable_trajectory = subpolicy_inputs[:,:self.state_dim]
-		differentiable_action_seq = subpolicy_inputs[:,self.state_dim:2*self.state_dim]
-		differentiable_state_action_seq = subpolicy_inputs[:,:2*self.state_dim]
-
-		# return trajectory
+		trajectory = subpolicy_inputs[:,:policy_manager.state_dim].detach().cpu().numpy()
+		differentiable_trajectory = subpolicy_inputs[:,:policy_manager.state_dim]
+		differentiable_action_seq = subpolicy_inputs[:,policy_manager.state_dim:2*policy_manager.state_dim]
+		differentiable_state_action_seq = subpolicy_inputs[:,:2*policy_manager.state_dim]
 
 		# For differentiabiity, return tuple of trajectory, actions, state actions, and subpolicy_inputs. 
 		return [differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs]
