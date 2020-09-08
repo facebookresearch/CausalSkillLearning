@@ -6,6 +6,10 @@
 
 from headers import *
 
+# Check if CUDA is available, set device to GPU if it is, otherwise use CPU.
+use_cuda = torch.cuda.is_available()
+device = torch.device("cuda" if use_cuda else "cpu")
+
 class PolicyNetwork_BaseClass(torch.nn.Module):
 	
 	def __init__(self):
@@ -32,7 +36,7 @@ class PolicyNetwork_BaseClass(torch.nn.Module):
 	def select_epsilon_greedy_action(self, action_probabilities, epsilon=0.1):
 		epsilon = epsilon
 
-		whether_greedy = torch.rand(action_probabilities.shape[0]).cuda()
+		whether_greedy = torch.rand(action_probabilities.shape[0]).to(device)
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
@@ -145,11 +149,11 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 	def forward(self, input, action_sequence, epsilon=0.001):
 		# Input is the trajectory sequence of shape: Sequence_Length x 1 x Input_Size. 
 		# Here, we also need the continuous actions as input to evaluate their logprobability / probability. 		
-		# format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().cuda()
+		# format_input = torch.tensor(input).view(input.shape[0], self.batch_size, self.input_size).float().to(device)
 		format_input = input.view((input.shape[0], self.batch_size, self.input_size))
 
 		hidden = None
-		format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
+		format_action_seq = torch.from_numpy(action_sequence).to(device).float().view(action_sequence.shape[0],1,self.output_size)
 		lstm_outputs, hidden = self.lstm(format_input)
 
 		# Predict Gaussian means and variances. 
@@ -252,7 +256,7 @@ class ContinuousPolicyNetwork(PolicyNetwork_BaseClass):
 		format_input_z2 = input_z2.view(input_z2.shape[0], self.batch_size, self.input_size)
 
 		hidden = None
-		# format_action_seq = torch.from_numpy(action_sequence).cuda().float().view(action_sequence.shape[0],1,self.output_size)
+		# format_action_seq = torch.from_numpy(action_sequence).to(device).float().view(action_sequence.shape[0],1,self.output_size)
 		lstm_outputs_z1, _ = self.lstm(format_input_z1)
 		# Reset hidden? 
 		lstm_outputs_z2, _ = self.lstm(format_input_z2)
@@ -303,7 +307,7 @@ class LatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.batch_size = batch_size
 
 		# Define LSTM. 
-		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
+		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).to(device)
 
 		# # Try initializing the network to something, so that we can escape the stupid constant output business.
 		for name, param in self.lstm.named_parameters():
@@ -385,7 +389,7 @@ class ContinuousLatentPolicyNetwork(PolicyNetwork_BaseClass):
 		self.batch_size = self.args.batch_size
 
 		# Define LSTM. 
-		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).cuda()
+		self.lstm = torch.nn.LSTM(input_size=self.input_size,hidden_size=self.hidden_size,num_layers=self.num_layers).to(device)
 
 		# Transform to output space - Latent z and Latent b. 
 		# self.subpolicy_output_layer = torch.nn.Linear(self.hidden_size,self.output_size)
@@ -571,7 +575,7 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 				max_limit = 20
 				skill_time_limit = max_limit-1	
 
-		prior_value = torch.zeros((1,2)).cuda().float()
+		prior_value = torch.zeros((1,2)).to(device).float()
 		# If at or over hard limit.
 		if elapsed_t>=max_limit:
 			prior_value[0,1]=1.
@@ -580,7 +584,7 @@ class ContinuousLatentPolicyNetwork_ConstrainedBPrior(ContinuousLatentPolicyNetw
 		elif elapsed_t>=skill_time_limit:
 	
 			if self.args.var_skill_length:
-				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).cuda().float()
+				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).to(device).float()
 			else:
 				# Random
 				prior_value[0,1]=0. 
@@ -807,7 +811,7 @@ class VariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# Sample an array of binary variables of size = batch size. 
 		# For each, use greedy or ... 
 
-		whether_greedy = torch.rand(action_probabilities.shape[0]).cuda()
+		whether_greedy = torch.rand(action_probabilities.shape[0]).to(device)
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
@@ -922,7 +926,7 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		variational_z_probabilities = None
 
 		# Set standard distribution for KL. 
-		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).to(device),torch.eye((self.output_size)).to(device))
 		# Compute KL.
 		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
 
@@ -961,7 +965,7 @@ class ContinuousVariationalPolicyNetwork(PolicyNetwork_BaseClass):
 		# Sample an array of binary variables of size = batch size. 
 		# For each, use greedy or ... 
 
-		whether_greedy = torch.rand(action_probabilities.shape[0]).cuda()
+		whether_greedy = torch.rand(action_probabilities.shape[0]).to(device)
 		sample_actions = torch.where(whether_greedy<epsilon, self.sample_action(action_probabilities), self.select_greedy_action(action_probabilities))
 
 		return sample_actions
@@ -992,7 +996,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 				max_limit = 20
 				skill_time_limit = max_limit-1	
 
-		prior_value = torch.zeros((1,2)).cuda().float()
+		prior_value = torch.zeros((1,2)).to(device).float()
 		# If at or over hard limit.
 		if elapsed_t>=max_limit:
 			prior_value[0,1]=1.
@@ -1001,7 +1005,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		elif elapsed_t>=skill_time_limit:
 	
 			if self.args.var_skill_length:
-				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).cuda().float()
+				prior_value[0] = torch.tensor(prob_biases[elapsed_t-skill_time_limit]).to(device).float()
 			else:
 				# Random
 				prior_value[0,1]=0. 
@@ -1035,10 +1039,10 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 
 		prev_time = 0
 		# Create variables for prior and probs.
-		prior_values = torch.zeros_like(variational_b_preprobabilities).cuda().float()
-		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
-		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
-		sampled_b = torch.zeros(input.shape[0]).cuda().int()
+		prior_values = torch.zeros_like(variational_b_preprobabilities).to(device).float()
+		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).to(device).float()
+		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).to(device).float()
+		sampled_b = torch.zeros(input.shape[0]).to(device).int()
 		sampled_b[0] = 1
 		
 		for t in range(1,input.shape[0]):
@@ -1102,7 +1106,7 @@ class ContinuousVariationalPolicyNetwork_BPrior(ContinuousVariationalPolicyNetwo
 		variational_z_probabilities = None
 
 		# Set standard distribution for KL. 
-		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).to(device),torch.eye((self.output_size)).to(device))
 		# Compute KL.
 		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
 
@@ -1148,16 +1152,16 @@ class ContinuousVariationalPolicyNetwork_ConstrainedBPrior(ContinuousVariational
 		self.dists = torch.distributions.MultivariateNormal(mean_outputs, torch.diag_embed(variance_outputs))
 
 		# Create variables for prior and probabilities.
-		prior_values = torch.zeros_like(variational_b_preprobabilities).cuda().float()
-		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
-		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).cuda().float()
+		prior_values = torch.zeros_like(variational_b_preprobabilities).to(device).float()
+		variational_b_probabilities = torch.zeros_like(variational_b_preprobabilities).to(device).float()
+		variational_b_logprobabilities = torch.zeros_like(variational_b_preprobabilities).to(device).float()
 
 		#######################################
 		################ Set B ################
 		#######################################
 
 		# Set the first b to 1, and the time b was == 1. 		
-		sampled_b = torch.zeros(input.shape[0]).cuda().int()
+		sampled_b = torch.zeros(input.shape[0]).to(device).int()
 		sampled_b[0] = 1
 		prev_time = 0
 
@@ -1233,7 +1237,7 @@ class ContinuousVariationalPolicyNetwork_ConstrainedBPrior(ContinuousVariational
 		variational_z_probabilities = None
 
 		# Set standard distribution for KL. 
-		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).to(device),torch.eye((self.output_size)).to(device))
 		# Compute KL.
 		kl_divergence = torch.distributions.kl_divergence(self.dists, standard_distribution)
 
@@ -1382,7 +1386,7 @@ class ContinuousEncoderNetwork(PolicyNetwork_BaseClass):
 		logprobability = dist.log_prob(latent_z)
 
 		# Set standard distribution for KL. 
-		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).cuda(),torch.eye((self.output_size)).cuda())
+		standard_distribution = torch.distributions.MultivariateNormal(torch.zeros((self.output_size)).to(device),torch.eye((self.output_size)).to(device))
 		# Compute KL.
 		kl_divergence = torch.distributions.kl_divergence(dist, standard_distribution)
 
