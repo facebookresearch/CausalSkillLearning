@@ -4133,7 +4133,7 @@ class PolicyManager_CycleConsistencyTransfer(PolicyManager_Transfer):
 			start_state = self.get_start_state(domain, latent_z)
 
 		# Now rollout in target domain.
-		differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs = self.differentiable_rollout(start_state, latent_z)
+		differentiable_trajectory, differentiable_action_seq, differentiable_state_action_seq, subpolicy_inputs = self.differentiable_rollout(domain_manager, start_state, latent_z)
 
 		return differentiable_trajectory, subpolicy_inputs
 
