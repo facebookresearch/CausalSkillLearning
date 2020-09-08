@@ -56,12 +56,14 @@ class Master():
 			self.policy_manager = PolicyManager_DMPBaselines(self.args.number_policies, self.dataset, self.args)
 		elif self.args.setting=='imitation':
 			self.policy_manager = PolicyManager_Imitation(self.args.number_policies, self.dataset, self.args)
-		elif self.args.setting=='transfer':			
-
+		elif self.args.setting=='transfer' or self.args.setting=='cycle_transfer':
 			source_dataset = return_dataset(self.args, data=self.args.source_domain)
 			target_dataset = return_dataset(self.args, data=self.args.target_domain)
 
-			self.policy_manager = PolicyManager_Transfer(args=self.args, source_dataset=source_dataset, target_dataset=target_dataset)
+			if self.args.setting=='transfer':
+				self.policy_manager = PolicyManager_Transfer(args=self.args, source_dataset=source_dataset, target_dataset=target_dataset)
+			elif self.args.setting=='cycle_transfer':
+				self.policy_manager = PolicyManager_CycleConsistencyTransfer(args=self.args, source_dataset=source_dataset, target_dataset=target_dataset)				
 
 		if self.args.debug:
 			embed()
@@ -70,7 +72,9 @@ class Master():
 		self.policy_manager.setup()
 
 	def run(self):
-		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or self.args.setting=='imitation' or self.args.setting=='baselineRL' or self.args.setting=='downstreamRL' or self.args.setting=='transfer':
+		if self.args.setting=='pretrain_sub' or self.args.setting=='pretrain_prior' or \
+			self.args.setting=='imitation' or self.args.setting=='baselineRL' or self.args.setting=='downstreamRL' or \
+			 self.args.setting=='transfer' or self.args.setting=='cycle_transfer':
 			if self.args.train:
 				if self.args.model:
 					self.policy_manager.train(self.args.model)
@@ -115,7 +119,7 @@ def parse_arguments():
 	parser = argparse.ArgumentParser(description='Learning Skills from Demonstrations')
 
 	# Setup training. 
-	parser.add_argument('--datadir', dest='datadir',type=str,default='../DataGenerator/ContData/')
+	parser.add_argument('--datadir', dest='datadir',type=str,default='../Data/ContData/')
 	parser.add_argument('--train',dest='train',type=int,default=0)
 	parser.add_argument('--debug',dest='debug',type=int,default=0)
 	parser.add_argument('--notes',dest='notes',type=str)
@@ -198,6 +202,7 @@ def parse_arguments():
 	parser.add_argument('--vae_loss_weight',dest='vae_loss_weight',type=float,default=1.,help='Weight of VAE loss in cross domain skill transfer.') 	
 	parser.add_argument('--alternating_phase_size',dest='alternating_phase_size',type=int,default=2000, help='Size of alternating training phases.')
 	parser.add_argument('--discriminator_phase_size',dest='discriminator_phase_size',type=int,default=2,help='Factor by which to train discriminator more than generator.')
+	parser.add_argument('--cycle_reconstruction_loss_weight',dest='cycle_reconstruction_loss_weight',type=float,default=1.,help='Weight of the cycle-consistency reconstruction loss term.')
 
 	# Exploration and learning rate parameters. 
 	parser.add_argument('--epsilon_from',dest='epsilon_from',type=float,default=0.3)
