@@ -1,30 +1,68 @@
-# Learning Robot Skills with Temporal Variational Inference
+# Learning Robot Skills with Temporal Variational Inference [![Python](https://img.shields.io/badge/Python-brightgreen.svg)](https://www.python.org)
 
-### What is this? ###
+### Research ###
 
 This repository has code for our ICML 2020 paper on [Learning Robot Skills with Temporal Variational Inference](https://proceedings.icml.cc/static/paper_files/icml/2020/2847-Paper.pdf), authored by Tanmay Shankar and Abhinav Gupta.
 
-### I want a TL;DR of what this paper does. ###
+[PDF](https://arxiv.org/pdf/2006.16232.pdf)
 
-Our paper presents a way to jointly learn robot skills and how to use them from demonstrations in an unsupervised manner. 
-The code implements the training procedure for this across 3 different datasets, and provides tools to visualize the learnt skills.22
+### Description ###
 
-### Cool. Can I use your code? ###
+Our paper presents a way to jointly learn robot skills by placing low-level control policies on higher skills and how to use them from demonstrations in an unsupervised manner. 
+The code implements the training procedure for this across 3 different datasets, and provides tools to visualize the learnt skills.
 
-Yes! If you would like to use our code, please cite our paper and this repository in your work.
+### Referencing ###
+
+If you would like to use our code, please cite our paper and this repository in your work.
+
+@misc{shankar2020learning,
+      title={Learning Robot Skills with Temporal Variational Inference}, 
+      author={Tanmay Shankar and Abhinav Gupta},
+      year={2020},
+      eprint={2006.16232},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG}
+}
+
 Also, be aware of the license for this repository: the Creative Commons Attribution-NonCommercial 4.0 International. Details may be viewed in the License file. 
 
-### I need help, or I have brilliant ideas to make this code even better. ###
+### Contributing ###
 
-Great! Feel free to mail Tanmay (tanmay.shankar@gmail.com), for help, suggestions, questions and feedback. You can also create issues in the repository, if you feel like the problem is pertinent to others. 
+Feel free to mail Tanmay (tanmay.shankar@gmail.com), for help, suggestions, questions and feedback. You can create issues in the repository, if you feel like the problem is pertinent to others. 
 
-### How do I set up this repository? ###
+You can also set pull requests using this guide:
+https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
+
+### Set up repository ###
 
 #### Dependencies ####
 You will need a few packages to be able to run the code in this repository.
 For Robotic environments, you will need to install Mujoco, Mujoco_Py, OpenAI Gym, and Robosuite. [Here](https://docs.google.com/document/d/1V6BJf4R-2TXKO_IEOII5rLJbGj0jrJPptjtBCfczPk8/edit?usp=sharing) is a list of instructions on how to set these up. 
 
-You will also need some standard deep learning packages, Pytorch, Tensorflow, Tensorboard, and TensorboardX. Usually you can just pip install these packages. We recommend using a virtual environment for them. 
+You will also need some standard deep learning packages, Pytorch, Tensorflow, Tensorboard, and TensorboardX. Usually you can just pip install these packages.
+
+Upgrade pip:
+```
+pip install --upgrade pip
+```
+Pytorch: 
+```
+pip3 install torch torchvision
+```
+Tensorflow: 
+```
+pip install tensorflow
+```
+Tensorboard: 
+```
+pip install tensorboard
+```
+TensorboardX: 
+```
+pip install tensorboardX
+```
+
+We recommend using a virtual environment for them. 
 
 #### Data ####
 We run our model on various publicly available datasets, i.e. the [MIME dataset](https://sites.google.com/view/mimedataset), the [Roboturk dataset](https://sites.google.com/view/mimedataset), and the [CMU Mocap dataset](http://mocap.cs.cmu.edu/). In the case of the MIME and Roboturk datasets, we collate relevant data modalities and store them in quickly accessible formats for our code. You can find the links to these files below.
@@ -35,7 +73,7 @@ We run our model on various publicly available datasets, i.e. the [MIME dataset]
 
 Once you have downloaded this data locally, you will want to feed the path to these datasets in the `--dataset_directory` command line flag when you run your code.
 
-### Tell me how to run the code already! ###
+### How to run the code ###
 
 Here is a list of commands to run pre-training and joint skill learning on the various datasets used in our paper. The hyper-parameters specified here are used in our paper. Depending on your use case, you may want to play with these values. For a full list of the hyper-parameters, look at `Experiments/Master.py`. 
 
