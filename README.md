@@ -7,7 +7,7 @@ This repository has code for our ICML 2020 paper on [Learning Robot Skills with 
 ### I want a TL;DR of what this paper does. ###
 
 Our paper presents a way to jointly learn robot skills and how to use them from demonstrations in an unsupervised manner. 
-The code implements the training procedure for this across 3 different datasets, and provides tools to visualize the learnt skills.
+The code implements the training procedure for this across 3 different datasets, and provides tools to visualize the learnt skills.22
 
 ### Cool. Can I use your code? ###
 
